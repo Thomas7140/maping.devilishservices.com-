@@ -1,0 +1,302 @@
+DFBHD MED EDITOR
+MENU TREE, COMMAND SCHEMA AND SCOPE MAPPING
+===========================================
+
+SECTION 1
+MENU TREE
+---------
+
+MENU_TREE
+{
+  MENUMAINWINDOW:
+  {
+    label: "Main Window Menu",
+    scope: "editor",
+    children:
+    [
+      {
+        label: "File",
+        children:
+        [
+          { label: "Clear", id: 134 },
+          { label: "Open", id: 135 },
+          { label: "Save As", id: 136 },
+          { label: "Export Binary Mission", id: 207 },
+          { label: "Save and Export", id: 40027 },
+          { label: "Save and Export w/Stats", id: 40028 },
+          { separator: true },
+          { separator: true },
+          { label: "Exit", id: 137 }
+        ]
+      },
+
+      {
+        label: "Edit",
+        children:
+        [
+          { label: "Redo", id: 40015 },
+          { label: "Undo", id: 40014 },
+          { separator: true },
+          { label: "Cut", id: 160 },
+          { label: "Copy", id: 107 },
+          { label: "Paste", id: 161 },
+          { label: "Delete", id: 162 },
+          { separator: true },
+          { label: "Insert Mode", id: 163 },
+          { separator: true },
+          { label: "Briefing", id: 40007 },
+          { label: "General Information", id: 185 },
+          { label: "Groups", id: 225 },
+          { label: "Area Triggers", id: 40004 },
+          { label: "Waypoints", id: 223 },
+          { label: "Player Waypoint Names", id: 232 },
+          { label: "Events", id: 224 },
+          { label: "Layer Names", id: 231 },
+          { label: "Global Replace", id: 40025 },
+          { label: "Weapon Loadouts", id: 40026 }
+        ]
+      },
+
+      {
+        label: "View",
+        children:
+        [
+          { label: "View by Layer", id: 40010 },
+          { label: "View by Type", id: 218 },
+          { label: "View by Side", id: 219 },
+          { separator: true },
+          { label: "Select Blink Group", id: 40013 },
+          { label: "Select by SSN", id: 40022 }
+        ]
+      },
+
+      {
+        label: "Tools",
+        children:
+        [
+          { label: "Tile Tool", id: 242 },
+          { label: "Run Text Tool", id: 40017 },
+          { separator: true },
+          { label: "Integrity Check", id: 123 },
+          { label: "Wrap Objects", id: 40005 },
+          { label: "Cleanup SSNs", id: 40023 }
+        ]
+      },
+
+      {
+        label: "Page",
+        children:
+        [
+          { label: "Page 1", id: 165 },
+          { label: "Page 2", id: 166 }
+        ]
+      },
+
+      {
+        label: "Info",
+        children:
+        [
+          { label: "About", id: 40006 }
+        ]
+      },
+
+      {
+        label: "Character Map",
+        children:
+        [
+          { label: "Save", id: 40003 }
+        ]
+      }
+    ]
+  },
+
+  MOUSEMENU:
+  {
+    label: "Mouse Context Menu",
+    scope: "editor",
+    children:
+    [
+      { label: "Insert Mode", id: 163 },
+      { separator: true },
+      { label: "Toolbar", id: 242 },
+      { separator: true },
+      { label: "Paste", id: 161 },
+      { separator: true },
+      { label: "Unhide All", id: 186 },
+      { separator: true },
+      { label: "View by Layer", id: 40010 },
+      { label: "View by Type", id: 218 },
+      { label: "View by Side", id: 219 },
+      { separator: true },
+      { label: "Exit Program", id: 137 }
+    ]
+  },
+
+  MOUSEMENUITEM:
+  {
+    label: "Mouse Item Context Menu",
+    scope: "item",
+    children:
+    [
+      { label: "Edit Item Attributes", id: 170 },
+      { separator: true },
+      { label: "Cut", id: 160 },
+      { label: "Copy", id: 107 },
+      { label: "Paste", id: 161 },
+      { separator: true },
+      { label: "Move", id: 184 },
+      { label: "Numeric Move", id: 125 },
+      { label: "Group Rotate", id: 40008 },
+      { label: "Snap to Grid", id: 40001 },
+      { separator: true },
+      { label: "Hide Selected", id: 187 },
+      { label: "Hide Unselected", id: 188 },
+      { label: "Unhide All", id: 186 },
+      { separator: true },
+      { label: "Select This Type", id: 226 },
+      { label: "Select This Group", id: 236 },
+      { label: "Select This BGRP", id: 237 },
+      { label: "Select This WPLIST", id: 238 },
+      { separator: true },
+      { label: "Deselect This Type", id: 239 },
+      { separator: true },
+      { label: "Snap to Terrain", id: 40024 },
+      { separator: true },
+      { label: "Delete", id: 162 }
+    ]
+  }
+}
+
+
+SECTION 2
+COMMAND REGISTRY AND ACTION SCHEMA
+----------------------------------
+
+COMMAND_SCOPE
+{
+  editor,
+  item
+}
+
+COMMANDS
+{
+  134: { scope: editor, name: "file.clear", handler: cmdFileClear },
+  135: { scope: editor, name: "file.open", handler: cmdFileOpen },
+  136: { scope: editor, name: "file.saveAs", handler: cmdFileSaveAs },
+  207: { scope: editor, name: "file.exportBinaryMission", handler: cmdExportBinaryMission },
+  40027: { scope: editor, name: "file.saveAndExport", handler: cmdSaveAndExport },
+  40028: { scope: editor, name: "file.saveAndExportWithStats", handler: cmdSaveAndExportWithStats },
+  137: { scope: editor, name: "app.exit", handler: cmdExit },
+
+  40015: { scope: editor, name: "edit.redo", handler: cmdRedo },
+  40014: { scope: editor, name: "edit.undo", handler: cmdUndo },
+
+  160: { scope: item, name: "edit.cut", handler: cmdCut, enabledWhen: hasSelection },
+  107: { scope: item, name: "edit.copy", handler: cmdCopy, enabledWhen: hasSelection },
+  161: { scope: editor, name: "edit.paste", handler: cmdPaste, enabledWhen: hasClipboard },
+  162: { scope: item, name: "edit.delete", handler: cmdDelete, enabledWhen: hasSelection },
+
+  163: { scope: editor, name: "edit.insertMode", handler: cmdToggleInsertMode },
+
+  40007: { scope: editor, name: "edit.briefing", handler: cmdOpenBriefing },
+  185: { scope: editor, name: "edit.generalInfo", handler: cmdOpenGeneralInfo },
+  225: { scope: editor, name: "edit.groups", handler: cmdOpenGroups },
+  40004: { scope: editor, name: "edit.areaTriggers", handler: cmdOpenAreaTriggers },
+  223: { scope: editor, name: "edit.waypoints", handler: cmdOpenWaypoints },
+  232: { scope: editor, name: "edit.playerWaypointNames", handler: cmdOpenPlayerWaypointNames },
+  224: { scope: editor, name: "edit.events", handler: cmdOpenEvents },
+  231: { scope: editor, name: "edit.layerNames", handler: cmdOpenLayerNames },
+  40025: { scope: editor, name: "edit.globalReplace", handler: cmdGlobalReplace },
+  40026: { scope: editor, name: "edit.weaponLoadouts", handler: cmdWeaponLoadouts },
+
+  40010: { scope: editor, name: "view.byLayer", handler: cmdViewByLayer },
+  218: { scope: editor, name: "view.byType", handler: cmdViewByType },
+  219: { scope: editor, name: "view.bySide", handler: cmdViewBySide },
+  40013: { scope: editor, name: "view.selectBlinkGroup", handler: cmdSelectBlinkGroup },
+  40022: { scope: editor, name: "view.selectBySSN", handler: cmdSelectBySSN },
+
+  242: { scope: editor, name: "tools.tileTool", handler: cmdTileTool },
+  40017: { scope: editor, name: "tools.textTool", handler: cmdRunTextTool },
+  123: { scope: editor, name: "tools.integrityCheck", handler: cmdIntegrityCheck },
+  40005: { scope: editor, name: "tools.wrapObjects", handler: cmdWrapObjects },
+  40023: { scope: editor, name: "tools.cleanupSSNs", handler: cmdCleanupSSNs },
+
+  165: { scope: editor, name: "page.one", handler: cmdPageOne },
+  166: { scope: editor, name: "page.two", handler: cmdPageTwo },
+
+  40006: { scope: editor, name: "info.about", handler: cmdAbout },
+  40003: { scope: editor, name: "characterMap.save", handler: cmdCharMapSave },
+
+  170: { scope: item, name: "item.editAttributes", handler: cmdEditItemAttributes, enabledWhen: hasSelection },
+  184: { scope: item, name: "item.move", handler: cmdMove, enabledWhen: hasSelection },
+  125: { scope: item, name: "item.numericMove", handler: cmdNumericMove, enabledWhen: hasSelection },
+  40008: { scope: item, name: "item.groupRotate", handler: cmdGroupRotate, enabledWhen: hasSelection },
+  40001: { scope: item, name: "item.snapToGrid", handler: cmdSnapToGrid, enabledWhen: hasSelection },
+  187: { scope: item, name: "item.hideSelected", handler: cmdHideSelected, enabledWhen: hasSelection },
+  188: { scope: item, name: "item.hideUnselected", handler: cmdHideUnselected, enabledWhen: hasSelection },
+
+  186: { scope: editor, name: "view.unhideAll", handler: cmdUnhideAll },
+
+  226: { scope: item, name: "select.thisType", handler: cmdSelectThisType, enabledWhen: hasSelection },
+  236: { scope: item, name: "select.thisGroup", handler: cmdSelectThisGroup, enabledWhen: hasSelection },
+  237: { scope: item, name: "select.thisBGRP", handler: cmdSelectThisBGRP, enabledWhen: hasSelection },
+  238: { scope: item, name: "select.thisWPLIST", handler: cmdSelectThisWPLIST, enabledWhen: hasSelection },
+  239: { scope: item, name: "select.deselectThisType", handler: cmdDeselectThisType, enabledWhen: hasSelection },
+
+  40024: { scope: item, name: "item.snapToTerrain", handler: cmdSnapToTerrain, enabledWhen: hasSelection }
+}
+
+
+SECTION 3
+COMMAND DISPATCHER
+------------------
+
+onCommand(id, context)
+{
+  lookup command by id
+  if not found, abort
+
+  if command.scope is item and no selection exists, abort
+
+  if command has enabledWhen predicate and predicate fails, abort
+
+  call handler with context
+}
+
+
+SECTION 4
+HANDLER CONTEXT CONTRACT
+------------------------
+
+CONTEXT OBJECT
+{
+  selection: array of selected items
+  clipboard: clipboard object
+  cursorPosition: world or grid coordinates
+  editorState: global editor state
+}
+
+
+SECTION 5
+SCOPE CLASSIFICATION SUMMARY
+----------------------------
+
+EDITOR WIDE COMMANDS
+- All File menu commands
+- All View menu commands
+- All Tools menu commands
+- All Page menu commands
+- Info and Character Map
+- Dialog based editors (Events, Groups, Waypoints, Area Triggers, Layer Names)
+- Visibility reset (Unhide All)
+- Paste
+
+ITEM SCOPED COMMANDS
+- Edit Item Attributes
+- Cut, Copy, Delete
+- Move and Numeric Move
+- Group Rotate
+- Snap to Grid
+- Snap to Terrain
+- Hide Selected, Hide Unselected
+- Select and Deselect based on selected item properties

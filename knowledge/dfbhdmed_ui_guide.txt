@@ -1,0 +1,1455 @@
+Scope and Evidence Rules
+========================
+
+All statements below are derived solely from evidence extracted from the provided executable, specifically its embedded UI resources and embedded human readable strings. Whenever a behavior cannot be proven from those artifacts alone, it is explicitly marked as UNKNOWN. No external knowledge is used.
+
+High Level UI Topology
+======================
+
+The executable defines a main window menu (resource name 'MENUMAINWINDOW') and two mouse context menus (resource names 'MOUSEMENU' and 'MOUSEMENUITEM'). It also defines multiple dialog templates whose titles and controls indicate distinct editors for map-related concepts such as groups, waypoints, events, area triggers, layer names, and general mission information. The exact docking and placement of these dialogs within the main window, and the exact composition of the main window client area, are not fully recoverable from resources alone; therefore the main window layout beyond the menus and the dialog templates is UNKNOWN.
+
+Menu Resource: MENUMAINWINDOW
+=============================
+
+The executable defines a menu item with the displayed label '!&File' and command identifier UNKNOWN. The hierarchical path in the menu tree is '!&File'.
+The executable defines a menu item with the displayed label '!&Clear' and command identifier 134. The hierarchical path in the menu tree is '!&File > !&Clear'.
+The executable defines a menu item with the displayed label '!&Open' and command identifier 135. The hierarchical path in the menu tree is '!&File > !&Open'.
+The executable defines a menu item with the displayed label '!Save &As' and command identifier 136. The hierarchical path in the menu tree is '!&File > !Save &As'.
+The executable defines a menu item with the displayed label '!&Export Binary Mission' and command identifier 207. The hierarchical path in the menu tree is '!&File > !&Export Binary Mission'.
+The executable defines a menu item with the displayed label '!Save and Export' and command identifier 40027. The hierarchical path in the menu tree is '!&File > !Save and Export'.
+The executable defines a menu item with the displayed label 'Save and Export w/Stats' and command identifier 40028. The hierarchical path in the menu tree is '!&File > Save and Export w/Stats'.
+The executable defines a menu item with the displayed label '!E&xit' and command identifier 137. The hierarchical path in the menu tree is '!&File > !E&xit'.
+The executable defines a menu item with the displayed label '!&Edit' and command identifier UNKNOWN. The hierarchical path in the menu tree is '!&Edit'.
+The executable defines a menu item with the displayed label '!&Redo \tCTRL+Y' and command identifier 40015. The hierarchical path in the menu tree is '!&Edit > !&Redo \tCTRL+Y'.
+The executable defines a menu item with the displayed label '!&Undo \tCTRL+Z' and command identifier 40014. The hierarchical path in the menu tree is '!&Edit > !&Undo \tCTRL+Z'.
+The executable defines a menu item with the displayed label '!Cut' and command identifier 160. The hierarchical path in the menu tree is '!&Edit > !Cut'.
+The executable defines a menu item with the displayed label '!Copy' and command identifier 107. The hierarchical path in the menu tree is '!&Edit > !Copy'.
+The executable defines a menu item with the displayed label '!Paste' and command identifier 161. The hierarchical path in the menu tree is '!&Edit > !Paste'.
+The executable defines a menu item with the displayed label '!Delete' and command identifier 162. The hierarchical path in the menu tree is '!&Edit > !Delete'.
+The executable defines a menu item with the displayed label '!Insert Mode' and command identifier 163. The hierarchical path in the menu tree is '!&Edit > !Insert Mode'.
+The executable defines a menu item with the displayed label '!&Briefing' and command identifier 40007. The hierarchical path in the menu tree is '!&Edit > !&Briefing'.
+The executable defines a menu item with the displayed label '!General &Information' and command identifier 185. The hierarchical path in the menu tree is '!&Edit > !General &Information'.
+The executable defines a menu item with the displayed label '!&Groups' and command identifier 225. The hierarchical path in the menu tree is '!&Edit > !&Groups'.
+The executable defines a menu item with the displayed label '!&Area Triggers' and command identifier 40004. The hierarchical path in the menu tree is '!&Edit > !&Area Triggers'.
+The executable defines a menu item with the displayed label '!&Waypoints' and command identifier 223. The hierarchical path in the menu tree is '!&Edit > !&Waypoints'.
+The executable defines a menu item with the displayed label '&Player Waypoint Names!' and command identifier 232. The hierarchical path in the menu tree is '!&Edit > &Player Waypoint Names!'.
+The executable defines a menu item with the displayed label '!&Events' and command identifier 224. The hierarchical path in the menu tree is '!&Edit > !&Events'.
+The executable defines a menu item with the displayed label '!&Layer Names' and command identifier 231. The hierarchical path in the menu tree is '!&Edit > !&Layer Names'.
+The executable defines a menu item with the displayed label '!&Global Replace' and command identifier 40025. The hierarchical path in the menu tree is '!&Edit > !&Global Replace'.
+The executable defines a menu item with the displayed label 'Weapon Loadouts' and command identifier 40026. The hierarchical path in the menu tree is '!&Edit > Weapon Loadouts'.
+The executable defines a menu item with the displayed label '!&View' and command identifier UNKNOWN. The hierarchical path in the menu tree is '!&View'.
+The executable defines a menu item with the displayed label '!View by &Layer' and command identifier 40010. The hierarchical path in the menu tree is '!&View > !View by &Layer'.
+The executable defines a menu item with the displayed label '!View by &Type' and command identifier 218. The hierarchical path in the menu tree is '!&View > !View by &Type'.
+The executable defines a menu item with the displayed label '!View by &Side' and command identifier 219. The hierarchical path in the menu tree is '!&View > !View by &Side'.
+The executable defines a menu item with the displayed label '!Select &Blink Group' and command identifier 40013. The hierarchical path in the menu tree is '!&View > !Select &Blink Group'.
+The executable defines a menu item with the displayed label '!Select by SSN' and command identifier 40022. The hierarchical path in the menu tree is '!&View > !Select by SSN'.
+The executable defines a menu item with the displayed label '!Tools' and command identifier UNKNOWN. The hierarchical path in the menu tree is '!Tools'.
+The executable defines a menu item with the displayed label 'Tile Tool!' and command identifier 242. The hierarchical path in the menu tree is '!Tools > Tile Tool!'.
+The executable defines a menu item with the displayed label 'run TextTool!' and command identifier 40017. The hierarchical path in the menu tree is '!Tools > run TextTool!'.
+The executable defines a menu item with the displayed label 'Integrity Check...' and command identifier 123. The hierarchical path in the menu tree is '!Tools > Integrity Check...'.
+The executable defines a menu item with the displayed label 'Wrap Objects' and command identifier 40005. The hierarchical path in the menu tree is '!Tools > Wrap Objects'.
+The executable defines a menu item with the displayed label '!&Cleanup SSNs' and command identifier 40023. The hierarchical path in the menu tree is '!Tools > !&Cleanup SSNs'.
+The executable defines a menu item with the displayed label '!Page' and command identifier UNKNOWN. The hierarchical path in the menu tree is '!Page'.
+The executable defines a menu item with the displayed label '!Page 1' and command identifier 165. The hierarchical path in the menu tree is '!Page > !Page 1'.
+The executable defines a menu item with the displayed label '!Page 2' and command identifier 166. The hierarchical path in the menu tree is '!Page > !Page 2'.
+The executable defines a menu item with the displayed label '!&Info' and command identifier UNKNOWN. The hierarchical path in the menu tree is '!&Info'.
+The executable defines a menu item with the displayed label '!&About...' and command identifier 40006. The hierarchical path in the menu tree is '!&Info > !&About...'.
+The executable defines a menu item with the displayed label '!Character Map' and command identifier UNKNOWN. The hierarchical path in the menu tree is '!Character Map'.
+The executable defines a menu item with the displayed label '!&Save' and command identifier 40003. The hierarchical path in the menu tree is '!Character Map > !&Save'.
+
+
+Menu Resource: MOUSEMENU
+========================
+
+The executable defines a menu item with the displayed label 'MouseMenu' and command identifier UNKNOWN. The hierarchical path in the menu tree is 'MouseMenu'.
+The executable defines a menu item with the displayed label 'Insert Mode TEXT' and command identifier 163. The hierarchical path in the menu tree is 'MouseMenu > Insert Mode TEXT'.
+The executable defines a menu item with the displayed label 'Toolbar TEXT' and command identifier 242. The hierarchical path in the menu tree is 'MouseMenu > Toolbar TEXT'.
+The executable defines a menu item with the displayed label 'Paste TEXT' and command identifier 161. The hierarchical path in the menu tree is 'MouseMenu > Paste TEXT'.
+The executable defines a menu item with the displayed label 'Unhide All TEXT' and command identifier 186. The hierarchical path in the menu tree is 'MouseMenu > Unhide All TEXT'.
+The executable defines a menu item with the displayed label 'View by Layer TEXT' and command identifier 40010. The hierarchical path in the menu tree is 'MouseMenu > View by Layer TEXT'.
+The executable defines a menu item with the displayed label 'View by Type TEXT' and command identifier 218. The hierarchical path in the menu tree is 'MouseMenu > View by Type TEXT'.
+The executable defines a menu item with the displayed label 'View by Side TEXT' and command identifier 219. The hierarchical path in the menu tree is 'MouseMenu > View by Side TEXT'.
+The executable defines a menu item with the displayed label 'Exit Program TEXT' and command identifier 137. The hierarchical path in the menu tree is 'MouseMenu > Exit Program TEXT'.
+
+
+Menu Resource: MOUSEMENUITEM
+============================
+
+The executable defines a menu item with the displayed label 'MouseItem' and command identifier UNKNOWN. The hierarchical path in the menu tree is 'MouseItem'.
+The executable defines a menu item with the displayed label '!Edit Item Attributes...' and command identifier 170. The hierarchical path in the menu tree is 'MouseItem > !Edit Item Attributes...'.
+The executable defines a menu item with the displayed label '!Cut' and command identifier 160. The hierarchical path in the menu tree is 'MouseItem > !Cut'.
+The executable defines a menu item with the displayed label '!Copy' and command identifier 107. The hierarchical path in the menu tree is 'MouseItem > !Copy'.
+The executable defines a menu item with the displayed label '!Paste' and command identifier 161. The hierarchical path in the menu tree is 'MouseItem > !Paste'.
+The executable defines a menu item with the displayed label '!Move' and command identifier 184. The hierarchical path in the menu tree is 'MouseItem > !Move'.
+The executable defines a menu item with the displayed label 'Numeric Move...' and command identifier 125. The hierarchical path in the menu tree is 'MouseItem > Numeric Move...'.
+The executable defines a menu item with the displayed label '!Group Rotate...' and command identifier 40008. The hierarchical path in the menu tree is 'MouseItem > !Group Rotate...'.
+The executable defines a menu item with the displayed label '!Snap to Grid' and command identifier 40001. The hierarchical path in the menu tree is 'MouseItem > !Snap to Grid'.
+The executable defines a menu item with the displayed label 'Hide Selected TEXT' and command identifier 187. The hierarchical path in the menu tree is 'MouseItem > Hide Selected TEXT'.
+The executable defines a menu item with the displayed label 'Hide Unselected TEXT' and command identifier 188. The hierarchical path in the menu tree is 'MouseItem > Hide Unselected TEXT'.
+The executable defines a menu item with the displayed label 'Unhide All TEXT' and command identifier 186. The hierarchical path in the menu tree is 'MouseItem > Unhide All TEXT'.
+The executable defines a menu item with the displayed label 'Select This Type TEXT' and command identifier 226. The hierarchical path in the menu tree is 'MouseItem > Select This Type TEXT'.
+The executable defines a menu item with the displayed label '!Select This Group' and command identifier 236. The hierarchical path in the menu tree is 'MouseItem > !Select This Group'.
+The executable defines a menu item with the displayed label '!Select This BGRP' and command identifier 237. The hierarchical path in the menu tree is 'MouseItem > !Select This BGRP'.
+The executable defines a menu item with the displayed label '!Select This WPLIST' and command identifier 238. The hierarchical path in the menu tree is 'MouseItem > !Select This WPLIST'.
+The executable defines a menu item with the displayed label '!Deselect This Type' and command identifier 239. The hierarchical path in the menu tree is 'MouseItem > !Deselect This Type'.
+The executable defines a menu item with the displayed label '!Snap to terrain' and command identifier 40024. The hierarchical path in the menu tree is 'MouseItem > !Snap to terrain'.
+The executable defines a menu item with the displayed label 'Delete TEXT' and command identifier 162. The hierarchical path in the menu tree is 'MouseItem > Delete TEXT'.
+
+
+Dialog Inventory and Intended Roles
+===================================
+
+Dialog templates provide direct evidence of which dedicated configuration windows exist and which fields they expose. Linkage between a specific menu command identifier and a specific dialog template is not directly present in resources and is therefore UNKNOWN unless a dialog name or title matches the menu label text exactly.
+
+Dialog Resource: 101
+====================
+
+Dialog title text is 'Mis Object Switcher'. The dialog client rectangle in dialog units is x=0, y=0, w=164, h=184. The dialog font is point size 8 with face name 'MS Sans Serif' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1, class 'BUTTON', caption text 'Start', and rectangle x=110, y=165, w=50, h=14.
+A control exists with identifier 1001, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=5, y=15, w=155, h=65.
+A control exists with identifier 1002, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=5, y=95, w=155, h=60.
+A control exists with identifier 65535, class 'STATIC', caption text 'Objects', and rectangle x=5, y=5, w=24, h=8.
+A control exists with identifier 65535, class 'STATIC', caption text 'Replacements', and rectangle x=5, y=85, w=45, h=8.
+
+
+Dialog Resource: 102
+====================
+
+Dialog title text is 'Item Attributes TEXT'. The dialog client rectangle in dialog units is x=0, y=0, w=497, h=325. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 4005, class 'STATIC', caption text 'Type: NA TEXT', and rectangle x=140, y=8, w=150, h=8.
+A control exists with identifier 4042, class 'STATIC', caption text 'Social Security Number: TEXT', and rectangle x=10, y=10, w=116, h=8.
+A control exists with identifier 1207, class 'STATIC', caption text 'Layer TEXT', and rectangle x=10, y=30, w=110, h=8.
+A control exists with identifier 1216, class 'STATIC', caption text 'X: TEXT', and rectangle x=20, y=69, w=32, h=9.
+A control exists with identifier 1217, class 'STATIC', caption text 'Y: TEXT', and rectangle x=20, y=84, w=32, h=9.
+A control exists with identifier 1218, class 'STATIC', caption text 'Z: TEXT', and rectangle x=20, y=99, w=32, h=9.
+A control exists with identifier 1219, class 'BUTTON', caption text 'Position TEXT', and rectangle x=10, y=57, w=125, h=73.
+A control exists with identifier 1209, class 'STATIC', caption text 'Heading, 0 = North TEXT', and rectangle x=18, y=145, w=77, h=12.
+A control exists with identifier 1001, class 'BUTTON', caption text 'Facing TEXT', and rectangle x=10, y=135, w=125, h=46.
+A control exists with identifier 1208, class 'STATIC', caption text 'Pitch, 90 = up TEXT', and rectangle x=18, y=163, w=77, h=12.
+A control exists with identifier 1221, class 'BUTTON', caption text 'Remove if.. TEXT', and rectangle x=10, y=186, w=125, h=75.
+A control exists with identifier 1223, class 'STATIC', caption text 'players TEXT', and rectangle x=65, y=208, w=65, h=10.
+A control exists with identifier 1224, class 'STATIC', caption text 'players TEXT', and rectangle x=65, y=234, w=65, h=10.
+A control exists with identifier 1215, class 'STATIC', caption text 'Group TEXT', and rectangle x=150, y=76, w=43, h=8.
+A control exists with identifier 1225, class 'BUTTON', caption text 'AI Variables TEXT', and rectangle x=140, y=30, w=150, h=255.
+A control exists with identifier 1004, class 'STATIC', caption text 'Alert State', and rectangle x=150, y=124, w=43, h=8.
+A control exists with identifier 1286, class 'STATIC', caption text 'Weapon Accuracy2 TEXT', and rectangle x=150, y=169, w=95, h=12.
+A control exists with identifier 1005, class 'STATIC', caption text 'Team TEXT', and rectangle x=150, y=100, w=43, h=8.
+A control exists with identifier 122, class 'STATIC', caption text 'Max Engamegent Distance', and rectangle x=150, y=233, w=95, h=12.
+A control exists with identifier 1222, class 'STATIC', caption text 'Sub-Type TEXT', and rectangle x=307, y=5, w=41, h=12.
+A control exists with identifier 1000, class 'STATIC', caption text 'Number', and rectangle x=435, y=50, w=45, h=8.
+A control exists with identifier 1227, class 'STATIC', caption text 'List TEXT', and rectangle x=310, y=50, w=120, h=8.
+A control exists with identifier 1210, class 'STATIC', caption text 'Distance (m)', and rectangle x=435, y=75, w=44, h=8.
+A control exists with identifier 1211, class 'STATIC', caption text 'Name TEXT', and rectangle x=310, y=75, w=120, h=8.
+A control exists with identifier 1226, class 'BUTTON', caption text 'Waypoints TEXT', and rectangle x=304, y=40, w=184, h=100.
+A control exists with identifier 1003, class 'BUTTON', caption text '!AI Attributes', and rectangle x=304, y=140, w=184, h=175.
+A control exists with identifier 1017, class 'STATIC', caption text 'Fire Timer', and rectangle x=150, y=185, w=95, h=12.
+A control exists with identifier 1020, class 'STATIC', caption text 'Height', and rectangle x=370, y=192, w=22, h=8.
+A control exists with identifier 1021, class 'STATIC', caption text 'Elevation', and rectangle x=360, y=207, w=30, h=8.
+A control exists with identifier 1022, class 'BUTTON', caption text 'Shine Box TEXT', and rectangle x=304, y=145, w=184, h=170.
+A control exists with identifier 1026, class 'STATIC', caption text 'Length', and rectangle x=325, y=192, w=68, h=8.
+A control exists with identifier 1230, class 'STATIC', caption text 'AI Textfile', and rectangle x=150, y=55, w=43, h=8.
+A control exists with identifier 1231, class 'STATIC', caption text 'Particle Effect Name:', and rectangle x=310, y=165, w=163, h=8.
+A control exists with identifier 1062, class 'STATIC', caption text 'Next SSN', and rectangle x=373, y=5, w=90, h=12.
+A control exists with identifier 1169, class 'STATIC', caption text 'Min Engagement Distance', and rectangle x=150, y=249, w=95, h=12.
+A control exists with identifier 1014, class 'STATIC', caption text 'Spawns (WP pause)', and rectangle x=150, y=201, w=95, h=12.
+A control exists with identifier 123, class 'STATIC', caption text 'Max Attack Distance', and rectangle x=150, y=217, w=95, h=12.
+A control exists with identifier 1079, class 'STATIC', caption text 'Graphic: TEXT', and rectangle x=10, y=20, w=110, h=8.
+A control exists with identifier 1285, class 'STATIC', caption text 'Weapon Accuracy1 TEXT', and rectangle x=150, y=153, w=95, h=12.
+A control exists with identifier 1205, class 'STATIC', caption text '!Advancement Trigger', and rectangle x=310, y=100, w=160, h=8.
+A control exists with identifier 1292, class 'STATIC', caption text '!Active Area', and rectangle x=150, y=42, w=100, h=8.
+A control exists with identifier 4044, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=15, y=41, w=115, h=113.
+A control exists with identifier 4001, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=55, y=67, w=39, h=12.
+A control exists with identifier 4010, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=100, y=67, w=31, h=12.
+A control exists with identifier 4002, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=55, y=82, w=39, h=12.
+A control exists with identifier 4011, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=100, y=82, w=31, h=12.
+A control exists with identifier 4003, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=55, y=97, w=39, h=12.
+A control exists with identifier 4012, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=100, y=97, w=31, h=12.
+A control exists with identifier 1246, class 'BUTTON', caption text 'Absolute Height', and rectangle x=20, y=112, w=64, h=15.
+A control exists with identifier 1247, class 'BUTTON', caption text '&LOCK', and rectangle x=90, y=112, w=39, h=15.
+A control exists with identifier 4004, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=100, y=145, w=24, h=12.
+A control exists with identifier 4013, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=100, y=163, w=24, h=12.
+A control exists with identifier 4014, class 'BUTTON', caption text 'Less than TEXT', and rectangle x=20, y=197, w=110, h=8.
+A control exists with identifier 4015, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=40, y=207, w=20, h=12.
+A control exists with identifier 4016, class 'BUTTON', caption text 'More then TEXT', and rectangle x=20, y=222, w=110, h=8.
+A control exists with identifier 4017, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=40, y=232, w=20, h=12.
+A control exists with identifier 4018, class 'BUTTON', caption text 'Multiplayer TEXT', and rectangle x=20, y=248, w=105, h=8.
+A control exists with identifier 1002, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=255, y=40, w=24, h=12.
+A control exists with identifier 1027, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=155, y=63, w=125, h=166.
+A control exists with identifier 4008, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=155, y=85, w=125, h=107.
+A control exists with identifier 4030, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=155, y=109, w=125, h=56.
+A control exists with identifier 4019, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=155, y=133, w=125, h=50.
+A control exists with identifier 1287, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=256, y=153, w=24, h=12.
+A control exists with identifier 1288, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=256, y=169, w=24, h=12.
+A control exists with identifier 4050, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=256, y=185, w=24, h=12.
+A control exists with identifier 4038, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=256, y=201, w=24, h=12.
+A control exists with identifier 4025, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=256, y=217, w=24, h=12.
+A control exists with identifier 4024, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=256, y=233, w=24, h=12.
+A control exists with identifier 4023, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=256, y=249, w=24, h=12.
+A control exists with identifier 1065, class 'BUTTON', caption text 'MISSIONCRITICAL', and rectangle x=150, y=265, w=120, h=10.
+A control exists with identifier 1061, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=467, y=5, w=20, h=12.
+A control exists with identifier 4000, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=314, y=20, w=174, h=108.
+A control exists with identifier 4006, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=310, y=60, w=119, h=66.
+A control exists with identifier 4007, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=435, y=60, w=34, h=12.
+A control exists with identifier 4032, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=310, y=85, w=119, h=66.
+A control exists with identifier 4029, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=435, y=85, w=34, h=12.
+A control exists with identifier 4109, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=310, y=110, w=160, h=195.
+A control exists with identifier 4052, class 'BUTTON', caption text 'Coward', and rectangle x=311, y=155, w=71, h=15.
+A control exists with identifier 4036, class 'BUTTON', caption text 'Advanced Ammo', and rectangle x=311, y=170, w=71, h=15.
+A control exists with identifier 4053, class 'BUTTON', caption text 'Hovering', and rectangle x=311, y=185, w=71, h=15.
+A control exists with identifier 4047, class 'BUTTON', caption text 'Berserk', and rectangle x=311, y=201, w=71, h=15.
+A control exists with identifier 4033, class 'BUTTON', caption text 'Flying Organic', and rectangle x=311, y=218, w=71, h=15.
+A control exists with identifier 4089, class 'BUTTON', caption text 'Blind', and rectangle x=311, y=236, w=71, h=15.
+A control exists with identifier 4026, class 'BUTTON', caption text 'Guard Mode', and rectangle x=310, y=252, w=71, h=15.
+A control exists with identifier 1098, class 'BUTTON', caption text 'Indestructable', and rectangle x=310, y=268, w=71, h=15.
+A control exists with identifier 4045, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=310, y=175, w=173, h=113.
+A control exists with identifier 1007, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=395, y=190, w=38, h=14.
+A control exists with identifier 1018, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=438, y=190, w=38, h=14.
+A control exists with identifier 1008, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=395, y=205, w=38, h=14.
+A control exists with identifier 1019, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=438, y=205, w=38, h=14.
+A control exists with identifier 1031, class 'BUTTON', caption text 'Music (var3)', and rectangle x=335, y=220, w=54, h=14.
+A control exists with identifier 1028, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=395, y=220, w=81, h=14.
+A control exists with identifier 1051, class 'BUTTON', caption text 'Music (var4)', and rectangle x=335, y=235, w=54, h=14.
+A control exists with identifier 1049, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=395, y=235, w=81, h=14.
+A control exists with identifier 1024, class 'BUTTON', caption text 'Reverb', and rectangle x=335, y=250, w=54, h=14.
+A control exists with identifier 1025, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=395, y=250, w=81, h=14.
+A control exists with identifier 1258, class 'BUTTON', caption text 'Health Rate', and rectangle x=335, y=265, w=54, h=14.
+A control exists with identifier 1259, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=395, y=265, w=81, h=14.
+A control exists with identifier 1256, class 'BUTTON', caption text 'Mana Rate', and rectangle x=335, y=280, w=54, h=14.
+A control exists with identifier 1257, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=395, y=280, w=81, h=14.
+A control exists with identifier 1023, class 'BUTTON', caption text 'Mission Link', and rectangle x=335, y=295, w=54, h=14.
+A control exists with identifier 1029, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=395, y=295, w=81, h=14.
+A control exists with identifier 2, class 'BUTTON', caption text 'Cancel TEXT', and rectangle x=152, y=296, w=59, h=18.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK TEXT', and rectangle x=229, y=296, w=59, h=18.
+A control exists with identifier 1293, class 'STATIC', caption text '!Spinmap Color Override', and rectangle x=15, y=270, w=115, h=8.
+A control exists with identifier 1030, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=20, y=280, w=105, h=166.
+A control exists with identifier 1296, class 'BUTTON', caption text '!Navigation Waypoint', and rectangle x=310, y=126, w=160, h=10.
+
+
+Dialog Resource: 103
+====================
+
+Dialog title text is 'General Information TEXT'. The dialog client rectangle in dialog units is x=134, y=20, w=498, h=326. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1233, class 'STATIC', caption text '!WIND SPEED', and rectangle x=360, y=95, w=60, h=20.
+A control exists with identifier 1234, class 'STATIC', caption text '!WIND DIRECTION', and rectangle x=430, y=95, w=60, h=20.
+A control exists with identifier 1183, class 'STATIC', caption text 'Mission Designer: TEXT', and rectangle x=10, y=30, w=118, h=9.
+A control exists with identifier 1184, class 'STATIC', caption text 'Mission Terrain: TEXT', and rectangle x=10, y=55, w=118, h=9.
+A control exists with identifier 1187, class 'BUTTON', caption text '!Terrain Override Values', and rectangle x=355, y=0, w=139, h=200.
+A control exists with identifier 1185, class 'BUTTON', caption text 'Win Conditions TEXT', and rectangle x=145, y=0, w=200, h=130.
+A control exists with identifier 1186, class 'BUTTON', caption text 'Lose Conditions TEXT', and rectangle x=145, y=135, w=200, h=130.
+A control exists with identifier 1200, class 'STATIC', caption text '!Enviroment', and rectangle x=365, y=135, w=125, h=10.
+A control exists with identifier 1250, class 'STATIC', caption text '!Player Class:', and rectangle x=10, y=105, w=110, h=8.
+A control exists with identifier 1202, class 'STATIC', caption text '!Mission TILES', and rectangle x=10, y=80, w=118, h=9.
+A control exists with identifier 1044, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=150, y=20, w=9, h=12.
+A control exists with identifier 1045, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=150, y=33, w=9, h=12.
+A control exists with identifier 1046, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=150, y=46, w=9, h=12.
+A control exists with identifier 1047, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=150, y=59, w=9, h=12.
+A control exists with identifier 1048, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=151, y=184, w=9, h=12.
+A control exists with identifier 1049, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=151, y=171, w=9, h=12.
+A control exists with identifier 1050, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=151, y=158, w=9, h=12.
+A control exists with identifier 1052, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=151, y=196, w=9, h=12.
+A control exists with identifier 1068, class 'STATIC', caption text '!CRITICAL', and rectangle x=150, y=10, w=70, h=10.
+A control exists with identifier 1069, class 'STATIC', caption text '!CRITICAL', and rectangle x=150, y=145, w=65, h=8.
+A control exists with identifier 1051, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=150, y=73, w=9, h=12.
+A control exists with identifier 1053, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=150, y=86, w=9, h=12.
+A control exists with identifier 1054, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=150, y=98, w=9, h=12.
+A control exists with identifier 1055, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=150, y=111, w=9, h=12.
+A control exists with identifier 1003, class 'BUTTON', caption text 'Map Type(s) TEXT', and rectangle x=10, y=135, w=130, h=115.
+A control exists with identifier 1056, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=151, y=235, w=9, h=12.
+A control exists with identifier 1057, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=151, y=221, w=9, h=12.
+A control exists with identifier 1058, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=151, y=209, w=9, h=12.
+A control exists with identifier 1059, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=151, y=248, w=9, h=12.
+A control exists with identifier 1066, class 'STATIC', caption text '!SCORE', and rectangle x=285, y=10, w=50, h=8.
+A control exists with identifier 1067, class 'STATIC', caption text '!SCORE', and rectangle x=285, y=145, w=50, h=8.
+A control exists with identifier 1182, class 'STATIC', caption text 'Mission Name: TEXT', and rectangle x=10, y=5, w=118, h=9.
+A control exists with identifier 1005, class 'BUTTON', caption text 'Global Effects', and rectangle x=140, y=295, w=205, h=25.
+A control exists with identifier 1031, class 'STATIC', caption text 'Music', and rectangle x=142, y=305, w=28, h=14.
+A control exists with identifier 1030, class 'STATIC', caption text 'Reverb', and rectangle x=195, y=305, w=28, h=14.
+A control exists with identifier 1029, class 'STATIC', caption text 'Health', and rectangle x=245, y=305, w=28, h=14.
+A control exists with identifier 1028, class 'STATIC', caption text 'Mana', and rectangle x=295, y=305, w=20, h=14.
+A control exists with identifier 1081, class 'STATIC', caption text '!Maximum Saves', and rectangle x=260, y=270, w=85, h=10.
+A control exists with identifier 1083, class 'STATIC', caption text '!Starting Spin Map Zoom', and rectangle x=15, y=255, w=100, h=8.
+A control exists with identifier 1084, class 'STATIC', caption text '!Min', and rectangle x=20, y=280, w=46, h=8.
+A control exists with identifier 1085, class 'STATIC', caption text 'Max', and rectangle x=85, y=280, w=41, h=8.
+A control exists with identifier 3800, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=10, y=16, w=108, h=12.
+A control exists with identifier 3801, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=10, y=40, w=108, h=12.
+A control exists with identifier 3802, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=10, y=65, w=108, h=180.
+A control exists with identifier 3804, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=10, y=90, w=108, h=180.
+A control exists with identifier 3812, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=10, y=115, w=108, h=180.
+A control exists with identifier 3821, class 'BUTTON', caption text '!Cooperative', and rectangle x=18, y=145, w=117, h=11.
+A control exists with identifier 3822, class 'BUTTON', caption text '!Deathmatch', and rectangle x=18, y=157, w=117, h=10.
+A control exists with identifier 3826, class 'BUTTON', caption text '!Team Deathmatch', and rectangle x=18, y=168, w=117, h=10.
+A control exists with identifier 3823, class 'BUTTON', caption text '!King of the Hill', and rectangle x=18, y=179, w=117, h=10.
+A control exists with identifier 3827, class 'BUTTON', caption text '!Team King of the Hill', and rectangle x=18, y=188, w=117, h=13.
+A control exists with identifier 3825, class 'BUTTON', caption text '!Capture the Flag', and rectangle x=18, y=202, w=117, h=10.
+A control exists with identifier 3833, class 'BUTTON', caption text '!Flagball', and rectangle x=18, y=213, w=117, h=10.
+A control exists with identifier 3832, class 'BUTTON', caption text '!Search && Destroy', and rectangle x=18, y=224, w=117, h=10.
+A control exists with identifier 3831, class 'BUTTON', caption text '!Attack && Defend', and rectangle x=18, y=235, w=117, h=10.
+A control exists with identifier 1082, class 'msctls_trackbar32', caption text 'Slider1', and rectangle x=10, y=264, w=125, h=17.
+A control exists with identifier 1174, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=20, w=141, h=87.
+A control exists with identifier 1175, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=33, w=141, h=88.
+A control exists with identifier 1176, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=46, w=141, h=88.
+A control exists with identifier 1177, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=59, w=141, h=88.
+A control exists with identifier 1188, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=72, w=141, h=88.
+A control exists with identifier 1190, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=85, w=141, h=88.
+A control exists with identifier 1191, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=97, w=141, h=88.
+A control exists with identifier 1192, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=110, w=141, h=88.
+A control exists with identifier 1178, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=156, w=141, h=87.
+A control exists with identifier 1179, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=170, w=141, h=88.
+A control exists with identifier 1180, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=183, w=141, h=88.
+A control exists with identifier 1181, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=196, w=141, h=88.
+A control exists with identifier 1195, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=209, w=141, h=87.
+A control exists with identifier 1196, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=221, w=141, h=88.
+A control exists with identifier 1197, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=234, w=141, h=88.
+A control exists with identifier 1198, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=247, w=141, h=88.
+A control exists with identifier 1006, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=20, w=26, h=12.
+A control exists with identifier 1019, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=33, w=26, h=12.
+A control exists with identifier 1012, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=46, w=26, h=12.
+A control exists with identifier 1013, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=59, w=26, h=12.
+A control exists with identifier 1014, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=72, w=26, h=12.
+A control exists with identifier 1015, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=85, w=26, h=12.
+A control exists with identifier 1016, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=98, w=26, h=12.
+A control exists with identifier 1017, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=111, w=26, h=12.
+A control exists with identifier 1011, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=156, w=26, h=12.
+A control exists with identifier 1020, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=169, w=26, h=12.
+A control exists with identifier 1021, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=181, w=26, h=12.
+A control exists with identifier 1022, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=194, w=26, h=12.
+A control exists with identifier 1023, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=207, w=26, h=12.
+A control exists with identifier 1032, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=220, w=26, h=12.
+A control exists with identifier 1033, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=233, w=26, h=12.
+A control exists with identifier 1035, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=312, y=246, w=26, h=12.
+A control exists with identifier 1080, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=260, y=280, w=28, h=50.
+A control exists with identifier 1024, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=170, y=305, w=20, h=14.
+A control exists with identifier 1025, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=225, y=305, w=20, h=14.
+A control exists with identifier 1026, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=275, y=305, w=20, h=14.
+A control exists with identifier 1027, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=320, y=305, w=20, h=14.
+A control exists with identifier 1153, class 'BUTTON', caption text '!Water Level (x0.5 m)', and rectangle x=365, y=15, w=125, h=10.
+A control exists with identifier 1002, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=380, y=25, w=39, h=12.
+A control exists with identifier 1154, class 'BUTTON', caption text '!Fog Level ', and rectangle x=365, y=40, w=125, h=9.
+A control exists with identifier 1001, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=380, y=50, w=39, h=12.
+A control exists with identifier 1155, class 'BUTTON', caption text '!Fog Color', and rectangle x=365, y=65, w=125, h=9.
+A control exists with identifier 1007, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=380, y=75, w=26, h=14.
+A control exists with identifier 1008, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=415, y=75, w=26, h=14.
+A control exists with identifier 1010, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=450, y=75, w=26, h=14.
+A control exists with identifier 1231, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=375, y=115, w=39, h=12.
+A control exists with identifier 1230, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=440, y=115, w=39, h=14.
+A control exists with identifier 1158, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=370, y=145, w=120, h=66.
+A control exists with identifier 3829, class 'BUTTON', caption text '!Night Vision Goggles Available', and rectangle x=370, y=165, w=120, h=15.
+A control exists with identifier 1157, class 'BUTTON', caption text 'Weather TEXT', and rectangle x=363, y=263, w=65, h=10.
+A control exists with identifier 1156, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=363, y=273, w=124, h=156.
+A control exists with identifier 1159, class 'BUTTON', caption text 'No Voxels', and rectangle x=363, y=290, w=63, h=10.
+A control exists with identifier 1160, class 'BUTTON', caption text 'No Shadows', and rectangle x=433, y=290, w=58, h=10.
+A control exists with identifier 2, class 'BUTTON', caption text 'Cancel TEXT', and rectangle x=15, y=300, w=49, h=19.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK TEXT', and rectangle x=75, y=300, w=49, h=19.
+A control exists with identifier 1086, class 'STATIC', caption text '!Bonus Expiration', and rectangle x=145, y=270, w=100, h=10.
+A control exists with identifier 1097, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=145, y=280, w=40, h=12.
+A control exists with identifier 3834, class 'BUTTON', caption text '!Start with NVG Turned On', and rectangle x=380, y=180, w=110, h=15.
+A control exists with identifier 1295, class 'BUTTON', caption text '!Rotate map 180 degrees', and rectangle x=363, y=305, w=125, h=10.
+A control exists with identifier 1297, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=370, y=215, w=120, h=65.
+A control exists with identifier 1298, class 'STATIC', caption text '!Terrain Type', and rectangle x=365, y=205, w=125, h=8.
+
+
+Dialog Resource: 6033
+=====================
+
+Dialog title text is 'Insert Item...'. The dialog client rectangle in dialog units is x=0, y=0, w=482, h=197. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1, class 'BUTTON', caption text '&OK', and rectangle x=350, y=175, w=50, h=14.
+A control exists with identifier 2, class 'BUTTON', caption text '&Cancel', and rectangle x=410, y=175, w=50, h=14.
+A control exists with identifier 2800, class 'BUTTON', caption text '!Foliage', and rectangle x=7, y=15, w=58, h=15.
+A control exists with identifier 2801, class 'BUTTON', caption text '!Decorations', and rectangle x=7, y=32, w=58, h=15.
+A control exists with identifier 2802, class 'BUTTON', caption text '!People', and rectangle x=7, y=49, w=58, h=15.
+A control exists with identifier 2803, class 'BUTTON', caption text '!Buildings', and rectangle x=7, y=66, w=58, h=15.
+A control exists with identifier 2804, class 'BUTTON', caption text '!Vehicles', and rectangle x=7, y=83, w=58, h=15.
+A control exists with identifier 2805, class 'BUTTON', caption text '!Objects', and rectangle x=7, y=100, w=58, h=15.
+A control exists with identifier 2806, class 'BUTTON', caption text '!POWERUP', and rectangle x=7, y=117, w=58, h=15.
+A control exists with identifier 2807, class 'BUTTON', caption text '!Markers', and rectangle x=7, y=134, w=58, h=11.
+A control exists with identifier 2808, class 'BUTTON', caption text '!Med fly', and rectangle x=7, y=151, w=58, h=15.
+A control exists with identifier 2832, class 'BUTTON', caption text '!Random Facing', and rectangle x=5, y=175, w=68, h=15.
+A control exists with identifier 2830, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=80, y=6, w=245, h=182.
+A control exists with identifier 1001, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=342, y=148, w=40, h=14.
+A control exists with identifier 1204, class 'BUTTON', caption text 'Type TEXT', and rectangle x=3, y=3, w=70, h=167.
+A control exists with identifier 1039, class 'STATIC', caption text '!Drop Count', and rectangle x=335, y=135, w=59, h=8.
+A control exists with identifier 1040, class 'STATIC', caption text '!Drop Area', and rectangle x=410, y=135, w=70, h=8.
+A control exists with identifier 1044, class 'BUTTON', caption text '!Rectangle', and rectangle x=410, y=145, w=70, h=10.
+A control exists with identifier 1043, class 'BUTTON', caption text '!Oval', and rectangle x=410, y=156, w=65, h=10.
+
+
+Dialog Resource: 6034
+=====================
+
+Dialog title text is 'Tile Select'. The dialog client rectangle in dialog units is x=0, y=0, w=148, h=351. The dialog font is point size 8 with face name 'MS Sans Serif' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1, class 'BUTTON', caption text 'OK', and rectangle x=94, y=330, w=45, h=14.
+A control exists with identifier 2, class 'BUTTON', caption text 'Cancel', and rectangle x=7, y=330, w=45, h=14.
+A control exists with identifier 1025, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=7, y=28, w=132, h=296.
+A control exists with identifier 1033, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=7, y=12, w=132, h=175.
+A control exists with identifier 65535, class 'STATIC', caption text 'Layer', and rectangle x=7, y=2, w=132, h=8.
+
+
+Dialog Resource: 6035
+=====================
+
+Dialog title text is '!VIEW SSN...'. The dialog client rectangle in dialog units is x=0, y=0, w=467, h=201. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 2800, class 'BUTTON', caption text '!Foliage', and rectangle x=10, y=15, w=58, h=13.
+A control exists with identifier 2801, class 'BUTTON', caption text '!Decorations', and rectangle x=10, y=30, w=58, h=13.
+A control exists with identifier 2802, class 'BUTTON', caption text '!People', and rectangle x=10, y=45, w=58, h=13.
+A control exists with identifier 2803, class 'BUTTON', caption text 'Buildings TEXT', and rectangle x=10, y=60, w=58, h=13.
+A control exists with identifier 2804, class 'BUTTON', caption text 'Vehicles TEXT', and rectangle x=10, y=75, w=58, h=13.
+A control exists with identifier 2805, class 'BUTTON', caption text 'Objects TEXT', and rectangle x=10, y=90, w=58, h=13.
+A control exists with identifier 2806, class 'BUTTON', caption text '!POWERUP', and rectangle x=10, y=105, w=58, h=13.
+A control exists with identifier 2807, class 'BUTTON', caption text 'Markers TEXT', and rectangle x=10, y=120, w=45, h=13.
+A control exists with identifier 1204, class 'BUTTON', caption text 'Type TEXT', and rectangle x=5, y=5, w=70, h=151.
+A control exists with identifier 2, class 'BUTTON', caption text '!Cancel', and rectangle x=375, y=165, w=40, h=24.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK TEXT', and rectangle x=420, y=165, w=40, h=24.
+A control exists with identifier 2808, class 'BUTTON', caption text 'Med fly TEXT', and rectangle x=10, y=135, w=58, h=13.
+A control exists with identifier 1093, class 'BUTTON', caption text '!Show objects with events', and rectangle x=330, y=135, w=105, h=20.
+A control exists with identifier 1072, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=80, y=10, w=235, h=154.
+A control exists with identifier 1090, class 'BUTTON', caption text '!SSN', and rectangle x=11, y=165, w=80, h=10.
+A control exists with identifier 1091, class 'BUTTON', caption text '!Type', and rectangle x=11, y=175, w=80, h=10.
+A control exists with identifier 1092, class 'BUTTON', caption text '!Sort by', and rectangle x=5, y=155, w=90, h=35.
+A control exists with identifier 1289, class 'STATIC', caption text '!Condition:', and rectangle x=100, y=162, w=45, h=10.
+A control exists with identifier 1290, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=150, y=160, w=85, h=55.
+A control exists with identifier 1000, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=285, y=160, w=30, h=14.
+A control exists with identifier 1291, class 'STATIC', caption text '!equals', and rectangle x=240, y=163, w=40, h=8.
+A control exists with identifier 1292, class 'STATIC', caption text '!Condition:', and rectangle x=100, y=179, w=45, h=10.
+A control exists with identifier 1293, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=150, y=177, w=85, h=48.
+A control exists with identifier 1001, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=285, y=177, w=30, h=14.
+A control exists with identifier 1294, class 'STATIC', caption text '!equals', and rectangle x=240, y=180, w=40, h=8.
+A control exists with identifier 1073, class 'BUTTON', caption text '!Find', and rectangle x=330, y=165, w=40, h=24.
+
+
+Dialog Resource: 6036
+=====================
+
+Dialog title text is 'Replacement Name'. The dialog client rectangle in dialog units is x=0, y=0, w=187, h=44. The dialog font is point size 8 with face name 'MS Sans Serif' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1, class 'BUTTON', caption text 'OK', and rectangle x=130, y=25, w=50, h=14.
+A control exists with identifier 2, class 'BUTTON', caption text 'Cancel', and rectangle x=75, y=25, w=50, h=14.
+A control exists with identifier 65535, class 'STATIC', caption text 'Object Name:', and rectangle x=5, y=10, w=42, h=8.
+A control exists with identifier 1005, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=50, y=5, w=130, h=14.
+
+
+Dialog Resource: 112
+====================
+
+Dialog title text is 'Export Log'. The dialog client rectangle in dialog units is x=0, y=0, w=362, h=191. The dialog font is point size 8 with face name 'MS Sans Serif' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1, class 'BUTTON', caption text 'OK', and rectangle x=145, y=170, w=50, h=14.
+A control exists with identifier 1001, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=5, y=5, w=350, h=160.
+
+
+Dialog Resource: 6032
+=====================
+
+Dialog title text is '!About...'. The dialog client rectangle in dialog units is x=0, y=0, w=187, h=175. The dialog font is point size 8 with face name 'MS Sans Serif' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1, class 'BUTTON', caption text 'OK', and rectangle x=70, y=155, w=45, h=14.
+A control exists with identifier 1076, class 'STATIC', caption text '!DFBHDMED\rDelta Force Black Hawk Down', and rectangle x=35, y=5, w=115, h=35.
+A control exists with identifier 1253, class 'STATIC', caption text '0.00', and rectangle x=95, y=45, w=80, h=8.
+A control exists with identifier 1074, class 'STATIC', caption text '!Copyright 2002, NovaLogic Inc.', and rectangle x=5, y=90, w=170, h=20.
+A control exists with identifier 1073, class 'STATIC', caption text '!Ritten bi', and rectangle x=5, y=60, w=170, h=20.
+A control exists with identifier 65535, class 'STATIC', caption text '#RES:6009', and rectangle x=7, y=4, w=20, h=20.
+A control exists with identifier 65535, class 'STATIC', caption text '#RES:6009', and rectangle x=155, y=5, w=20, h=20.
+A control exists with identifier 1077, class 'STATIC', caption text '!For details on how to use DFBHDMED, please refer to the dfbhdmed.pdf file.', and rectangle x=10, y=115, w=165, h=30.
+A control exists with identifier 1075, class 'STATIC', caption text '!Version', and rectangle x=65, y=45, w=26, h=8.
+
+
+Dialog Resource: EDITGROUPS
+===========================
+
+Dialog title text is 'Groups TEXT'. The dialog client rectangle in dialog units is x=79, y=39, w=360, h=210. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1193, class 'STATIC', caption text 'Description TEXT', and rectangle x=165, y=30, w=178, h=10.
+A control exists with identifier 4602, class 'STATIC', caption text 'Current Size: 0 TEXT', and rectangle x=165, y=10, w=73, h=11.
+A control exists with identifier 4600, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=10, y=10, w=138, h=185.
+A control exists with identifier 4601, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=175, y=40, w=155, h=15.
+A control exists with identifier 4603, class 'BUTTON', caption text 'Select Members TEXT', and rectangle x=160, y=175, w=70, h=23.
+A control exists with identifier 4608, class 'BUTTON', caption text 'Print TEXT', and rectangle x=237, y=175, w=53, h=23.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK TEXT', and rectangle x=300, y=175, w=43, h=23.
+
+
+Dialog Resource: EDITWAYPOINTS
+==============================
+
+Dialog title text is 'Waypoints TEXT'. The dialog client rectangle in dialog units is x=79, y=39, w=360, h=191. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1194, class 'STATIC', caption text 'Description TEXT', and rectangle x=165, y=30, w=170, h=10.
+A control exists with identifier 4102, class 'STATIC', caption text 'Current Size: 0 TEXT', and rectangle x=165, y=10, w=73, h=11.
+A control exists with identifier 1000, class 'STATIC', caption text 'Color TEXT', and rectangle x=165, y=60, w=175, h=10.
+A control exists with identifier 4100, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=9, y=7, w=138, h=173.
+A control exists with identifier 4101, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=175, y=40, w=165, h=15.
+A control exists with identifier 4105, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=175, y=70, w=165, h=66.
+A control exists with identifier 4106, class 'BUTTON', caption text 'Waypoint does NOT loop TEXT', and rectangle x=175, y=90, w=166, h=15.
+A control exists with identifier 4107, class 'BUTTON', caption text 'Team Blue Waypoints TEXT', and rectangle x=175, y=110, w=166, h=15.
+A control exists with identifier 4108, class 'BUTTON', caption text 'Team Red Waypoints TEXT', and rectangle x=175, y=130, w=166, h=15.
+A control exists with identifier 4104, class 'BUTTON', caption text 'Select Markers TEXT', and rectangle x=160, y=155, w=60, h=24.
+A control exists with identifier 4109, class 'BUTTON', caption text 'Print List TEXT', and rectangle x=230, y=155, w=60, h=24.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK TEXT', and rectangle x=300, y=155, w=43, h=24.
+
+
+Dialog Resource: EDITEVENTS
+===========================
+
+Dialog title text is 'Events TEXT'. The dialog client rectangle in dialog units is x=50, y=13, w=477, h=330. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1190, class 'STATIC', caption text 'Name: TEXT', and rectangle x=10, y=5, w=105, h=10.
+A control exists with identifier 1191, class 'STATIC', caption text 'Delay (seconds) TEXT', and rectangle x=350, y=40, w=75, h=20.
+A control exists with identifier 1000, class 'BUTTON', caption text 'IF (Triggers) TEXT', and rectangle x=175, y=65, w=286, h=110.
+A control exists with identifier 1192, class 'BUTTON', caption text 'THEN (Actions) TEXT', and rectangle x=175, y=180, w=286, h=110.
+A control exists with identifier 4201, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=15, y=15, w=218, h=15.
+A control exists with identifier 4212, class 'BUTTON', caption text 'Pre Mission Event TEXT', and rectangle x=240, y=10, w=89, h=20.
+A control exists with identifier 4213, class 'BUTTON', caption text '!Post Mission Event', and rectangle x=240, y=35, w=89, h=20.
+A control exists with identifier 4203, class 'BUTTON', caption text 'Reset after (seconds) TEXT', and rectangle x=335, y=10, w=85, h=20.
+A control exists with identifier 4204, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=425, y=15, w=35, h=12.
+A control exists with identifier 4202, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=425, y=40, w=35, h=12.
+A control exists with identifier 4200, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=10, y=70, w=156, h=220.
+A control exists with identifier 4205, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=185, y=77, w=225, h=98.
+A control exists with identifier 4206, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=185, y=191, w=225, h=98.
+A control exists with identifier 4210, class 'BUTTON', caption text 'Delete TEXT', and rectangle x=413, y=80, w=43, h=23.
+A control exists with identifier 4216, class 'BUTTON', caption text 'Copy TEXT', and rectangle x=413, y=110, w=43, h=23.
+A control exists with identifier 4217, class 'BUTTON', caption text 'Paste TEXT', and rectangle x=413, y=140, w=43, h=23.
+A control exists with identifier 4211, class 'BUTTON', caption text 'Delete TEXT', and rectangle x=413, y=195, w=43, h=23.
+A control exists with identifier 4218, class 'BUTTON', caption text 'Copy TEXT', and rectangle x=413, y=225, w=43, h=23.
+A control exists with identifier 4219, class 'BUTTON', caption text 'Paste TEXT', and rectangle x=413, y=255, w=43, h=23.
+A control exists with identifier 4207, class 'BUTTON', caption text 'Delete Event TEXT', and rectangle x=10, y=300, w=70, h=22.
+A control exists with identifier 4214, class 'BUTTON', caption text 'Copy Event TEXT', and rectangle x=90, y=300, w=65, h=22.
+A control exists with identifier 4215, class 'BUTTON', caption text 'Paste Event TEXT', and rectangle x=165, y=300, w=65, h=22.
+A control exists with identifier 4208, class 'BUTTON', caption text 'Print Event TEXT', and rectangle x=240, y=300, w=65, h=22.
+A control exists with identifier 4209, class 'BUTTON', caption text 'Print All Events TEXT', and rectangle x=315, y=300, w=75, h=22.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK TEXT', and rectangle x=400, y=300, w=65, h=22.
+A control exists with identifier 1013, class 'BUTTON', caption text 'Up', and rectangle x=30, y=55, w=50, h=14.
+A control exists with identifier 1028, class 'BUTTON', caption text 'Down', and rectangle x=95, y=55, w=50, h=14.
+
+
+Dialog Resource: EDITAREATRIGGERS
+=================================
+
+Dialog title text is 'Area Triggers TEXT'. The dialog client rectangle in dialog units is x=0, y=0, w=387, h=191. The dialog font is point size 8 with face name 'MS Sans Serif' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1172, class 'STATIC', caption text '!Description', and rectangle x=158, y=28, w=88, h=18.
+A control exists with identifier 1000, class 'STATIC', caption text '!Color', and rectangle x=158, y=52, w=88, h=18.
+A control exists with identifier 1174, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=5, y=10, w=138, h=150.
+A control exists with identifier 1171, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=251, y=30, w=127, h=15.
+A control exists with identifier 1170, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=251, y=55, w=127, h=66.
+A control exists with identifier 1175, class 'BUTTON', caption text '!Designated Mission Area', and rectangle x=160, y=85, w=215, h=12.
+A control exists with identifier 1169, class 'BUTTON', caption text '!3D Volume Trigger', and rectangle x=160, y=100, w=166, h=12.
+A control exists with identifier 1168, class 'BUTTON', caption text '???', and rectangle x=160, y=116, w=166, h=12.
+A control exists with identifier 1167, class 'BUTTON', caption text 'Select Markers TEXT', and rectangle x=165, y=165, w=66, h=20.
+A control exists with identifier 1166, class 'BUTTON', caption text 'Print List TEXT', and rectangle x=240, y=165, w=60, h=20.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK TEXT', and rectangle x=310, y=165, w=53, h=20.
+
+
+Dialog Resource: LAYERNAMES
+===========================
+
+Dialog title text is 'Layer Names TEXT'. The dialog client rectangle in dialog units is x=162, y=55, w=297, h=175. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 4900, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=13, y=15, w=137, h=150.
+A control exists with identifier 4902, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=165, y=30, w=117, h=12.
+A control exists with identifier 4901, class 'STATIC', caption text 'Name TEXT', and rectangle x=165, y=15, w=115, h=11.
+A control exists with identifier 1238, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=165, y=75, w=120, h=85.
+A control exists with identifier 4903, class 'STATIC', caption text 'Color TEXT', and rectangle x=165, y=60, w=115, h=11.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK TEXT', and rectangle x=231, y=145, w=53, h=21.
+
+
+Dialog Resource: VISIBLELAYERS
+==============================
+
+Dialog title text is 'Visible Layers TEXT'. The dialog client rectangle in dialog units is x=126, y=25, w=467, h=226. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1205, class 'BUTTON', caption text 'Layer Visibility TEXT', and rectangle x=10, y=7, w=450, h=178.
+A control exists with identifier 4800, class 'BUTTON', caption text 'Check', and rectangle x=15, y=20, w=139, h=10.
+A control exists with identifier 4801, class 'BUTTON', caption text 'Check', and rectangle x=15, y=35, w=139, h=10.
+A control exists with identifier 4802, class 'BUTTON', caption text 'Check', and rectangle x=15, y=50, w=139, h=10.
+A control exists with identifier 4803, class 'BUTTON', caption text 'Check', and rectangle x=15, y=65, w=139, h=10.
+A control exists with identifier 4804, class 'BUTTON', caption text 'Check', and rectangle x=15, y=80, w=139, h=10.
+A control exists with identifier 4805, class 'BUTTON', caption text 'Check', and rectangle x=15, y=95, w=139, h=10.
+A control exists with identifier 4806, class 'BUTTON', caption text 'Check', and rectangle x=15, y=110, w=139, h=10.
+A control exists with identifier 4807, class 'BUTTON', caption text 'Check', and rectangle x=15, y=125, w=139, h=10.
+A control exists with identifier 4808, class 'BUTTON', caption text 'Check', and rectangle x=15, y=140, w=139, h=10.
+A control exists with identifier 4809, class 'BUTTON', caption text 'Check', and rectangle x=15, y=155, w=139, h=10.
+A control exists with identifier 4810, class 'BUTTON', caption text 'Check', and rectangle x=15, y=170, w=139, h=10.
+A control exists with identifier 4811, class 'BUTTON', caption text 'Check', and rectangle x=165, y=20, w=139, h=10.
+A control exists with identifier 4812, class 'BUTTON', caption text 'Check', and rectangle x=165, y=35, w=139, h=10.
+A control exists with identifier 4813, class 'BUTTON', caption text 'Check', and rectangle x=165, y=50, w=139, h=10.
+A control exists with identifier 4814, class 'BUTTON', caption text 'Check', and rectangle x=165, y=65, w=139, h=10.
+A control exists with identifier 4815, class 'BUTTON', caption text 'Check', and rectangle x=165, y=80, w=139, h=10.
+A control exists with identifier 4816, class 'BUTTON', caption text 'Check', and rectangle x=165, y=95, w=139, h=10.
+A control exists with identifier 4817, class 'BUTTON', caption text 'Check', and rectangle x=165, y=110, w=139, h=10.
+A control exists with identifier 4818, class 'BUTTON', caption text 'Check', and rectangle x=165, y=125, w=139, h=10.
+A control exists with identifier 4819, class 'BUTTON', caption text 'Check', and rectangle x=165, y=140, w=139, h=10.
+A control exists with identifier 4820, class 'BUTTON', caption text 'Check', and rectangle x=165, y=155, w=139, h=10.
+A control exists with identifier 4821, class 'BUTTON', caption text 'Check', and rectangle x=165, y=170, w=139, h=10.
+A control exists with identifier 4822, class 'BUTTON', caption text 'Check', and rectangle x=315, y=20, w=139, h=10.
+A control exists with identifier 4823, class 'BUTTON', caption text 'Check', and rectangle x=315, y=35, w=139, h=10.
+A control exists with identifier 4824, class 'BUTTON', caption text 'Check', and rectangle x=315, y=50, w=139, h=10.
+A control exists with identifier 4825, class 'BUTTON', caption text 'Check', and rectangle x=315, y=65, w=139, h=10.
+A control exists with identifier 4826, class 'BUTTON', caption text 'Check', and rectangle x=315, y=80, w=139, h=10.
+A control exists with identifier 4827, class 'BUTTON', caption text 'Check', and rectangle x=315, y=95, w=139, h=10.
+A control exists with identifier 4828, class 'BUTTON', caption text 'Check', and rectangle x=315, y=110, w=139, h=10.
+A control exists with identifier 4829, class 'BUTTON', caption text 'Check', and rectangle x=315, y=125, w=139, h=10.
+A control exists with identifier 4830, class 'BUTTON', caption text 'Check', and rectangle x=315, y=140, w=139, h=10.
+A control exists with identifier 4831, class 'BUTTON', caption text 'Check', and rectangle x=315, y=155, w=139, h=10.
+A control exists with identifier 1206, class 'STATIC', caption text 'Default Layer (Always Visible): TEXT', and rectangle x=15, y=190, w=185, h=10.
+A control exists with identifier 4853, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=15, y=200, w=162, h=127.
+A control exists with identifier 4851, class 'BUTTON', caption text 'Show All TEXT', and rectangle x=275, y=195, w=53, h=21.
+A control exists with identifier 4852, class 'BUTTON', caption text 'Hide All TEXT', and rectangle x=340, y=195, w=53, h=21.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK TEXT', and rectangle x=405, y=195, w=53, h=21.
+
+
+Dialog Resource: WEAPON_LOADOUTS
+================================
+
+Dialog title text is 'Weapon Loadouts'. The dialog client rectangle in dialog units is x=0, y=0, w=307, h=255. The dialog font is point size 8 with face name 'MS Sans Serif' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1, class 'BUTTON', caption text 'OK', and rectangle x=190, y=235, w=50, h=14.
+A control exists with identifier 2, class 'BUTTON', caption text 'Cancel', and rectangle x=245, y=235, w=50, h=14.
+A control exists with identifier 1118, class 'BUTTON', caption text '!Single Player Default Loadout', and rectangle x=5, y=5, w=195, h=60.
+A control exists with identifier 1111, class 'STATIC', caption text '!Primary', and rectangle x=10, y=17, w=80, h=8.
+A control exists with identifier 1112, class 'STATIC', caption text '!Secondary', and rectangle x=10, y=31, w=80, h=8.
+A control exists with identifier 1113, class 'STATIC', caption text '!Accessory', and rectangle x=10, y=47, w=80, h=8.
+A control exists with identifier 1114, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=100, y=15, w=93, h=85.
+A control exists with identifier 1115, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=100, y=29, w=93, h=85.
+A control exists with identifier 1116, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=100, y=45, w=93, h=85.
+A control exists with identifier 1098, class 'SCROLLBAR', no embedded caption text in the dialog template, and rectangle x=181, y=90, w=10, h=130.
+A control exists with identifier 1001, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=11, y=90, w=85, h=12.
+A control exists with identifier 1099, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=100, y=90, w=75, h=50.
+A control exists with identifier 1100, class 'STATIC', caption text '!Name', and rectangle x=11, y=80, w=85, h=8.
+A control exists with identifier 1101, class 'STATIC', caption text '!Status', and rectangle x=101, y=80, w=85, h=8.
+A control exists with identifier 1002, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=10, y=105, w=85, h=12.
+A control exists with identifier 1003, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=10, y=120, w=85, h=12.
+A control exists with identifier 1004, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=10, y=135, w=85, h=12.
+A control exists with identifier 1005, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=10, y=150, w=85, h=12.
+A control exists with identifier 1006, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=10, y=165, w=85, h=12.
+A control exists with identifier 1007, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=10, y=180, w=85, h=12.
+A control exists with identifier 1008, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=10, y=195, w=85, h=12.
+A control exists with identifier 1009, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=10, y=210, w=85, h=12.
+A control exists with identifier 65535, class 'BUTTON', no embedded caption text in the dialog template, and rectangle x=5, y=70, w=195, h=160.
+A control exists with identifier 1117, class 'BUTTON', caption text 'Default Loadout Restrictions', and rectangle x=5, y=70, w=290, h=160.
+A control exists with identifier 1013, class 'BUTTON', caption text 'Allow All Weapons', and rectangle x=205, y=85, w=80, h=20.
+A control exists with identifier 1014, class 'BUTTON', caption text 'Disallow All Weapons', and rectangle x=205, y=110, w=80, h=20.
+A control exists with identifier 1015, class 'BUTTON', caption text 'All Weapons in Armory', and rectangle x=205, y=135, w=80, h=20.
+A control exists with identifier 1102, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=100, y=105, w=75, h=50.
+A control exists with identifier 1103, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=100, y=120, w=75, h=50.
+A control exists with identifier 1104, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=100, y=135, w=75, h=50.
+A control exists with identifier 1105, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=100, y=150, w=75, h=50.
+A control exists with identifier 1106, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=100, y=165, w=75, h=50.
+A control exists with identifier 1107, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=100, y=180, w=75, h=50.
+A control exists with identifier 1108, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=100, y=195, w=75, h=50.
+A control exists with identifier 1109, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=100, y=210, w=75, h=50.
+
+
+Dialog Resource: INTEGRITYCHECK
+===============================
+
+Dialog title text is 'Integrity Check'. The dialog client rectangle in dialog units is x=116, y=41, w=161, h=154. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 4500, class 'STATIC', caption text 'Unknown Items', and rectangle x=23, y=16, w=63, h=9.
+A control exists with identifier 4501, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=19, y=32, w=72, h=92.
+A control exists with identifier 4502, class 'BUTTON', caption text 'Select All', and rectangle x=31, y=130, w=47, h=15.
+A control exists with identifier 103, class 'BUTTON', caption text 'Print', and rectangle x=108, y=66, w=38, h=14.
+
+
+Dialog Resource: MESSAGELOG
+===========================
+
+Dialog title text is 'Log'. The dialog client rectangle in dialog units is x=0, y=0, w=386, h=231. The dialog font is point size 8 with face name 'MS Sans Serif' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1162, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=10, y=10, w=365, h=190.
+A control exists with identifier 2, class 'BUTTON', caption text 'Exit', and rectangle x=135, y=210, w=50, h=14.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK', and rectangle x=200, y=210, w=50, h=14.
+
+
+Dialog Resource: BLINKGROUPSTATS
+================================
+
+Dialog title text is '!Blink Group Stats'. The dialog client rectangle in dialog units is x=0, y=0, w=237, h=170. The dialog font is point size 8 with face name 'MS Sans Serif' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1, class 'BUTTON', caption text '!OK', and rectangle x=90, y=150, w=50, h=14.
+A control exists with identifier 1024, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=5, y=20, w=225, h=120.
+A control exists with identifier 65535, class 'STATIC', caption text '!Group #', and rectangle x=5, y=10, w=29, h=8.
+A control exists with identifier 65535, class 'STATIC', caption text '!Group A', and rectangle x=70, y=10, w=29, h=8.
+A control exists with identifier 65535, class 'STATIC', caption text '!Group B', and rectangle x=135, y=10, w=29, h=8.
+
+
+Complete Dialog Template Set
+============================
+
+The executable contains additional dialog templates beyond the major editors listed above. For completeness, each dialog resource is described with its title and its full control list exactly as present in the template. These templates can be used to replicate window geometry and control placement.
+
+Dialog Resource: 105
+====================
+
+Dialog title text is 'Toolbar'. The dialog client rectangle in dialog units is x=0, y=0, w=176, h=167. The dialog font is point size 8 with face name 'MS Sans Serif' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1035, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=0, y=0, w=176, h=167.
+
+
+Dialog Resource: EDITBRIEFING
+=============================
+
+Dialog title text is 'Briefing TEXT'. The dialog client rectangle in dialog units is x=0, y=0, w=247, h=126. The dialog font is point size 8 with face name 'MS Sans Serif' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1, class 'BUTTON', caption text 'OK TEXT', and rectangle x=130, y=100, w=65, h=14.
+A control exists with identifier 2, class 'BUTTON', caption text 'Cancel TEXT', and rectangle x=50, y=100, w=65, h=14.
+A control exists with identifier 1001, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=10, y=20, w=225, h=70.
+A control exists with identifier 1229, class 'STATIC', caption text 'Briefing TEXT', and rectangle x=10, y=10, w=145, h=8.
+
+
+Dialog Resource: EDITBRIEFING_LANDWARRIOR
+=========================================
+
+Dialog title text is 'Large Briefing TEXT'. The dialog client rectangle in dialog units is x=0, y=0, w=247, h=261. The dialog font is point size 8 with face name 'MS Sans Serif' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1, class 'BUTTON', caption text 'OK TEXT', and rectangle x=130, y=240, w=65, h=14.
+A control exists with identifier 2, class 'BUTTON', caption text 'Cancel TEXT', and rectangle x=45, y=240, w=65, h=14.
+A control exists with identifier 1001, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=10, y=20, w=225, h=70.
+A control exists with identifier 1229, class 'STATIC', caption text 'Briefing TEXT', and rectangle x=10, y=10, w=145, h=8.
+A control exists with identifier 1002, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=10, y=105, w=225, h=130.
+A control exists with identifier 1239, class 'STATIC', caption text 'Long Briefing TEXT', and rectangle x=10, y=95, w=80, h=10.
+
+
+Dialog Resource: EVENTACTIONS
+=============================
+
+Dialog title text is 'Event Action TEXT'. The dialog client rectangle in dialog units is x=40, y=24, w=262, h=271. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 4410, class 'STATIC', caption text 'Action Type TEXT', and rectangle x=40, y=10, w=190, h=10.
+A control exists with identifier 4401, class 'STATIC', caption text 'Var 1: TEXT', and rectangle x=20, y=85, w=185, h=10.
+A control exists with identifier 4402, class 'STATIC', caption text 'Var 2: TEXT', and rectangle x=20, y=120, w=185, h=10.
+A control exists with identifier 4403, class 'STATIC', caption text 'Var 3: TEXT', and rectangle x=20, y=155, w=185, h=10.
+A control exists with identifier 4412, class 'BUTTON', caption text 'Action Variables TEXT', and rectangle x=10, y=70, w=240, h=155.
+A control exists with identifier 4404, class 'STATIC', caption text 'Var 4: TEXT', and rectangle x=20, y=190, w=185, h=10.
+A control exists with identifier 4411, class 'STATIC', caption text 'AI Action TEXT', and rectangle x=40, y=40, w=190, h=10.
+A control exists with identifier 4400, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=60, y=20, w=145, h=190.
+A control exists with identifier 4409, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=60, y=50, w=142, h=185.
+A control exists with identifier 4405, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=60, y=95, w=174, h=100.
+A control exists with identifier 4406, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=60, y=130, w=174, h=100.
+A control exists with identifier 4407, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=60, y=165, w=174, h=100.
+A control exists with identifier 4408, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=60, y=200, w=174, h=100.
+A control exists with identifier 2, class 'BUTTON', caption text 'Cancel TEXT', and rectangle x=65, y=235, w=59, h=25.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK TEXT', and rectangle x=141, y=235, w=59, h=25.
+
+
+Dialog Resource: EVENTTRIGGERS
+==============================
+
+Dialog title text is 'EventTriggers TEXT'. The dialog client rectangle in dialog units is x=206, y=23, w=262, h=306. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1196, class 'STATIC', caption text 'Trigger Type', and rectangle x=40, y=10, w=190, h=10.
+A control exists with identifier 1197, class 'STATIC', caption text 'Trigger Condition', and rectangle x=40, y=35, w=190, h=10.
+A control exists with identifier 1198, class 'BUTTON', caption text 'Trigger Variables TEXT', and rectangle x=10, y=90, w=240, h=140.
+A control exists with identifier 1199, class 'BUTTON', caption text 'Logic TEXT', and rectangle x=10, y=235, w=240, h=27.
+A control exists with identifier 1195, class 'STATIC', caption text 'Trigger if: TEXT', and rectangle x=10, y=70, w=110, h=12.
+A control exists with identifier 4304, class 'STATIC', caption text 'Var1: TEXT', and rectangle x=25, y=105, w=185, h=10.
+A control exists with identifier 4307, class 'STATIC', caption text 'Var4: TEXT', and rectangle x=25, y=200, w=185, h=10.
+A control exists with identifier 4306, class 'STATIC', caption text 'Var3: TEXT', and rectangle x=25, y=170, w=185, h=10.
+A control exists with identifier 4305, class 'STATIC', caption text 'Var2: TEXT', and rectangle x=26, y=137, w=185, h=10.
+A control exists with identifier 4300, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=60, y=20, w=145, h=205.
+A control exists with identifier 4301, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=60, y=45, w=145, h=205.
+A control exists with identifier 4302, class 'BUTTON', caption text 'True TEXT', and rectangle x=125, y=65, w=90, h=10.
+A control exists with identifier 4303, class 'BUTTON', caption text 'False TEXT', and rectangle x=125, y=80, w=90, h=8.
+A control exists with identifier 4308, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=60, y=115, w=175, h=88.
+A control exists with identifier 4309, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=60, y=150, w=175, h=82.
+A control exists with identifier 4310, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=60, y=182, w=175, h=94.
+A control exists with identifier 4311, class 'COMBOBOX', no embedded caption text in the dialog template, and rectangle x=60, y=212, w=175, h=98.
+A control exists with identifier 4312, class 'BUTTON', caption text 'And TEXT', and rectangle x=25, y=245, w=50, h=15.
+A control exists with identifier 4313, class 'BUTTON', caption text 'Or TEXT', and rectangle x=190, y=245, w=50, h=15.
+A control exists with identifier 4314, class 'BUTTON', caption text 'X-Or TEXT', and rectangle x=105, y=245, w=50, h=15.
+A control exists with identifier 2, class 'BUTTON', caption text 'Cancel TEXT', and rectangle x=60, y=270, w=59, h=25.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK TEXT', and rectangle x=136, y=270, w=59, h=25.
+
+
+Dialog Resource: GETCENTER
+==========================
+
+Dialog title text is 'Center TEXT'. The dialog client rectangle in dialog units is x=140, y=44, w=112, h=111. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1203, class 'STATIC', caption text 'X: TEXT', and rectangle x=20, y=10, w=65, h=9.
+A control exists with identifier 1202, class 'STATIC', caption text 'Y: TEXT', and rectangle x=20, y=40, w=70, h=10.
+A control exists with identifier 2900, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=25, y=20, w=56, h=12.
+A control exists with identifier 2901, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=25, y=50, w=56, h=12.
+A control exists with identifier 2, class 'BUTTON', caption text 'Cancel TEXT', and rectangle x=5, y=75, w=45, h=25.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK TEXT', and rectangle x=58, y=75, w=45, h=25.
+
+
+Dialog Resource: GROUPROTATE
+============================
+
+Dialog title text is 'Group Rotate TEXT'. The dialog client rectangle in dialog units is x=0, y=0, w=182, h=116. The dialog font is point size 8 with face name 'MS Sans Serif' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1, class 'BUTTON', caption text 'OK TEXT', and rectangle x=65, y=85, w=50, h=19.
+A control exists with identifier 2, class 'BUTTON', caption text 'Cancel TEXT', and rectangle x=10, y=85, w=50, h=19.
+A control exists with identifier 1236, class 'STATIC', caption text 'Rotation: TEXT', and rectangle x=55, y=15, w=65, h=8.
+A control exists with identifier 1001, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=70, y=26, w=35, h=14.
+A control exists with identifier 1013, class 'BUTTON', caption text '<', and rectangle x=66, y=44, w=20, h=14.
+A control exists with identifier 1028, class 'BUTTON', caption text '>', and rectangle x=90, y=44, w=20, h=14.
+A control exists with identifier 1031, class 'BUTTON', caption text '>>', and rectangle x=116, y=44, w=20, h=14.
+A control exists with identifier 1235, class 'BUTTON', caption text '<<', and rectangle x=40, y=44, w=20, h=14.
+A control exists with identifier 3, class 'BUTTON', caption text 'Apply TEXT', and rectangle x=120, y=85, w=50, h=19.
+
+
+Dialog Resource: MEMORYSTACK
+============================
+
+Dialog title text is 'Memory Stack: CMemory'. The dialog client rectangle in dialog units is x=56, y=22, w=191, h=239. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 3600, class 'STATIC', caption text 'Memory Stack Size: 0', and rectangle x=9, y=9, w=170, h=11.
+A control exists with identifier 3601, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=10, y=25, w=172, h=201.
+
+
+Dialog Resource: NUMERICMC
+==========================
+
+Dialog title text is 'Numeric Move/Copy'. The dialog client rectangle in dialog units is x=170, y=39, w=219, h=140. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 102, class 'STATIC', caption text 'Delta X', and rectangle x=21, y=39, w=33, h=11.
+A control exists with identifier 103, class 'STATIC', caption text 'Delta Y', and rectangle x=21, y=57, w=29, h=10.
+A control exists with identifier 104, class 'STATIC', caption text 'Delta Z', and rectangle x=21, y=76, w=29, h=10.
+A control exists with identifier 1000, class 'STATIC', caption text 'meters', and rectangle x=59, y=26, w=35, h=7.
+A control exists with identifier 1001, class 'STATIC', caption text '1/65536 m', and rectangle x=107, y=26, w=38, h=9.
+A control exists with identifier 105, class 'BUTTON', caption text 'Offset', and rectangle x=11, y=14, w=139, h=84.
+A control exists with identifier 106, class 'BUTTON', caption text 'Action', and rectangle x=157, y=15, w=46, h=83.
+A control exists with identifier 3000, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=59, y=38, w=37, h=11.
+A control exists with identifier 3010, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=109, y=38, w=33, h=10.
+A control exists with identifier 3001, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=59, y=57, w=37, h=11.
+A control exists with identifier 3011, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=109, y=55, w=33, h=11.
+A control exists with identifier 3002, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=59, y=74, w=37, h=11.
+A control exists with identifier 3012, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=109, y=74, w=33, h=11.
+A control exists with identifier 3003, class 'BUTTON', caption text 'Copy', and rectangle x=164, y=33, w=34, h=14.
+A control exists with identifier 3004, class 'BUTTON', caption text 'Move', and rectangle x=164, y=51, w=35, h=13.
+A control exists with identifier 2, class 'BUTTON', caption text 'Cancel', and rectangle x=69, y=109, w=34, h=18.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK', and rectangle x=119, y=108, w=34, h=18.
+
+
+Dialog Resource: SELECTBLINKGROUP
+=================================
+
+Dialog title text is 'Select Blink Group'. The dialog client rectangle in dialog units is x=0, y=0, w=167, h=76. The dialog font is point size 8 with face name 'MS Sans Serif' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 1236, class 'STATIC', caption text 'Blink Group', and rectangle x=50, y=10, w=65, h=8.
+A control exists with identifier 1247, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=70, y=20, w=20, h=14.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK', and rectangle x=85, y=45, w=50, h=19.
+A control exists with identifier 2, class 'BUTTON', caption text 'Cancel', and rectangle x=30, y=45, w=50, h=19.
+
+
+Dialog Resource: STATUSDIALOG
+=============================
+
+Dialog title text is 'Status TEXT'. The dialog client rectangle in dialog units is x=134, y=53, w=133, h=45. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 3700, class 'STATIC', caption text 'Text', and rectangle x=8, y=14, w=118, h=14.
+
+
+Dialog Resource: WAVLISTS
+=========================
+
+Dialog title text is 'Wav File Lists'. The dialog client rectangle in dialog units is x=204, y=63, w=307, h=197. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 4702, class 'STATIC', caption text 'Description', and rectangle x=164, y=16, w=95, h=12.
+A control exists with identifier 4704, class 'STATIC', caption text 'File Name', and rectangle x=164, y=59, w=79, h=10.
+A control exists with identifier 4700, class 'LISTBOX', no embedded caption text in the dialog template, and rectangle x=19, y=16, w=125, h=164.
+A control exists with identifier 4703, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=179, y=32, w=99, h=15.
+A control exists with identifier 4705, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=179, y=77, w=99, h=17.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK', and rectangle x=197, y=150, w=55, h=20.
+
+
+Dialog Resource: WAYPOINTNAMES
+==============================
+
+Dialog title text is "Waypoint Name ID's (WPN00n)". The dialog client rectangle in dialog units is x=237, y=54, w=203, h=223. The dialog font is point size 8 with face name 'Helv' when DS_SETFONT is present; otherwise these values are UNKNOWN.
+
+A control exists with identifier 100, class 'BUTTON', caption text 'Team Blue', and rectangle x=18, y=21, w=79, h=162.
+A control exists with identifier 101, class 'BUTTON', caption text 'Team Red', and rectangle x=110, y=21, w=75, h=162.
+A control exists with identifier 102, class 'STATIC', caption text '1', and rectangle x=30, y=39, w=13, h=10.
+A control exists with identifier 107, class 'STATIC', caption text '2', and rectangle x=31, y=55, w=13, h=10.
+A control exists with identifier 109, class 'STATIC', caption text '3', and rectangle x=30, y=72, w=13, h=10.
+A control exists with identifier 111, class 'STATIC', caption text '4', and rectangle x=30, y=86, w=13, h=10.
+A control exists with identifier 113, class 'STATIC', caption text '5', and rectangle x=30, y=101, w=13, h=10.
+A control exists with identifier 115, class 'STATIC', caption text '6', and rectangle x=30, y=117, w=13, h=10.
+A control exists with identifier 117, class 'STATIC', caption text '7', and rectangle x=30, y=134, w=13, h=10.
+A control exists with identifier 119, class 'STATIC', caption text '8', and rectangle x=30, y=154, w=13, h=10.
+A control exists with identifier 121, class 'STATIC', caption text '1', and rectangle x=124, y=37, w=13, h=10.
+A control exists with identifier 123, class 'STATIC', caption text '2', and rectangle x=124, y=54, w=13, h=10.
+A control exists with identifier 125, class 'STATIC', caption text '3', and rectangle x=124, y=70, w=13, h=10.
+A control exists with identifier 127, class 'STATIC', caption text '4', and rectangle x=124, y=85, w=13, h=10.
+A control exists with identifier 129, class 'STATIC', caption text '5', and rectangle x=124, y=102, w=13, h=10.
+A control exists with identifier 131, class 'STATIC', caption text '6', and rectangle x=124, y=118, w=13, h=10.
+A control exists with identifier 133, class 'STATIC', caption text '7', and rectangle x=124, y=137, w=13, h=10.
+A control exists with identifier 135, class 'STATIC', caption text '8', and rectangle x=124, y=154, w=13, h=10.
+A control exists with identifier 5020, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=50, y=36, w=21, h=12.
+A control exists with identifier 5011, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=50, y=54, w=21, h=12.
+A control exists with identifier 5012, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=50, y=70, w=21, h=12.
+A control exists with identifier 5013, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=50, y=86, w=21, h=12.
+A control exists with identifier 5014, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=50, y=101, w=21, h=12.
+A control exists with identifier 5015, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=50, y=116, w=21, h=12.
+A control exists with identifier 5016, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=50, y=134, w=21, h=12.
+A control exists with identifier 5017, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=50, y=153, w=21, h=12.
+A control exists with identifier 5010, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=144, y=37, w=21, h=12.
+A control exists with identifier 5031, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=144, y=53, w=21, h=12.
+A control exists with identifier 5032, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=144, y=69, w=21, h=12.
+A control exists with identifier 5033, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=144, y=85, w=21, h=12.
+A control exists with identifier 5034, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=144, y=101, w=21, h=12.
+A control exists with identifier 5035, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=144, y=118, w=21, h=12.
+A control exists with identifier 5036, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=144, y=136, w=21, h=12.
+A control exists with identifier 5037, class 'EDIT', no embedded caption text in the dialog template, and rectangle x=144, y=153, w=21, h=12.
+A control exists with identifier 1, class 'BUTTON', caption text 'OK', and rectangle x=74, y=193, w=49, h=20.
+
+
+Strings Evidence of Map Model and Editing Operations
+====================================================
+
+The executable contains embedded strings that strongly suggest internal concept names, serialization markers, and validation constraints for map editing. These strings are evidence of what the editor expects to read and write, but they do not by themselves prove the full control flow or file format transformations. Where a string indicates a specific limit or named record boundary, that is recorded as evidence. Where only the name exists without associated parsing logic, behavior remains UNKNOWN.
+
+Waypoints Related Strings Evidence
+==================================
+
+The string 'WAYPOINTS' exists in the executable.
+
+The string 'MAX_NUM_WAYPOINTS' exists in the executable.
+
+The string 'TOO_MANY_WAYPOINTS' exists in the executable.
+
+The string 'WAYPOINT_RED' exists in the executable.
+
+The string 'WAYPOINT_BLUE' exists in the executable.
+
+The string 'WAYPOINT_NOLOOP' exists in the executable.
+
+The string 'ITEM_WAYPOINT' exists in the executable.
+
+The string 'WAYPOINTNAMES' exists in the executable.
+
+The string 'EDITWAYPOINTS' exists in the executable.
+
+The string 'EDIT_WAYPOINTS' exists in the executable.
+
+The string 'WAYPOINT_NUMBER' exists in the executable.
+
+The string 'WAYPOINT_LIST' exists in the executable.
+
+The string 'SHOW_WAYPOINTS' exists in the executable.
+
+The string 'REACHED_WAYPOINT' exists in the executable.
+
+The string 'SINGLE_AT_WAYPOINT' exists in the executable.
+
+The string 'SINGLE_NOT_AT_WAYPOINT' exists in the executable.
+
+The string 'GROUP_AT_WAYPOINT' exists in the executable.
+
+The string 'GROUP_NOT_AT_WAYPOINT' exists in the executable.
+
+The string 'HIDE_WAYPOINTS_TO' exists in the executable.
+
+The string 'SHOW_WAYPOINTS_TO' exists in the executable.
+
+The string 'Warning: Unable to load default waypoint bin file' exists in the executable.
+
+The string 'Waypoints' exists in the executable.
+
+The string 'waypoint_id' exists in the executable.
+
+The string 'waypoint' exists in the executable.
+
+The string '  waypoint_id %i' exists in the executable.
+
+The string 'end waypoint' exists in the executable.
+
+The string 'begin waypoint %i' exists in the executable.
+
+The string 'WAYPOINT_LIST_HEADER' exists in the executable.
+
+The string 'waypoint.3di' exists in the executable.
+
+Area Trigger Related Strings Evidence
+=====================================
+
+The string 'ACTIVE_AREA' exists in the executable.
+
+The string 'MAX_NUM_AREA_TRIGGERS' exists in the executable.
+
+The string 'TOO_MANY_AREA_TRIGGERS' exists in the executable.
+
+The string 'MISSION_AREA' exists in the executable.
+
+The string 'AREA_TRIGGERS' exists in the executable.
+
+The string 'EDITAREATRIGGERS' exists in the executable.
+
+The string 'EDIT_AREATRIGGERS' exists in the executable.
+
+The string 'AREA_ID' exists in the executable.
+
+The string 'AREA_AI_BLUE' exists in the executable.
+
+The string 'AREA_AI_RED' exists in the executable.
+
+The string 'AREA_TRIGGER' exists in the executable.
+
+The string 'SINGLE_IS_WITHIN_AREA' exists in the executable.
+
+The string 'SINGLE_IS_NOT_WITHIN_AREA' exists in the executable.
+
+The string 'GROUP_IS_WITHIN_AREA' exists in the executable.
+
+The string 'GROUP_IS_NOT_WITHIN_AREA' exists in the executable.
+
+The string 'CHANGE_ALL_BLUE_IN_AREA' exists in the executable.
+
+The string 'CHANGE_ALL_RED_IN_AREA' exists in the executable.
+
+The string 'active_area' exists in the executable.
+
+The string 'areatrig' exists in the executable.
+
+The string '  active_area %d' exists in the executable.
+
+The string 'end areatrig' exists in the executable.
+
+The string 'begin areatrig %i' exists in the executable.
+
+The string 'AREATRIGGER_LIST_HEADER' exists in the executable.
+
+Event Related Strings Evidence
+==============================
+
+The string 'WP_ADVANCEMENT_EVENT' exists in the executable.
+
+The string 'EVENT_TRIGGER' exists in the executable.
+
+The string 'EVENT_ACTION' exists in the executable.
+
+The string 'EVENT_NUM' exists in the executable.
+
+The string 'NEW_EVENT' exists in the executable.
+
+The string 'EVENT_DOWN' exists in the executable.
+
+The string 'EVENT_UP' exists in the executable.
+
+The string 'PRINT_EVENT' exists in the executable.
+
+The string 'PASTE_EVENT' exists in the executable.
+
+The string 'COPY_EVENT' exists in the executable.
+
+The string 'DELETE_EVENT' exists in the executable.
+
+The string 'POST_MISSION_EVENT' exists in the executable.
+
+The string 'PRE_MISSION_EVENT' exists in the executable.
+
+The string 'DELETE_EVENT_?' exists in the executable.
+
+The string 'EVENTS' exists in the executable.
+
+The string 'EVENTACTIONS' exists in the executable.
+
+The string 'EVENTTRIGGERS' exists in the executable.
+
+The string 'HIDE_NOEVENT_SSN' exists in the executable.
+
+The string 'DELAY_EVENT' exists in the executable.
+
+The string 'EVENT_NUMBER' exists in the executable.
+
+The string 'Write Event' exists in the executable.
+
+The string 'EVENT_HEADER' exists in the executable.
+
+The string 'EVENT_LIST_HEADER' exists in the executable.
+
+The string 'EDITEVENTS' exists in the executable.
+
+The string 'EDIT_EVENTS' exists in the executable.
+
+The string 'EVENT_NUMBER_STRING' exists in the executable.
+
+The string 'EVENT' exists in the executable.
+
+The string 'RESET_EVENT' exists in the executable.
+
+The string 'EVENT_TRIGGERED' exists in the executable.
+
+The string 'EVENT_NOT_TRIGGERED' exists in the executable.
+
+The string 'RESET_EVENT_TO' exists in the executable.
+
+The string 'num_events' exists in the executable.
+
+The string 'event' exists in the executable.
+
+The string 'end event' exists in the executable.
+
+The string 'begin event %i' exists in the executable.
+
+The string '  num_events %i' exists in the executable.
+
+The string 'WP_EVENT_DELETED' exists in the executable.
+
+Group Related Strings Evidence
+==============================
+
+The string 'GROUP' exists in the executable.
+
+The string 'GROUPS' exists in the executable.
+
+The string 'GROUP_ROTATE' exists in the executable.
+
+The string 'Blink Groups: A:%i  B:%i' exists in the executable.
+
+The string 'GROUP_NONE' exists in the executable.
+
+The string 'GROUP_COLON' exists in the executable.
+
+The string 'SELECTBLINKGROUP' exists in the executable.
+
+The string 'GROUPROTATE' exists in the executable.
+
+The string 'EDITGROUPS' exists in the executable.
+
+The string 'EDIT_GROUPS' exists in the executable.
+
+The string 'MOUSE_DESELECTTHISGROUP' exists in the executable.
+
+The string 'MOUSE_SELECTTHISBLINKGROUP' exists in the executable.
+
+The string 'MOUSE_SELECTTHISGROUP' exists in the executable.
+
+The string 'ITEM_GROUP' exists in the executable.
+
+The string 'GROUP2' exists in the executable.
+
+The string 'GROUP1' exists in the executable.
+
+The string 'GROUP_TARGET_GROUP_PRI' exists in the executable.
+
+The string 'GROUP_TARGET_GROUP_EXC' exists in the executable.
+
+The string 'GROUP_TARGET_SSN_PRI' exists in the executable.
+
+The string 'GROUP_TARGET_SSN_EXC' exists in the executable.
+
+The string 'SSN_TARGET_GROUP_PRI' exists in the executable.
+
+The string 'SSN_TARGET_GROUP_EXC' exists in the executable.
+
+The string 'GROUP_RESET_HASVISITED' exists in the executable.
+
+The string 'GROUP_CLOSE_DOOR_ACTION' exists in the executable.
+
+The string 'GROUP_OPEN_DOOR_ACTION' exists in the executable.
+
+The string 'SINGLE_CHANGE_GROUP' exists in the executable.
+
+The string 'GROUP_TELEPORT_ACTION' exists in the executable.
+
+The string 'CHANGE_GROUP_ACTION' exists in the executable.
+
+The string 'GROUP_VELOCITY' exists in the executable.
+
+The string 'VAPORIZE_GROUP' exists in the executable.
+
+The string 'CHANGE_GROUP_AI' exists in the executable.
+
+The string 'KILL_GROUP' exists in the executable.
+
+The string 'REDIRECT_GROUP_TO' exists in the executable.
+
+The string 'SHOT_GROUP' exists in the executable.
+
+The string 'SAW_GROUP' exists in the executable.
+
+The string 'TARGETED_GROUP' exists in the executable.
+
+The string 'SINGLE_HAS_SHOT_GROUP' exists in the executable.
+
+The string 'SINGLE_HAS_NOT_SHOT_GROUP' exists in the executable.
+
+The string 'SINGLE_HAS_TARGETED_GROUP' exists in the executable.
+
+The string 'SINGLE_HAS_NOT_TARGETED_GROUP' exists in the executable.
+
+The string 'SINGLE_SEES_GROUP' exists in the executable.
+
+The string 'SINGLE_NOT_SEES_GROUP' exists in the executable.
+
+The string 'SINGLE_HOLDING_GROUP' exists in the executable.
+
+The string 'SINGLE_NOT_HOLDING_GROUP' exists in the executable.
+
+The string 'GROUP_HAS_SHOT_SINGLE' exists in the executable.
+
+The string 'GROUP_HAS_NOT_SHOT_SINGLE' exists in the executable.
+
+The string 'GROUP_HAS_TARGETED_SINGLE' exists in the executable.
+
+The string 'GROUP_HAS_NOT_TARGETED_SINGLE' exists in the executable.
+
+The string 'GROUP_SEES_SINGLE' exists in the executable.
+
+The string 'GROUP_NOT_SEES_SINGLE' exists in the executable.
+
+The string 'GROUP_HAS_MORE_UNITS' exists in the executable.
+
+The string 'GROUP_LESS_THAN' exists in the executable.
+
+The string 'GROUP_HOLDING_GROUP' exists in the executable.
+
+The string 'GROUP_NOT_HOLDING_GROUP' exists in the executable.
+
+The string 'GROUP_IS_WITHIN_AREA' exists in the executable.
+
+The string 'GROUP_IS_NOT_WITHIN_AREA' exists in the executable.
+
+The string 'GROUP_HAS_LOST_MORE_UNITS' exists in the executable.
+
+The string 'GROUP_HAS_NOT_LOST_MORE_UNITS' exists in the executable.
+
+The string 'GROUP_INTACT' exists in the executable.
+
+The string 'GROUP_NOT_INTACT' exists in the executable.
+
+The string 'GROUP_AT_WAYPOINT' exists in the executable.
+
+The string 'GROUP_NOT_AT_WAYPOINT' exists in the executable.
+
+The string 'GROUP_ALIVE' exists in the executable.
+
+The string 'GROUP_NOT_ALIVE' exists in the executable.
+
+The string 'GROUP_DESTROYED' exists in the executable.
+
+The string 'GROUP_NOT_DESTROYED' exists in the executable.
+
+The string 'GROUP_AT_YELLOW_ALERT' exists in the executable.
+
+The string 'GROUP_NOT_AT_YELLOW_ALERT' exists in the executable.
+
+The string 'GROUP_AT_RED_ALERT' exists in the executable.
+
+The string 'GROUP_NOT_AT_RED_ALERT' exists in the executable.
+
+The string 'GROUP_HAS_SHOT_GROUP' exists in the executable.
+
+The string 'GROUP_HAS_NOT_SHOT_GROUP' exists in the executable.
+
+The string 'GROUP_HAS_TARGETED_GROUP' exists in the executable.
+
+The string 'GROUP_HAS_NOT_TARGETED_GROUP' exists in the executable.
+
+The string 'GROUP_SEES_GROUP' exists in the executable.
+
+The string 'GROUP_NOT_SEES_GROUP' exists in the executable.
+
+The string 'GROUP-NULL' exists in the executable.
+
+The string 'GROUP_TARGET_GROUP_PRI_STR' exists in the executable.
+
+The string 'GROUP_TARGET_GROUP_EXC_STR' exists in the executable.
+
+The string 'GROUP_TARGET_SSN_PRI_STR' exists in the executable.
+
+Layer Related Strings Evidence
+==============================
+
+The string 'LAYER' exists in the executable.
+
+The string 'LAYERNAME' exists in the executable.
+
+The string 'MULTIPLAYER' exists in the executable.
+
+The string 'PLAYERS' exists in the executable.
+
+The string 'DEFAULT_LAYER' exists in the executable.
+
+The string 'LAYER_VISIBILITY' exists in the executable.
+
+The string 'VISIBLE_LAYERS' exists in the executable.
+
+The string 'LAYER_NAMES' exists in the executable.
+
+The string 'LAYER_NUM' exists in the executable.
+
+The string 'LAYER_BUTTON' exists in the executable.
+
+The string 'VISIBLELAYERS' exists in the executable.
+
+The string 'LAYERNAMES' exists in the executable.
+
+The string 'VIEW_BYLAYER' exists in the executable.
+
+The string 'EDIT_LAYERNAMES' exists in the executable.
+
+The string 'PLAYER' exists in the executable.
+
+The string 'PLAYER_SATCHEL_TEST' exists in the executable.
+
+The string 'PLAYER_AWOL_TEST' exists in the executable.
+
+The string 'PLAYER_DLGFINISHED_TEST' exists in the executable.
+
+The string 'PLAYER_DLGDONE_TEST' exists in the executable.
+
+The string 'PLAYER_COCKPITVIEW_TEST' exists in the executable.
+
+The string 'PLAYER_3RDPERSON_TEST' exists in the executable.
+
+The string 'PLAYER_1STPERSON_TEST' exists in the executable.
+
+The string 'PLAYER_BERSERK_TEST' exists in the executable.
+
+The string 'PLAYER_SATCHEL' exists in the executable.
+
+The string 'PLAYER_SATCHEL_NOT' exists in the executable.
+
+The string 'PLAYER_AWOL' exists in the executable.
+
+The string 'PLAYER_AWOL_NOT' exists in the executable.
+
+The string 'PLAYER_DLGFINISHED' exists in the executable.
+
+The string 'PLAYER_DLGFINISHED_NOT' exists in the executable.
+
+The string 'PLAYER_DLGDONE' exists in the executable.
+
+The string 'PLAYER_DLGDONE_NOT' exists in the executable.
+
+The string 'PLAYER_COCKPITVIEW' exists in the executable.
+
+The string 'PLAYER_COCKPITVIEW_NOT' exists in the executable.
+
+The string 'PLAYER_3RDPERSON' exists in the executable.
+
+The string 'PLAYER_3RDPERSON_NOT' exists in the executable.
+
+The string 'PLAYER_1STPERSON' exists in the executable.
+
+The string 'PLAYER_1STPERSON_NOT' exists in the executable.
+
+The string 'PLAYER_BERSERK' exists in the executable.
+
+The string 'PLAYER_BERSERK_NOT' exists in the executable.
+
+The string 'PLAYER-NULL' exists in the executable.
+
+The string 'PLAYER_CLEARINPUT_STRING' exists in the executable.
+
+The string 'PLAYER_HUDFLASH_STRING' exists in the executable.
+
+The string 'PLAYER_STARTUP_STRING' exists in the executable.
+
+The string 'GOTO_PLAYER' exists in the executable.
+
+The string 'REDPLAYERS' exists in the executable.
+
+The string 'Players' exists in the executable.
+
+The string 'BLUEPLAYERS' exists in the executable.
+
+The string 'player_type' exists in the executable.
+
+The string 'layer' exists in the executable.
+
+The string '  layer %i' exists in the executable.
+
+The string 'end layer' exists in the executable.
+
+The string 'begin layer %i' exists in the executable.
+
+The string '  player_type %i' exists in the executable.
+
+SSN Related Strings Evidence
+============================
+
+The string 'NEXTSSN' exists in the executable.
+
+The string '%s%s [%s] - SSN %.3d' exists in the executable.
+
+The string 'SSN %.3d - %s%s [%s]' exists in the executable.
+
+The string 'SELECTSSN' exists in the executable.
+
+The string 'HIDE_NOEVENT_SSN' exists in the executable.
+
+The string 'ALLSSN' exists in the executable.
+
+The string 'EDIT_SELECTSSN' exists in the executable.
+
+The string 'TARGETSSN' exists in the executable.
+
+The string 'GROUP_TARGET_SSN_PRI' exists in the executable.
+
+The string 'GROUP_TARGET_SSN_EXC' exists in the executable.
+
+The string 'SSN_TARGET_GROUP_PRI' exists in the executable.
+
+The string 'SSN_TARGET_GROUP_EXC' exists in the executable.
+
+The string 'SSN_TARGET_SSN_PRI' exists in the executable.
+
+The string 'SSN_TARGET_SSN_EXC' exists in the executable.
+
+The string 'FIND_AND_USE_SSN' exists in the executable.
+
+The string 'GROUP_TARGET_SSN_PRI_STR' exists in the executable.
+
+The string 'GROUP_TARGET_SSN_EXC_STR' exists in the executable.
+
+The string 'SSN_TARGET_GROUP_PRI_STR' exists in the executable.
+
+The string 'SSN_TARGET_GROUP_EXC_STR' exists in the executable.
+
+The string 'SSN_TARGET_SSN_PRI_STR' exists in the executable.
+
+The string 'SSN_TARGET_SSN_EXC_STR' exists in the executable.
+
+The string 'TARGET_SSN' exists in the executable.
+
+The string 'medmssn.bin' exists in the executable.
+
+The string 'GOTO_SSN' exists in the executable.
+
+The string 'next_ssn' exists in the executable.
+
+The string '  next_ssn %d' exists in the executable.
+
+Weapon Loadout Related Strings Evidence
+=======================================
+
+The string 'LOADOUT_RESTRICT' exists in the executable.
+
+The string 'LOADOUT_SP' exists in the executable.
+
+The string 'loadout_subclasses' exists in the executable.
+
+The string 'loadout_selectable' exists in the executable.
+
+The string 'loadout_menu_textid' exists in the executable.
+
+The string 'WEAPON_LOADOUTS' exists in the executable.
+
+The string 'tank_loadout' exists in the executable.
+
+The string 'loadoutfile' exists in the executable.
+
+Operational Coupling Between UI and Map Model
+=============================================
+
+Menu items and dialog templates provide evidence of what operations exist, while embedded strings provide evidence of internal concept identifiers. A complete, proven mapping from each UI control to a specific file field, transformation, validation rule, or save time behavior cannot be derived from resources and strings alone. Therefore, for each operation, the data binding rules are UNKNOWN unless the binding is explicitly expressed in a control caption, a dialog title, or an embedded string that directly names the corresponding map field.
+
+Reconstruction Guidance for a Clone Editor
+==========================================
+
+This section describes how to rebuild an editor that matches the observable UI surface from the executable. It avoids guessing run time behavior that is not proven.
+
+Menu reconstruction can be performed by recreating the menu trees exactly as specified in the menu resources, preserving labels including punctuation and accelerator markers, and preserving the command identifiers. The main menu contains top level entries labeled '!&File', '!&Edit', '!&View', '!Tools', '!Page', '!&Info', and '!Character Map'. The executable also provides two context menus labeled 'MouseMenu' and 'MouseItem' with their own command identifiers.
+
+Dialog reconstruction can be performed by recreating each dialog template with the same title, dialog unit geometry, and control list. Each control includes a numeric identifier, a window class (either as a standard control class ordinal or as a named class such as 'msctls_trackbar32'), optional caption text, and a rectangle in dialog units. Exact font selection is recoverable for dialogs using DS_SETFONT and is recorded in each dialog description.
+
+Runtime behavior such as which command opens which dialog, which edits are applied to which on disk map fields, and which validation errors are shown, is UNKNOWN without additional evidence such as disassembly of command handlers, message maps, or observed I/O traces.

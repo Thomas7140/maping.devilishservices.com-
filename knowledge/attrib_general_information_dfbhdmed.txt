@@ -1,0 +1,185 @@
+GENERAL_INFORMATION FLAGS (DFBHDMed)
+Plain text reference: how each checkbox affects the 'attrib' number
+
+Source of truth: dfbhdmed.exe (Delta Force: Black Hawk Down Mission Editor)
+This document intentionally ignores OpenNova and any third-party reimplementations.
+
+=====================================================================
+1) WHAT 'attrib' IS (PLAIN TEXT MODEL)
+=====================================================================
+
+Inside the general_information header, there is a field:
+
+attrib <decimal_number>
+
+Treat attrib as a single decimal integer that stores many on/off options at once.
+Each checkbox corresponds to one fixed numeric value.
+If the checkbox is enabled, add its value to attrib.
+If disabled, do not add it.
+
+So:
+
+attrib = sum of all enabled flag values
+
+
+=====================================================================
+2) FLAGS THAT AFFECT 'attrib'
+=====================================================================
+
+These are the General Information checkboxes that are stored inside attrib.
+
+---------------------------------------------------------------------
+2.1) Mission Overrides (enable bits)
+---------------------------------------------------------------------
+
+These checkboxes only enable the override. The override's actual value is stored
+in a separate field. If the enable bit is OFF, the value is ignored.
+
+Water Level Override (enable)
+Value added to attrib: 1
+
+Fog Distance Override (enable)
+Value added to attrib: 2
+
+Fog Color Override (enable)
+Value added to attrib: 4
+
+Weather Override (enable)
+Value added to attrib: 8
+
+
+---------------------------------------------------------------------
+2.2) General flags
+---------------------------------------------------------------------
+
+Rotate Map 180 Degrees
+Value added to attrib: 32
+
+Single Player Respawn
+Value added to attrib: 64
+
+
+---------------------------------------------------------------------
+2.3) Night Vision flags
+---------------------------------------------------------------------
+
+Night Vision Goggles Available
+Value added to attrib: 1048576
+
+Start With NVG Turned On
+Value added to attrib: 4194304
+
+
+---------------------------------------------------------------------
+2.4) Map Types (Map Type checkboxes)
+---------------------------------------------------------------------
+
+More than one Map Type can be enabled.
+Each enabled Map Type adds its value to attrib.
+
+Cooperative
+Value added to attrib: 16777216
+
+Deathmatch
+Value added to attrib: 33554432
+
+King of the Hill
+Value added to attrib: 67108864
+
+Flagball
+Value added to attrib: 134217728
+
+Capture the Flag
+Value added to attrib: 268435456
+
+Team Deathmatch
+Value added to attrib: 536870912
+
+Team King of the Hill
+Value added to attrib: 1073741824
+
+Search and Destroy
+Value added to attrib: 2147483648
+
+Attack and Defend
+Value added to attrib: 8388608
+
+
+=====================================================================
+3) HOW TO CALCULATE AND DECODE attrib
+=====================================================================
+
+To build attrib:
+Start at 0, then add the values of every enabled checkbox.
+
+Example:
+Enabled: Cooperative + Team Deathmatch
+
+attrib = 16777216 + 536870912
+attrib = 553648128
+
+
+To decode attrib:
+Repeatedly subtract the largest flag value that still fits until the remainder is 0.
+Every value you used is an enabled checkbox.
+
+Example:
+attrib = 553648160
+
+553648160 - 536870912 = 16777248
+16777248  - 16777216  = 32
+32        - 32        = 0
+
+Enabled:
+Team Deathmatch
+Cooperative
+Rotate Map 180 Degrees
+
+
+=====================================================================
+4) GENERAL INFORMATION OPTIONS THAT DO NOT CHANGE attrib
+=====================================================================
+
+DFBHDMed also shows options in the General Information panel that are not stored
+inside attrib. In plain text terms, they would be separate fields.
+
+Known examples (they exist in the UI, but are not represented by a value inside attrib):
+- Night (this is typically controlled by time-of-day/environment fields, not attrib)
+- No Voxels
+- No Shadows
+
+Plain text example of how these could appear if exported as simple text:
+
+general_information
+attrib 553648128
+night 1
+no_voxels 1
+no_shadows 0
+
+
+=====================================================================
+5) IMPORTANT NOTE ABOUT OVERRIDES (PLAIN TEXT)
+=====================================================================
+
+When an override checkbox is enabled, attrib only records "override is active".
+The actual override values must exist elsewhere, for example:
+
+general_information
+attrib 3
+water_level 66
+fog_distance 1200
+fog_color 64 80 96
+
+In this example:
+attrib 3 means:
+- Water Level Override enabled (1)
+- Fog Distance Override enabled (2)
+- Fog Color Override disabled (4)
+- Weather Override disabled (8)
+
+So the editor would apply water_level and fog_distance, but ignore fog_color.
+
+
+=====================================================================
+END
+=====================================================================

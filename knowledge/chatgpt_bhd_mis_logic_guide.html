@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BHD .MIS Guide: Waypoints, Area Triggers, Layers, Groups and Events</title>
+  <style>
+    :root {
+      --bg: #0f1220;
+      --panel: #171b2e;
+      --panel2: #1d2340;
+      --text: #eaf0ff;
+      --muted: #aeb9d6;
+      --line: #2c355a;
+      --wp: #4ecdc4;
+      --area: #ffb84d;
+      --layer: #9b8cff;
+      --group: #ff6b88;
+      --event: #69b1ff;
+      --ok: #7ee787;
+      --warn: #ffd866;
+      --shadow: 0 18px 50px rgba(0,0,0,.28);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin:0; padding:0; background:
+      radial-gradient(circle at top right, #202a4d 0, transparent 30%),
+      radial-gradient(circle at top left, #1a243f 0, transparent 25%),
+      linear-gradient(180deg, #0d1020 0%, #10162a 100%);
+      color:var(--text); font: 16px/1.55 Inter, Segoe UI, Arial, sans-serif; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 32px 20px 60px; }
+    .hero {
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      border-radius: 28px;
+      padding: 28px 28px 24px;
+      overflow: hidden;
+      position: relative;
+    }
+    .hero:before {
+      content:"";
+      position:absolute; inset:auto -80px -80px auto;
+      width:260px; height:260px; border-radius:999px;
+      background: radial-gradient(circle, rgba(78,205,196,.22), rgba(78,205,196,0));
+      pointer-events:none;
+    }
+    h1, h2, h3 { margin:0 0 12px; line-height:1.15; }
+    h1 { font-size: 38px; letter-spacing: -.03em; }
+    h2 { font-size: 28px; margin-top: 34px; }
+    h3 { font-size: 21px; margin-top: 22px; }
+    p { margin: 10px 0; color: var(--text); }
+    .muted { color: var(--muted); }
+    .grid-2 { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:18px; }
+    .grid-3 { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:18px; }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: 22px;
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow);
+    }
+    .pill {
+      display:inline-block; padding: 7px 11px; border-radius:999px;
+      font-size:13px; font-weight:700; letter-spacing:.02em;
+      margin: 6px 8px 0 0;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+    }
+    .pill.wp { color:#d8fffc; background:rgba(78,205,196,.18); border-color:rgba(78,205,196,.45); }
+    .pill.area { color:#fff3df; background:rgba(255,184,77,.18); border-color:rgba(255,184,77,.45); }
+    .pill.layer { color:#efe9ff; background:rgba(155,140,255,.18); border-color:rgba(155,140,255,.45); }
+    .pill.group { color:#ffe5ec; background:rgba(255,107,136,.18); border-color:rgba(255,107,136,.45); }
+    .pill.event { color:#e7f4ff; background:rgba(105,177,255,.18); border-color:rgba(105,177,255,.45); }
+    .kpis { display:grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap:14px; margin-top:18px; }
+    .kpi {
+      border-radius:18px; padding:14px 14px 12px; border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04);
+    }
+    .kpi .n { font-size:26px; font-weight:800; }
+    .kpi .t { font-size:13px; color:var(--muted); }
+    table {
+      width:100%; border-collapse: collapse; overflow:hidden;
+      border-radius:18px; border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+    }
+    th, td { padding: 12px 12px; text-align:left; border-bottom:1px solid rgba(255,255,255,.08); }
+    th { font-size:13px; color:var(--muted); text-transform: uppercase; letter-spacing:.04em; background: rgba(255,255,255,.03); }
+    tr:last-child td { border-bottom:none; }
+    .diagram {
+      border-radius: 22px;
+      padding: 20px;
+      border:1px solid rgba(255,255,255,.08);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)),
+        radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 40%);
+      box-shadow: var(--shadow);
+    }
+    .flow { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    .node {
+      min-width: 152px;
+      border-radius:18px; padding:14px 14px 12px;
+      font-weight:700; border:1px solid rgba(255,255,255,.10);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .node small { display:block; font-weight:500; color: rgba(255,255,255,.82); margin-top:4px; }
+    .node.wp { background: linear-gradient(180deg, rgba(78,205,196,.22), rgba(78,205,196,.09)); }
+    .node.area { background: linear-gradient(180deg, rgba(255,184,77,.22), rgba(255,184,77,.09)); }
+    .node.layer { background: linear-gradient(180deg, rgba(155,140,255,.22), rgba(155,140,255,.09)); }
+    .node.group { background: linear-gradient(180deg, rgba(255,107,136,.22), rgba(255,107,136,.09)); }
+    .node.event { background: linear-gradient(180deg, rgba(105,177,255,.22), rgba(105,177,255,.09)); }
+    .node.gray { background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04)); }
+    .arrow { font-size:24px; opacity:.8; padding:0 2px; }
+    .callout {
+      border-left: 5px solid var(--event);
+      background: rgba(105,177,255,.10);
+      padding: 12px 14px;
+      border-radius: 14px;
+      margin: 12px 0;
+    }
+    .note {
+      border-left: 5px solid var(--warn);
+      background: rgba(255,216,102,.10);
+      padding: 12px 14px;
+      border-radius: 14px;
+      margin: 12px 0;
+      color: #fff3c7;
+    }
+    .success {
+      border-left: 5px solid var(--ok);
+      background: rgba(126,231,135,.10);
+      padding: 12px 14px;
+      border-radius: 14px;
+      margin: 12px 0;
+      color: #defde2;
+    }
+    pre.code {
+      white-space: pre-wrap; word-break: break-word;
+      margin: 0; padding: 16px 16px 14px;
+      border-radius: 16px;
+      background: #0b0f1c;
+      border:1px solid #252e52;
+      color: #dce7ff;
+      font: 13.5px/1.45 Consolas, Menlo, Monaco, monospace;
+      overflow:auto;
+    }
+    .subgrid { display:grid; grid-template-columns: 1.2fr .8fr; gap:18px; }
+    ul.clean { margin:8px 0 0 18px; padding:0; }
+    ul.clean li { margin: 8px 0; }
+    .legend { display:flex; flex-wrap:wrap; gap:8px; }
+    .footer { margin-top: 34px; color: var(--muted); font-size: 14px; }
+    .mini { font-size: 14px; }
+    .stack { display:grid; gap: 18px; }
+    @media (max-width: 900px) {
+      .grid-2, .grid-3, .subgrid, .kpis { grid-template-columns: 1fr; }
+      h1 { font-size: 31px; }
+      .flow { flex-direction: column; align-items: stretch; }
+      .arrow { transform: rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="legend">
+        <span class="pill wp">Waypoints</span>
+        <span class="pill area">Area Triggers</span>
+        <span class="pill layer">Layers</span>
+        <span class="pill group">Groups</span>
+        <span class="pill event">Events</span>
+      </div>
+      <h1>BHD .MIS Mission Logic Guide</h1>
+      <p class="muted">Built from direct reading of multiple Delta Force: Black Hawk Down map files. This guide focuses on what can be observed in the .mis structure and what can be inferred safely from repeated patterns across maps.</p>
+
+      <div class="kpis">
+        <div class="kpi"><div class="n">7</div><div class="t">Maps analyzed</div></div>
+        <div class="kpi"><div class="n">577</div><div class="t">Total event blocks read</div></div>
+        <div class="kpi"><div class="n">194</div><div class="t">Logical areas counted</div></div>
+        <div class="kpi"><div class="n">151</div><div class="t">Logical groups counted</div></div>
+        <div class="kpi"><div class="n">346</div><div class="t">Logical waypoints counted</div></div>
+      </div>
+
+      <div class="callout">
+        Core conclusion: the .mis files consistently separate the map into logical definitions such as <strong>begin waypoint</strong>, <strong>begin areatrig</strong>, <strong>begin group</strong>, <strong>begin layer</strong> and <strong>begin event</strong>, while the placed <strong>items</strong> carry fields such as <strong>position</strong>, <strong>group_id</strong>, <strong>waypoint_id</strong>, <strong>wpnumber</strong> and <strong>layer</strong> that connect the world objects to that logical system.
+      </div>
+    </section>
+
+    <section>
+      <h2>Maps checked for this guide</h2>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Map</th>
+              <th>Items</th>
+              <th>Groups</th>
+              <th>Areas</th>
+              <th>Waypoints</th>
+              <th>Events</th>
+              <th>Triggers</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+      <tr>
+        <td><strong>Urban Raid A</strong><div class="muted">ADK_02a.mis</div></td>
+        <td>785</td>
+        <td>4</td>
+        <td>2</td>
+        <td>17</td>
+        <td>11</td>
+        <td>7</td>
+        <td>14</td>
+      </tr>
+      <tr>
+        <td><strong>Sky Raiders A</strong><div class="muted">SDM_02a.mis</div></td>
+        <td>746</td>
+        <td>8</td>
+        <td>18</td>
+        <td>24</td>
+        <td>64</td>
+        <td>64</td>
+        <td>129</td>
+      </tr>
+      <tr>
+        <td><strong>Lost Convoy</strong><div class="muted">SPBHD_16.mis</div></td>
+        <td>2150</td>
+        <td>39</td>
+        <td>15</td>
+        <td>89</td>
+        <td>138</td>
+        <td>198</td>
+        <td>528</td>
+      </tr>
+      <tr>
+        <td><strong>Valiant Solider</strong><div class="muted">SPBHD_17.mis</div></td>
+        <td>2170</td>
+        <td>21</td>
+        <td>39</td>
+        <td>81</td>
+        <td>137</td>
+        <td>224</td>
+        <td>377</td>
+      </tr>
+      <tr>
+        <td><strong>SP18 Last Stand</strong><div class="muted">SPBHD_18.mis</div></td>
+        <td>2055</td>
+        <td>23</td>
+        <td>55</td>
+        <td>49</td>
+        <td>173</td>
+        <td>172</td>
+        <td>332</td>
+      </tr>
+      <tr>
+        <td><strong>Mogadishu Mile</strong><div class="muted">SPBHD_19.mis</div></td>
+        <td>1661</td>
+        <td>21</td>
+        <td>28</td>
+        <td>44</td>
+        <td>58</td>
+        <td>64</td>
+        <td>95</td>
+      </tr>
+      <tr>
+        <td><strong>Aidid Takedown</strong><div class="muted">SPBHD_20.mis</div></td>
+        <td>1729</td>
+        <td>34</td>
+        <td>41</td>
+        <td>42</td>
+        <td>76</td>
+        <td>101</td>
+        <td>250</td>
+      </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>High level structure</h2>
+      <div class="diagram">
+        <div class="flow">
+          <div class="node gray">Items<small>placed entities with position and fields</small></div>
+          <div class="arrow">→</div>
+          <div class="node layer">Layers<small>editor organization</small></div>
+          <div class="arrow">→</div>
+          <div class="node group">Groups<small>logical grouping of entities</small></div>
+          <div class="arrow">→</div>
+          <div class="node wp">Waypoints<small>navigation and progression references</small></div>
+          <div class="arrow">→</div>
+          <div class="node area">Area Triggers<small>spatial regions built from marker data</small></div>
+          <div class="arrow">→</div>
+          <div class="node event">Events<small>trigger + action tables driving mission logic</small></div>
+        </div>
+        <p class="mini muted" style="margin-top:14px;">Reading these files suggests a split between logical definitions near the top of the file and concrete placed items later in the file. Events then reference those logical numbers through compact trigger/action rows.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>1. Waypoints</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>What the files show clearly</h3>
+          <ul class="clean">
+            <li>Every map contains logical waypoint definitions with <strong>begin waypoint N</strong>.</li>
+            <li>Placed entities can carry <strong>waypoint_id</strong> and <strong>wpdistance</strong>.</li>
+            <li>Waypoint marker items also exist as regular items named <strong>"Waypoint"</strong> on <strong>layer 8</strong> in many maps.</li>
+            <li>Some waypoint definitions are clearly special markers, such as <strong>Goto SSN</strong>, <strong>Goto Group</strong> and <strong>Goto Player</strong> in <strong>ADK_02a.mis</strong>.</li>
+          </ul>
+          <div class="success">
+            Safe conclusion: waypoints are not just a visual editor helper. They are a numbered logical system that items and events can reference.
+          </div>
+        </div>
+        <div class="card">
+          <h3>Observed mental model</h3>
+          <pre class="code">Logical waypoint definition
+        ↓
+Placed marker or placed AI entity references waypoint_id
+        ↓
+wpdistance defines reach radius / tolerance
+        ↓
+Mission logic and AI can react to that numbered waypoint</pre>
+        </div>
+      </div>
+
+      <div class="subgrid" style="margin-top:18px;">
+        <div class="stack">
+          <div class="card">
+            <h3>Waypoint definition example</h3>
+            <pre class='code'>begin waypoint 125
+  description &quot;Goto SSN&quot;
+  color 14
+end waypoint</pre>
+          </div>
+          <div class="card">
+            <h3>Waypoint marker item example</h3>
+            <pre class='code'>begin item 1211
+  type_id 6005
+  name &quot;Waypoint&quot;
+  iai_name &quot;&quot;
+  ai_textfile &quot;&quot;
+  id 3388
+  position 46805696 -104638360 2293760
+  map_symbol -1
+  waypoint_id 43
+  wpdistance 2
+  fov 180
+  layer 8
+  obliqueness 15
+  waccuracy1 100
+  waccuracy2 100
+  perception2 100
+  perfectionist2 100
+  crouchtimer 3
+  shoottimer 5
+  attention 30
+  advancetimer 10
+  max_attack_distance 16
+  edistances 16 320
+  extra_mlink &quot;&quot;
+  extra_val1 0
+  extra_val2 0
+  extra_val3 0
+  extra_val4 0
+  extra_val5 0
+  extra_valmode 0
+  extra_bheight 0
+  gen_string &quot;null&quot;
+  height_lock 1
+end item</pre>
+          </div>
+        </div>
+        <div class="card">
+          <h3>How to read it</h3>
+          <p><strong>begin waypoint 125</strong> defines a logical slot. The descriptive name shows that not every waypoint is a simple patrol point.</p>
+          <p>The placed item named <strong>"Waypoint"</strong> gives that waypoint a concrete world position through <strong>position X Y Z</strong>. In this export style, positions are stored as integers that correspond to the engine fixed-point world coordinates.</p>
+          <p>When an AI unit or another mission system references a <strong>waypoint_id</strong>, it is almost certainly referring to one of these numbered logical nodes.</p>
+          <div class="note">
+            Important caution: do not confuse <strong>logical waypoint definitions</strong> with every item that happens to carry a <strong>waypoint_id</strong>. The files show both the abstract definition layer and the placed object layer.
+          </div>
+        </div>
+      </div>
+
+      <div class="diagram" style="margin-top:18px;">
+        <h3>Waypoint structure drawing</h3>
+        <pre class="code">begin waypoint 43
+  description "Waypoint 43"
+  attrib ...
+  color ...
+end waypoint
+
+               linked by number
+                       │
+                       ▼
+begin item 1211
+  name "Waypoint"
+  position 46805696 -104638360 2293760
+  waypoint_id 43
+  wpdistance 2
+  layer 8
+end item
+
+Possible mission meaning
+  Waypoint 43 exists logically
+  It has a marker in the world
+  Something can move to it
+  Something can react when it is reached</pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. Area Triggers</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>What the files show clearly</h3>
+          <ul class="clean">
+            <li>Every logical area is declared by <strong>begin areatrig N</strong>.</li>
+            <li>Many maps contain placed items named <strong>"Area Trigger"</strong> on <strong>layer 8</strong>.</li>
+            <li>Those placed items carry a <strong>wpnumber</strong> that matches the logical area number.</li>
+            <li>Across several maps, the number of placed "Area Trigger" items is exactly <strong>2x</strong> the number of logical areas.</li>
+          </ul>
+          <div class="success">
+            Strong observed pattern: one logical area is usually represented by two placed Area Trigger markers sharing the same number. That strongly suggests opposite corners or paired bounds used to build a spatial region.
+          </div>
+        </div>
+        <div class="card">
+          <h3>Proof from the analyzed maps</h3>
+          <table>
+            <thead><tr><th>Map</th><th>Logical areas</th><th>"Area Trigger" items</th></tr></thead>
+            <tbody>
+              <tr><td>SPBHD_16</td><td>15</td><td>30</td></tr>
+              <tr><td>SPBHD_18</td><td>55</td><td>110</td></tr>
+              <tr><td>SDM_02a</td><td>18</td><td>36</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="subgrid" style="margin-top:18px;">
+        <div class="stack">
+          <div class="card">
+            <h3>Logical area example</h3>
+            <pre class='code'>begin areatrig 5
+  description &quot;Area 5&quot;
+  attrib 2
+  color 4
+end areatrig</pre>
+          </div>
+          <div class="card">
+            <h3>Placed area marker example</h3>
+            <pre class='code'>begin item 2120
+  type_id 6013
+  name &quot;Area Trigger&quot;
+  iai_name &quot;&quot;
+  ai_textfile &quot;&quot;
+  id 4770
+  position 30169998 -98366712 2293760
+  map_symbol -1
+  wpnumber 1
+  wpdistance 10
+  fov 180
+  layer 8
+  obliqueness 15
+  waccuracy1 100
+  waccuracy2 100
+  perception2 100
+  perfectionist2 100
+  crouchtimer 3
+  shoottimer 5
+  attention 30
+  advancetimer 10
+  max_attack_distance 16
+  edistances 16 320
+  extra_mlink &quot;&quot;
+  extra_val1 0
+  extra_val2 0
+  extra_val3 1
+  extra_val4 0
+  extra_val5 0
+  extra_valmode 32
+  extra_bheight 0
+  gen_string &quot;null&quot;
+  height_lock 1
+end item</pre>
+          </div>
+        </div>
+        <div class="card">
+          <h3>How to read it</h3>
+          <p>The logical declaration <strong>begin areatrig 5</strong> defines the existence of area 5. The placed marker item later in the file places one corner or bound marker for that area through <strong>position</strong> and <strong>wpnumber 1</strong>, <strong>wpnumber 2</strong>, and so on.</p>
+          <p>Because the files repeatedly show two Area Trigger items for each logical area, the safest working model for a compatible editor is this:</p>
+          <pre class="code">Logical area N
+   = two placed Area Trigger markers
+   = same wpnumber N
+   = world positions define the region</pre>
+          <p>That model fits the file evidence very well, even if the runtime later stores or converts the region in a different internal form.</p>
+        </div>
+      </div>
+
+      <div class="diagram" style="margin-top:18px;">
+        <h3>Area Trigger structure drawing</h3>
+        <pre class="code">begin areatrig 1
+  description "Area 1"
+end areatrig
+
+Placed marker A                     Placed marker B
+begin item ...                      begin item ...
+  name "Area Trigger"                 name "Area Trigger"
+  position x1 y1 z1                  position x2 y2 z2
+  wpnumber 1                         wpnumber 1
+  layer 8                            layer 8
+end item                            end item
+
+Probable editor meaning
+  The two marker positions define the bounds of logical Area 1
+
+Gameplay meaning
+  When player / AI crosses that built area
+  an event trigger can become true</pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>3. Layers</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>What the files show clearly</h3>
+          <ul class="clean">
+            <li>Maps declare layers explicitly with blocks such as <strong>begin layer 1</strong>, <strong>begin layer 8</strong>, and so on.</li>
+            <li>Placed items carry a numeric <strong>layer</strong> field.</li>
+            <li>The top comments also summarize per-layer counts, for example <strong>Total Layer 8 : 748 (Markers)</strong> in <strong>SPBHD_16.mis</strong>.</li>
+            <li>Common names include Foliage, Decorations, Buildings, Vehicles, Objects, Power-Ups and Markers.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Best interpretation</h3>
+          <p>Layers look like an editor organization system. They are extremely useful in the file, but nothing in the event blocks suggests that layer numbers are themselves mission triggers.</p>
+          <p>For building a compatible editor, treat layers as:</p>
+          <pre class="code">visibility bucket
+selection bucket
+editing bucket
+category label</pre>
+        </div>
+      </div>
+
+      <div class="subgrid" style="margin-top:18px;">
+        <div class="card">
+          <h3>Layer definition example</h3>
+          <pre class='code'>begin layer 8
+  Description &quot;Markers&quot;
+  Color &quot;18&quot;
+end layer</pre>
+        </div>
+        <div class="card">
+          <h3>Typical layer distribution</h3>
+          <pre class="code">Layer 1  = Foliage
+Layer 2  = Decorations
+Layer 3  = People
+Layer 4  = Buildings
+Layer 5  = Vehicles
+Layer 6  = Objects
+Layer 7  = Power-Ups
+Layer 8  = Markers
+
+Observed repeatedly in the BHD maps included here.</pre>
+        </div>
+      </div>
+
+      <div class="diagram" style="margin-top:18px;">
+        <h3>Layer structure drawing</h3>
+        <pre class="code">begin layer 8
+  Description "Markers"
+  Color "18"
+end layer
+
+Placed item later:
+begin item ...
+  name "Waypoint"
+  layer 8
+end item
+
+Meaning:
+  The item belongs to the Markers layer
+  This helps organize the map
+  It does not by itself define gameplay behavior</pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>4. Groups</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>What the files show clearly</h3>
+          <ul class="clean">
+            <li>Maps declare groups with <strong>begin group N</strong>.</li>
+            <li>Placed items carry <strong>group_id</strong>.</li>
+            <li>Group 1 and Group 2 are often <strong>Blue Players</strong> and <strong>Red Players</strong>.</li>
+            <li>Events very often reference numbers that match group-oriented mission behavior.</li>
+          </ul>
+          <div class="success">
+            Safe conclusion: groups are the main logical bucket for controlling several entities together.
+          </div>
+        </div>
+        <div class="card">
+          <h3>Useful editor model</h3>
+          <pre class="code">Group definition
+      ↓
+Many entities share the same group_id
+      ↓
+Events operate on the group number
+      ↓
+Whole squads / waves / sets can be enabled,
+disabled, moved, checked or affected together</pre>
+        </div>
+      </div>
+
+      <div class="subgrid" style="margin-top:18px;">
+        <div class="stack">
+          <div class="card">
+            <h3>Group definition example</h3>
+            <pre class='code'>begin group 3
+  description &quot;Group 3&quot;
+end group</pre>
+          </div>
+          <div class="card">
+            <h3>Placed entity example with group_id</h3>
+            <pre class='code'>begin item 2
+  type_id 1236
+  name &quot;Friendly Light Helicopter LITTLE BIRD with benches&quot;
+  iai_name &quot;&quot;
+  ai_textfile &quot;h_ah6b_z&quot;
+  id 172
+  position 30051878 -97346832 3342336
+  facing -22 0
+  map_symbol -1
+  bmsi_attributes 2228224
+  group_id 19
+  waypoint_id 19
+  wpdistance 10
+  ttoolindex -1
+  fov 180
+  layer 5
+  obliqueness 15
+  waccuracy1 100
+  waccuracy2 100
+  perception2 100
+  perfectionist2 100
+  crouchtimer 3
+  shoottimer 5
+  attention 30
+  advancetimer 10
+  max_attack_distance 16
+  edistances 16 320
+  extra_mlink &quot;&quot;
+  extra_val1 0
+  extra_val2 0
+  extra_val3 0
+  extra_val4 0
+  extra_val5 0
+  extra_valmode 0
+  extra_bheight 0
+  gen_string &quot;null&quot;
+  height_lock 1
+end item</pre>
+          </div>
+        </div>
+        <div class="card">
+          <h3>How to read it</h3>
+          <p>The item example shows a real world object carrying both <strong>group_id 19</strong> and <strong>waypoint_id 19</strong>. This is a good example of how these systems overlap instead of existing in isolation.</p>
+          <p>A helicopter, AI unit or mission object can belong to a group and also be tied to waypoint logic. That is exactly the kind of cross-reference a mission editor must preserve.</p>
+          <div class="note">
+            Best practice for your editor: store group membership on the entity itself, not only in a separate group table. That matches how the .mis data is actually written.
+          </div>
+        </div>
+      </div>
+
+      <div class="diagram" style="margin-top:18px;">
+        <h3>Group structure drawing</h3>
+        <pre class="code">begin group 19
+  description "Group 19"
+end group
+
+begin item ...
+  name "Friendly Light Helicopter LITTLE BIRD with benches"
+  group_id 19
+  waypoint_id 19
+  layer 5
+end item
+
+Meaning:
+  The helicopter belongs to Group 19
+  It also references Waypoint 19
+  A mission event can target the group
+  The entity can still navigate or progress via waypoint data</pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>5. Events</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>What the files show clearly</h3>
+          <ul class="clean">
+            <li>Maps define events with <strong>begin event N</strong>.</li>
+            <li>Events may include <strong>delay_value</strong>.</li>
+            <li>Events may include one or more rows inside <strong>begin triggers</strong>.</li>
+            <li>Events may include one or more rows inside <strong>begin actions</strong>.</li>
+            <li>The raw trigger/action rows are compact numeric tables. They clearly reference other numbered mission systems.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Best interpretation</h3>
+          <pre class="code">Event
+ ├ id
+ ├ optional delay
+ ├ trigger rows
+ └ action rows
+
+Trigger rows decide when the event becomes true.
+Action rows define what the map changes when it fires.</pre>
+          <p class="muted">Even without fully decoding every opcode, the structure is unambiguous.</p>
+        </div>
+      </div>
+
+      <div class="subgrid" style="margin-top:18px;">
+        <div class="stack">
+          <div class="card">
+            <h3>Compact event example</h3>
+            <pre class='code'>begin event 3
+  name &quot;Event 3&quot;
+  begin triggers 1
+    0 1 7 3 3 10 -1 0
+  end triggers
+  begin actions 1
+    0 1 3 4 -1 -1 0 0
+  end actions
+end event</pre>
+          </div>
+          <div class="card">
+            <h3>Larger event example</h3>
+            <pre class='code'>begin event 4
+  name &quot;Event 4&quot;
+  delay_value 7
+  begin triggers 1
+    0 3 0 3 -1 -1 -1 0
+  end triggers
+  begin actions 14
+    0 1 3 20 -1 -1 0 0
+    0 1 13 20 -1 -1 0 0
+    0 1 14 20 -1 -1 0 0
+    0 1 15 20 -1 -1 0 0
+    0 3 3 25 -1 -1 30 0
+    0 3 13 25 -1 -1 30 0
+    0 3 14 25 -1 -1 30 0
+    0 3 15 25 -1 -1 30 0
+    0 3 15 25 -1 -1 29 0
+    0 3 13 25 -1 -1 29 0
+    0 3 14 25 -1 -1 29 0
+    0 3 3 25 -1 -1 29 0
+    0 3 16 35 -1 -1 29 0
+    0 3 16 35 -1 -1 30 0
+  end actions
+end event</pre>
+          </div>
+        </div>
+        <div class="card">
+          <h3>How to read it</h3>
+          <p>Event 3 in <strong>ADK_02a.mis</strong> shows the smallest useful pattern: one trigger row and one action row.</p>
+          <p>Event 4 in <strong>SPBHD_16.mis</strong> shows a richer pattern: one trigger, an explicit delay, and many action rows affecting several numbered targets.</p>
+          <p>That repeated file structure strongly supports this editor design:</p>
+          <pre class="code">Event object
+  id
+  name
+  delay
+  triggers[]
+  actions[]</pre>
+          <p>Even if you do not decode every numeric field immediately, preserving row order and values is crucial for a faithful editor.</p>
+        </div>
+      </div>
+
+      <div class="diagram" style="margin-top:18px;">
+        <h3>Event structure drawing</h3>
+        <pre class="code">begin event 3
+  name "Event 3"
+  begin triggers 1
+    trigger row...
+  end triggers
+  begin actions 1
+    action row...
+  end actions
+end event
+
+Gameplay interpretation
+  IF trigger row condition becomes true
+  THEN execute action row payload
+
+Observed mission loop
+  player / AI / object enters area or reaches logical state
+        ↓
+  trigger row becomes valid
+        ↓
+  event fires
+        ↓
+  actions affect groups, map state or follow-up logic</pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>How the five systems connect</h2>
+      <div class="diagram">
+        <div class="flow">
+          <div class="node area">Area Trigger<small>numbered logical region</small></div>
+          <div class="arrow">→</div>
+          <div class="node event">Event Trigger Row<small>tests area-related condition</small></div>
+          <div class="arrow">→</div>
+          <div class="node group">Group<small>activates or affects a set of entities</small></div>
+          <div class="arrow">→</div>
+          <div class="node wp">Waypoint<small>movement / progression target</small></div>
+          <div class="arrow">→</div>
+          <div class="node event">Next Event<small>follow-up logic</small></div>
+        </div>
+        <pre class="code" style="margin-top:16px;">Typical mission chain inferred from the analyzed maps
+
+1. Player crosses a numbered Area Trigger
+2. An event trigger row for that area becomes true
+3. The event actions activate or affect a Group
+4. Entities in that Group move, react or become relevant
+5. Waypoint-linked progression continues the mission
+6. Another event may fire later and continue the sequence</pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>What is safe to implement in another editor</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Waypoints</h3>
+          <ul class="clean">
+            <li>Store logical waypoint definitions by number.</li>
+            <li>Store placed waypoint marker items with world position.</li>
+            <li>Preserve <strong>waypoint_id</strong> and <strong>wpdistance</strong>.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Area Triggers</h3>
+          <ul class="clean">
+            <li>Store logical areas by number.</li>
+            <li>Store two placed markers per area when present.</li>
+            <li>Preserve <strong>wpnumber</strong> and marker positions exactly.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Layers</h3>
+          <ul class="clean">
+            <li>Store layer definitions and names.</li>
+            <li>Store item layer membership.</li>
+            <li>Treat layer as editor organization, not mission logic.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Groups</h3>
+          <ul class="clean">
+            <li>Store logical group definitions by number.</li>
+            <li>Store <strong>group_id</strong> on each entity.</li>
+            <li>Allow events to target groups without flattening them away.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Events</h3>
+          <ul class="clean">
+            <li>Preserve event id, name and delay.</li>
+            <li>Preserve every trigger row exactly.</li>
+            <li>Preserve every action row exactly.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Position</h3>
+          <ul class="clean">
+            <li>Preserve raw integer <strong>position X Y Z</strong> values.</li>
+            <li>Handle them as engine-compatible world coordinates.</li>
+            <li>Avoid converting away precision on save.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>The analyzed .mis files support a consistent and useful mental model:</p>
+        <pre class="code">Items are the placed things in the world.
+Layers organize those items in the editor.
+Groups let multiple items behave as one logical set.
+Waypoints provide numbered navigation / progression references.
+Area Triggers provide numbered spatial regions.
+Events hold the trigger rows and action rows that make the mission move.</pre>
+        <p>The strongest file-backed insight is that these systems are connected by numeric references. A faithful editor should therefore preserve not just the visible objects, but also the numbered logical tables and the links between them.</p>
+      </div>
+    </section>
+
+    <div class="footer">
+      Generated from direct inspection of ADK_02a.mis, SDM_02a.mis, SPBHD_16.mis, SPBHD_17.mis, SPBHD_18.mis, SPBHD_19.mis and SPBHD_20.mis.
+    </div>
+  </div>
+</body>
+</html>

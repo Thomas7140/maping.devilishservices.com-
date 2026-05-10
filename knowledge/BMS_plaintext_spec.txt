@@ -1,0 +1,573 @@
+BMS parser logic rewritten as plain-text oriented rules
+Source of truth: bms.h + bms.cpp provided by user.
+
+1) High level file layout
+The binary file is parsed and written in the exact order below (see parse() and write() in bms.cpp):
+  A) Header (fixed size 616 bytes)
+  B) Weapon loadout chunk (byte blob, length = header.weapon_loadout_chunk_len)
+  C) Entities, in four consecutive arrays:
+     1. items: header.num_items entries
+     2. buildings: header.num_buildings entries
+     3. markers: header.num_markers entries
+     4. organics: header.num_people entries
+  D) Waypoint records: exactly 128 records (fixed size 136 bytes each)
+  E) Group records: exactly 64 records (fixed size 32 bytes each, treated as raw bytes)
+  F) Layer records: exactly 32 records (fixed size 20 bytes each, treated as raw bytes)
+  G) Area triggers: header.area_trigger_count records (fixed size 32 bytes each)
+  H) Counts: events_count (i32), trigger_count (i32), action_count (i32)
+  I) Events: events_count records (fixed size 24 bytes each)
+  J) Triggers: trigger_count records (fixed size 32 bytes each)
+  K) Actions: action_count records (fixed size 32 bytes each)
+  L) Bounding boxes: bounding_box_count (i32) then that many records (fixed size 36 bytes each)
+
+If parsing finishes and Reader.position() != file size, the parser fails with 'Did not consume all data'.
+
+2) Primitive encoding rules that matter for plain text
+2.1 Fixed strings
+  read_fixed_string(dst, N) reads exactly N bytes, copies up to the first 0 byte into dst, and ensures dst is null-terminated.
+  write_fixed_string(src, N) writes N bytes: src bytes until 0 byte or length limit, then pads with 0.
+  Plain text implication: these become normal quoted strings, but are length-capped to N-1 visible bytes when round-tripping through BMS.
+
+2.2 Fixed-point 16.16
+  read_fixed16() reads i32 v and returns v / 65536.0f.
+  write_fixed16(f) writes i32(round(f * 65536)).
+  Plain text implication: any field documented as fixed 16.16 can be represented as float in text, but BMS stores i32 fixed-point.
+
+2.3 Integers and floats
+  u8/i8/u16/i16/u32/i32 are read and written little-endian.
+  f32 uses IEEE-754 float (Reader.read_f32 / Writer.write_f32).
+
+3) Constants from bms.h
+  kMagic = 5459266 (0x534D42)
+  kHeaderSize = 616 (0x268)
+  kEntitySize = 172 (0xAC)
+  kWaypointRecordSize = 136 (0x88)
+  kGroupRecordSize = 32 (0x20)
+  kLayerRecordSize = 20 (0x14)
+  kAreaTriggerSize = 32 (0x20)
+  kEventSize = 24 (0x18)
+  kTriggerSize = 32 (0x20)
+  kActionSize = 32 (0x20)
+  kBoundingBoxSize = 36 (0x24)
+  kWaypointRecordCount = 128 (0x80)
+  kGroupRecordCount = 64 (0x40)
+  kLayerRecordCount = 32 (0x20)
+
+4) General Information in plain text (driven by Header)
+This parser does not itself produce .mis text, but the fields below are exactly what exists in the header, and therefore what a plain-text representation must be able to round-trip.
+
+Header struct fields (in serialized order):
+  magic[4]: char
+  mission_name[32]: char
+  designer[32]: char
+  terrain[48]: char
+  default_str[16]: char
+  climate: ClimateType
+  attrib_flags: AttribFlags
+  unknown0[12]: uint8_t
+  water_override: uint16_t
+  unknown1: uint32_t
+  fog_override: uint16_t
+  fog_color[3]: uint8_t
+  unknown2: uint8_t
+  num_items: uint32_t
+  num_buildings: uint32_t
+  num_markers: uint32_t
+  num_people: uint32_t
+  num_events: uint32_t
+  weather_type: WeatherType
+  win_conditions[8]: uint8_t
+  lose_conditions[8]: uint8_t
+  unknown3[16]: uint8_t
+  environment[16]: char
+  unknown4[10]: uint8_t
+  water_color[3]: uint8_t
+  murk: uint16_t
+  something1: uint8_t
+  wind_speed: uint32_t
+  wind_direction: uint32_t
+  unknown5[4]: uint8_t
+  health: uint32_t
+  mana: uint32_t
+  music: uint32_t
+  reverb: uint32_t
+  terrain_tile[16]: char
+  mission_briefing[256]: char
+  unknown6: int16_t
+  mission_type: MissionType
+  max_saves: uint8_t
+  unknown7[16]: uint8_t
+  map_zoom: float
+  area_trigger_count: int16_t
+  weapon_loadout_chunk_len: uint16_t
+  bonus_expiration: uint16_t
+  unknown8: uint16_t
+  start_time: uint16_t
+  minutes_per_day: uint16_t
+  unknown9[28]: uint8_t
+
+4.1 Plain-text mapping suggestion for Header fields
+These are field-to-key mappings implied by names and how they are used in code. If your .mis uses different key names, map them 1:1 to these underlying values.
+  mission_name -> name "..."
+  designer -> designer "..."
+  terrain -> terrain <string>
+  attrib_flags -> attrib <decimal bitmask>
+  weather_type -> weather_type <enum value>
+  climate -> climate <enum value>
+  water_override -> water_level override value (only meaningful if attrib includes WaterOverrideEnable).
+  fog_override -> fog_level override value (only meaningful if attrib includes FogDistanceOverrideEnable).
+  fog_color[3] -> fog_color override RGB (only meaningful if attrib includes FogColorOverrideEnable).
+  environment, terrain_tile, mission_briefing -> environment/tile/briefing style keys in text schema.
+  mission_type, max_saves, map_zoom, area_trigger_count, bonus_expiration -> keys with the same names used in the header.
+  start_time, minutes_per_day -> time-of-day system fields stored as u16.
+All unknown* fields are preserved as raw bytes/values in the in-memory struct and are written back unchanged by write_header().
+
+5) attrib bitmask (AttribFlags) and how plain text computes combinations
+In plain text, attrib is the decimal representation of header.attrib_flags. The bitmask is built by OR-ing flag values; removing a flag is done by AND-ing with the bitwise NOT of that flag.
+
+5.1 Full list of AttribFlags as plain-text values
+attrib 0 = None
+attrib 1 = WaterOverrideEnable
+attrib 2 = FogDistanceOverrideEnable
+attrib 4 = FogColorOverrideEnable
+attrib 8 = WeatherOverrideEnable
+attrib 32 = RotateMap180
+attrib 64 = SinglePlayerRespawn
+attrib 65536 = AdvanceAndSecure
+attrib 131072 = ConquerAndControl
+attrib 1048576 = EnableNVG
+attrib 4194304 = StartWithNVGOn
+attrib 8388608 = AttackAndDefend
+attrib 16777216 = Coop
+attrib 33554432 = Deathmatch
+attrib 67108864 = KingOfTheHill
+attrib 134217728 = FlagBall
+attrib 268435456 = CaptureTheFlag
+attrib 536870912 = TeamDeathmatch
+attrib 1073741824 = TeamKingOfTheHill
+attrib 2147483648 = SearchAndDestroy
+
+6) Entity blocks in plain text (items, buildings, markers, organics)
+Entities are serialized as fixed-size 0xAC (172) byte records. The parser reads the same record format for all four entity arrays; the array you are in defines the high level category (item/building/marker/organic).
+
+Entity struct fields (in serialized order):
+  type: ItemType
+  type_id: int32_t
+  name_index: int32_t
+  id: int32_t
+  bmsi_attributes: uint32_t
+  z: int32_t x, y,
+  wp_distance: int32_t
+  perception2: int32_t
+  perfectionist2: int32_t
+  min_engagement_distance: int32_t
+  max_engagement_distance: int32_t
+  wp_number: int32_t
+  w_accuracy2: int16_t
+  w_accuracy1: int16_t
+  yaw: int16_t
+  pitch: int16_t
+  roll: int16_t
+  spawns: int16_t
+  crouch_timer: uint8_t
+  unk15a: uint8_t
+  shoot_timer: int16_t
+  wp_adv_trigger: int16_t
+  attention: int16_t
+  alert_state: uint8_t
+  team: uint8_t
+  no_more_than: uint8_t
+  no_less_than: uint8_t
+  unk19: int16_t
+  group_id: uint8_t
+  waypoint_id: uint8_t
+  obliqueness: uint8_t
+  map_symbol: uint8_t
+  unk22: int16_t
+  unk23: int16_t
+  unk24: int16_t
+  unk25: int16_t
+  unk26: int16_t
+  fire_timer: int32_t
+  ttool_index: int32_t
+  unk30_31: int32_t
+  name1[8]: char
+  name2[8]: char
+  gen_string[36]: char
+  max_attack_distance: int32_t
+  unk41: int32_t
+  color_override: uint8_t
+  team_budget: uint8_t
+  unk42b: int16_t
+  unk43: int32_t
+
+6.1 Plain-text mapping suggestion for Entity fields
+  type_id -> type_id <i32>
+  name_index -> name_index <i32> (the parser does not resolve it to a string)
+  id -> id <i32>
+  bmsi_attributes -> bmsi_attributes <u32 bitmask>
+  x y z -> position <i32 fixed16.16> (stored as i32; your text may show integers or scaled floats).
+  yaw pitch roll -> facing/rotation fields stored as i16.
+  wp_distance, wp_number, waypoint_id, group_id, wp_adv_trigger -> waypoint routing and grouping fields as stored.
+  w_accuracy1, w_accuracy2 -> weapon accuracy fields (i16).
+  perception2, perfectionist2, attention, alert_state -> AI behavior fields stored in the record.
+  team, spawns, crouch_timer, shoot_timer, fire_timer -> team and timing fields stored in the record.
+  map_symbol, obliqueness, ttool_index -> UI/editor fields stored in the record.
+  name1, name2 (8 bytes each), gen_string (36 bytes) -> fixed strings stored inside the entity record.
+Any field named unk* is unknown to the parser logic and is round-tripped as-is.
+
+6.2 bmsi_attributes bitmask (BmsiAttributeFlags)
+In plain text, bmsi_attributes is the decimal u32 stored in Entity.bmsi_attributes. These flags combine the same way as attrib (bitwise OR).
+
+bmsi_attributes 0 = None
+bmsi_attributes 1 = Blind
+bmsi_attributes 2 = Guarding
+bmsi_attributes 16 = RemoveIfLessThan
+bmsi_attributes 32 = RemoveIfMoreThan
+bmsi_attributes 64 = Multiplayer
+bmsi_attributes 2048 = Berserk
+bmsi_attributes 16384 = FlyingOrganic
+bmsi_attributes 65536 = Coward
+bmsi_attributes 262144 = AdvancedAmmo
+bmsi_attributes 2097152 = Indestructible
+bmsi_attributes 4194304 = NavigationWaypoint
+bmsi_attributes 8388608 = Reflective
+bmsi_attributes 16777216 = NoShadow
+
+7) Waypoint records (fixed 128)
+WaypointRecord struct fields (in serialized order):
+  flags: WaypointFlags
+  marker_count: uint32_t
+  waypoint_numbers: std::vector<uint32_t>
+  padding: std::vector<uint8_t>
+
+7.1 WaypointFlags as plain-text values
+waypoint_flags 0 = None
+waypoint_flags 1 = DoesNotLoop
+waypoint_flags 2 = BlueTeam
+waypoint_flags 4 = RedTeam
+
+7.2 WaypointRecord marker list and padding rules
+  marker_count is validated: if marker_count > 32, parsing fails.
+  waypoint_numbers is a list of marker_count u32 entries.
+  After reading the list, the record always consumes 128 bytes reserved for numbers, so it reads remaining padding bytes: (128 - marker_count*4).
+  Plain text implication: represent waypoint_numbers as a variable-length list, but preserve marker_count and do not exceed 32.
+
+8) Group records (fixed 64) and Layer records (fixed 32)
+The parser treats GroupRecord and LayerRecord as raw byte blocks; it does not interpret their internal fields.
+GroupRecord struct fields (in serialized order):
+  raw_data[kGroupRecordSize]: uint8_t
+
+LayerRecord struct fields (in serialized order):
+  raw_data[kLayerRecordSize]: uint8_t
+
+Plain text implication: if you want a lossless round-trip using only this code as source of truth, you must store these records as opaque byte arrays in text (for example hex) or keep them untouched from the original BMS.
+
+9) Area triggers
+AreaTrigger struct fields (in serialized order):
+  wp_number: int32_t
+  min_z: int32_t min_x, min_y,
+  max_z: int32_t max_x, max_y,
+  reserved: int32_t
+
+9.1 Coordinate swap rule
+When parsing AreaTrigger, the file stores Y and Z swapped for both min and max corners.
+  File order: min_x, file_min_y, file_min_z then max_x, file_max_y, file_max_z.
+  In memory: min_x, min_y = file_min_z, min_z = file_min_y; same for max.
+When writing AreaTrigger, the swap is reversed to match the file layout.
+
+Plain text implication: store area trigger boxes in normal X,Y,Z order; when converting to BMS apply the Y/Z swap exactly as above.
+
+10) Events, Triggers, Actions
+Event struct fields (in serialized order):
+  flags: EventFlags
+  trigger_index: int32_t
+  action_index: int32_t
+  reset_after: int32_t
+  delay: int32_t
+  unknown5: uint8_t
+  trigger_count: uint8_t
+  action_count: uint8_t
+  unknown6: uint8_t
+
+10.1 EventFlags as plain-text values
+event_flags 0 = None
+event_flags 1 = ResetAfter
+event_flags 2 = PreMission
+event_flags 4 = PostMission
+event_flags 16 = Unknown4
+event_flags 32 = Unknown5
+
+10.2 Event reset_after and delay packing
+The file stores reset_after and delay as i32 values where the upper 10 bits contain the value and the lower 22 bits are zero.
+  On parse: reset_after = (raw_i32 >> 22), delay = (raw_i32 >> 22).
+  On write: raw_i32 = (reset_after << 22), raw_i32 = (delay << 22).
+Plain text implication: represent reset_after and delay as normal integers (0..1023 if you want to be faithful to 10 bits).
+
+Trigger struct fields (in serialized order):
+  condition_flags: int32_t
+  main_type: TriggerMainType
+  sub_type: int32_t
+  param1: int32_t
+  param2: int32_t
+  param3: int32_t
+  param4: int32_t
+  unknown7: int32_t
+
+10.3 Trigger types
+Trigger.main_type is an enum (TriggerMainType). Trigger.sub_type is stored as i32 and interpreted according to main_type (separate subtype enums exist in bms.h).
+TriggerMainType (int32_t):
+  Group = 1 (0x00000001)
+  Single = 2 (0x00000002)
+  Event = 3 (0x00000003)
+  MissionVariable = 4 (0x00000004)
+  SecondTimeThrough = 5 (0x00000005)
+  Teammate = 6 (0x00000006)
+  Player = 7 (0x00000007)
+
+GroupTriggerType (int32_t):
+  Null = 0 (0x00000000)
+  GroupSeesGroup = 1 (0x00000001)
+  GroupHasTargetedGroup = 2 (0x00000002)
+  GroupAtRedAlert = 3 (0x00000003)
+  GroupDestroyed = 4 (0x00000004)
+  GroupAlive = 5 (0x00000005)
+  GroupHasLostMoreUnits = 6 (0x00000006)
+  GroupAtWaypoint = 7 (0x00000007)
+  GroupIntact = 9 (0x00000009)
+  GroupIsWithinArea = 10 (0x0000000A)
+  GroupHoldingGroup = 11 (0x0000000B)
+  GroupHasMoreUnits = 12 (0x0000000C)
+  GroupHasShotGroup = 13 (0x0000000D)
+  GroupAtYellowAlert = 14 (0x0000000E)
+  GroupHasTargetedSingle = 15 (0x0000000F)
+  GroupSeesSingle = 16 (0x00000010)
+  GroupHasShotSingle = 17 (0x00000011)
+
+SingleTriggerType (int32_t):
+  Null = 0 (0x00000000)
+  SingleSeesGroup = 1 (0x00000001)
+  SingleHasTargetedGroup = 2 (0x00000002)
+  SingleAtRedAlert = 3 (0x00000003)
+  SingleDestroyed = 4 (0x00000004)
+  SingleAlive = 5 (0x00000005)
+  SingleHasLostMoreUnits = 6 (0x00000006)
+  SingleAtWaypoint = 7 (0x00000007)
+  SingleIntact = 9 (0x00000009)
+  SingleIsWithinArea = 10 (0x0000000A)
+  SingleHoldingGroup = 11 (0x0000000B)
+  SingleHasMoreUnits = 12 (0x0000000C)
+  SingleHasShotGroup = 13 (0x0000000D)
+  SingleAtYellowAlert = 14 (0x0000000E)
+  SingleHasTargetedSingle = 15 (0x0000000F)
+  SingleSeesSingle = 16 (0x00000010)
+  SingleHasShotSingle = 17 (0x00000011)
+  SingleOnTopOf = 42 (0x0000002A)
+  SingleFartherThan = 43 (0x0000002B)
+  SingleHasNoLOS = 44 (0x0000002C)
+  SingleDoesNotSeeOrFarther = 45 (0x0000002D)
+
+MissionVariableTriggerType (int32_t):
+  MissionVariableIsEqual = 1 (0x00000001)
+  MissionVariableIsLessThan = 2 (0x00000002)
+  MissionVariableIsLessThanOrEqual = 3 (0x00000003)
+  MissionVariableIsGreaterThan = 4 (0x00000004)
+  MissionVariableIsGreaterThanOrEqual = 5 (0x00000005)
+
+TeammateTriggerType (int32_t):
+  TeammateIsEnabled = 1 (0x00000001)
+  TeammateMedicAssisting = 2 (0x00000002)
+  TeammateEvacuating = 3 (0x00000003)
+
+PlayerTriggerType (int32_t):
+  PlayerBerserk = 18 (0x00000012)
+  PlayerFirstPerson = 19 (0x00000013)
+  PlayerThirdPerson = 20 (0x00000014)
+  PlayerCockpitView = 21 (0x00000015)
+  PlayerDialogDone = 34 (0x00000022)
+  PlayerDialogFinished = 35 (0x00000023)
+  PlayerAwol = 36 (0x00000024)
+  PlayerSatchel = 37 (0x00000025)
+  PlayerAttachedToSsn = 38 (0x00000026)
+  PlayerOnSsn = 39 (0x00000027)
+  PlayerDrivingSsn = 40 (0x00000028)
+  PlayerOnGun = 41 (0x00000029)
+
+Plain text implication: store trigger as main_type, sub_type, then param1..param4 plus condition_flags and unknown7.
+
+Action struct fields (in serialized order):
+  reserved0: int32_t
+  action_type: ActionType
+  action_sub_type: int32_t
+  param1: int32_t
+  param2: int32_t
+  param3: int32_t
+  param4: int32_t
+  reserved1: int32_t
+
+10.4 Action types
+Action.action_type is an enum (ActionType). Action.action_sub_type is stored as i32 and interpreted according to action_type (subtype enums exist for AI, mission variables, teammate).
+ActionType (int32_t):
+  Null = 0 (0x00000000)
+  RedirectGroupTo = 1 (0x00000001)
+  KillGroup = 2 (0x00000002)
+  ChangeGroupAI = 3 (0x00000003)
+  VaporizeGroup = 4 (0x00000004)
+  MisvarChange = 5 (0x00000005)
+  OutputText = 6 (0x00000006)
+  PlayWavList = 7 (0x00000007)
+  BlueWin = 8 (0x00000008)
+  RedWin = 9 (0x00000009)
+  GreenWin = 10 (0x0000000A)
+  GroupVelocity = 11 (0x0000000B)
+  AreaAiRed = 12 (0x0000000C)
+  AreaAiBlue = 13 (0x0000000D)
+  SubGoalWon = 14 (0x0000000E)
+  SubGoalLost = 15 (0x0000000F)
+  ChangeGTeamAction = 16 (0x00000010)
+  ChangeGroupAction = 17 (0x00000011)
+  GroupTeleportAction = 18 (0x00000012)
+  RedirectSingleTo = 19 (0x00000013)
+  KillSingle = 20 (0x00000014)
+  ChangeSingleAI = 21 (0x00000015)
+  VaporizeSingle = 22 (0x00000016)
+  SingleVelocity = 23 (0x00000017)
+  ChangeSteamAction = 24 (0x00000018)
+  SingleChangeGroup = 25 (0x00000019)
+  SingleTeleportAction = 26 (0x0000001A)
+  ParticleEffectAction = 27 (0x0000001B)
+  GroupOpenDoorAction = 30 (0x0000001E)
+  GroupCloseDoorAction = 31 (0x0000001F)
+  GroupResetHasVisited = 32 (0x00000020)
+  SingleResetHasVisited = 33 (0x00000021)
+  ResetEvent = 34 (0x00000022)
+  ShowWinSubgoal = 35 (0x00000023)
+  ShowLoseSubgoal = 36 (0x00000024)
+  AttachToEmplaced = 37 (0x00000025)
+  SetLightState = 38 (0x00000026)
+  Teammates = 39 (0x00000027)
+  ShowWaypoints = 40 (0x00000028)
+  ExecuteWac = 41 (0x00000029)
+  SsnTargetSsnPri = 42 (0x0000002A)
+  SsnTargetSsnExc = 43 (0x0000002B)
+  SsnTargetGroupPri = 44 (0x0000002C)
+  SsnTargetGroupExc = 45 (0x0000002D)
+  GroupTargetSsnPri = 46 (0x0000002E)
+  GroupTargetSsnExc = 47 (0x0000002F)
+  GroupTargetGroupPri = 48 (0x00000030)
+  GroupTargetGroupExc = 49 (0x00000031)
+
+AIActionSubType (int32_t):
+  GuardBit = 2 (0x00000002)
+  Accuracy = 8 (0x00000008)
+  BlindBit = 15 (0x0000000F)
+  BerserkBit = 16 (0x00000010)
+  ClimberBit = 17 (0x00000011)
+  CowardBit = 21 (0x00000015)
+  Skill1 = 26 (0x0000001A)
+  Skill2 = 27 (0x0000001B)
+  AiState = 28 (0x0000001C)
+  SpeedKmh1 = 29 (0x0000001D)
+  SpeedKmh2 = 30 (0x0000001E)
+  TargetSsn1 = 31 (0x0000001F)
+  AnimNum = 34 (0x00000022)
+  HudItem = 37 (0x00000025)
+  TmateStatus = 39 (0x00000027)
+  AiNodePathBit = 40 (0x00000028)
+  AttackDistanceValue = 41 (0x00000029)
+  EngageDistanceMin = 42 (0x0000002A)
+  IndestructableBit = 43 (0x0000002B)
+  TargetSsn2 = 44 (0x0000002C)
+  StartFiringBit = 45 (0x0000002D)
+  FiringAngle = 46 (0x0000002E)
+
+MissionVariableActionSubType (int32_t):
+  Null = 0 (0x00000000)
+  Set = 1 (0x00000001)
+  Add = 2 (0x00000002)
+  Subtract = 3 (0x00000003)
+  Increment = 4 (0x00000004)
+  Decrement = 5 (0x00000005)
+
+TeammateActionSubType (int32_t):
+  Null = 0 (0x00000000)
+  MedicAssist = 1 (0x00000001)
+  EvacuateTt = 2 (0x00000002)
+  EvacuateAt = 3 (0x00000003)
+
+Plain text implication: store action as action_type, action_sub_type, then param1..param4 plus reserved0 and reserved1.
+
+11) Bounding boxes
+BoundingBox struct fields (in serialized order):
+  min_z: int32_t min_x, min_y,
+  max_z: int32_t max_x, max_y,
+  unknown_data[12]: uint8_t
+
+Bounding boxes store min and max corners as i32 and include 12 bytes of unknown_data that is preserved.
+
+12) Weapon loadout
+WeaponLoadout struct fields (in serialized order):
+  raw_data: std::vector<uint8_t>
+
+WeaponLoadout is a raw byte blob whose length is header.weapon_loadout_chunk_len. The parser does not interpret internal fields.
+Plain text implication: store this chunk as opaque bytes if you need lossless round-trip.
+
+13) Other enums that exist in the code and may map to plain text
+ItemType (uint8_t):
+  Marker = 0 (0x00000000)
+  Item = 1 (0x00000001)
+  Building = 2 (0x00000002)
+  Organic = 3 (0x00000003)
+
+MissionType (uint8_t):
+  NormalMission = 1 (0x00000001)
+  CombatVehicleMission = 2 (0x00000002)
+  TenthMountain = 3 (0x00000003)
+
+WeatherType (uint32_t):
+  NiceDay = 0 (0x00000000)
+  Rainy = 1 (0x00000001)
+  Snow = 2 (0x00000002)
+
+ClimateType (uint32_t):
+  Desert = 0 (0x00000000)
+  Jungle = 1 (0x00000001)
+  Snow = 2 (0x00000002)
+
+14) How to compute and edit flags in plain text (generic logic for all bitmasks in this code)
+  To add a flag: value = value | FLAG_VALUE
+  To remove a flag: value = value & (~FLAG_VALUE)
+  To test a flag: (value & FLAG_VALUE) != 0
+  When the value is 0, no flags are enabled.
+
+15) Validation and failure conditions present in code
+  - is_bms() requires magic 'BMS' in the first 3 bytes of header.magic, otherwise parse fails.
+  - parse_header() requires the header to be exactly 616 bytes consumed, otherwise parse fails.
+  - parse_entity() requires each entity record to be exactly 0xAC bytes consumed, otherwise parse fails.
+  - parse_waypoint_record() fails if marker_count > 32, and also checks record size 136 bytes.
+  - At the end of parse(), the reader position must equal file size, otherwise parse fails.
+  - write() requires waypoint_records.size() == 128, group_records.size() == 64, layer_records.size() == 32, otherwise write fails.
+
+16) Notes for converting BMS to a plain text format
+If your goal is a text format that can round-trip through this exact code without losing information, these parts must be represented explicitly:
+  - Header fields including unknown* bytes and values
+  - GroupRecord raw_data and LayerRecord raw_data (opaque bytes)
+  - WeaponLoadout raw_data (opaque bytes)
+  - BoundingBox.unknown_data (opaque bytes)
+  - Any Entity unk* fields (still stored in the Entity struct)
+If you do not need lossless round-trip, you can omit unknown fields, but then writing back through this code will not reproduce the original binary exactly.
+
+17) Appendix: header attrib values observed in the two provided .bms files
+File: TDMM_01a_removingbuildings.bms
+  mission_name = Mean Streets A
+  attrib = 536870914
+  attrib flags set = FogDistanceOverrideEnable, TeamDeathmatch
+  fog_override = 300
+  water_override = 0
+
+File: SPBHD_16.bms
+  mission_name = Lost Convoy
+  attrib = 2
+  attrib flags set = FogDistanceOverrideEnable
+  fog_override = 125
+  water_override = 0

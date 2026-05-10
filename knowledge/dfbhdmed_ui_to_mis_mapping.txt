@@ -1,0 +1,452 @@
+DFBHDMED.EXE (BHD Mission Editor) UI -> .MIS mapping
+Generated: 2026-02-23 (America/Sao_Paulo)
+
+Scope and evidence
+- Sources used: dfbhdmed.exe (embedded strings) plus two sample .mis files:
+  TDMM_01a_removingbuildings.mis
+  SPBHD_16.mis
+- This document maps UI screens/controls to the exact .mis fields they write or edit.
+- Anything that is purely editor behavior (camera, rendering, selection, view modes) and does not change the saved .mis is called out explicitly as "no .mis write".
+
+MIS file organization (as observed in the samples)
+The editor writes a plain text .mis with block sections. Blocks start with:
+  begin <block_type> <id>
+and end with:
+  end <block_type>
+or sometimes:
+  end <block_type>   (same spelling)
+Inside blocks, settings are "key value..." lines.
+
+Block types present in the sample .mis files
+- general_information
+- layer
+- group
+- waypoint
+- areatrig
+- event
+  - triggers (nested inside event)
+  - actions  (nested inside event)
+- item
+- weapon_availability
+
+Important editor behavior that affects the .mis even if you do not directly edit a field
+- When saving, the editor keeps num_items and num_events consistent with the number of begin item and begin event blocks.
+- When adding or deleting an item in the UI, it adds or removes an entire "begin item <n> ... end item" block.
+- When adding or deleting an event in the UI, it adds or removes an entire "begin event <n> ... end event" block.
+- When reordering (sorting) objects in the UI, the saved order and the numeric indices after "begin item" can change, but the per-item fields remain the same.
+- Undo/Redo affects the current in-memory edits; the .mis changes only when you save.
+
+1) Edit -> General Information
+UI screen name strings found in dfbhdmed.exe
+- GENERAL_INFORMATION / EDIT_GENERALINFO
+Corresponding .mis block
+- begin general_information
+  ...
+  end general_information
+
+Every field below is written as a line inside general_information. If you change it in the UI, the value on that line changes.
+
+Identity and version
+- File Version -> file_version <int>
+- Mission Name -> name "<string>"
+- Mission Designer -> designer "<string>"
+
+Terrain and tile references
+- Terrain Type dropdown -> terrain <token>
+  Example tokens seen: flat, dvd1 (the exact allowed tokens come from the editor/game data; the .mis stores the chosen token literally)
+- Terrain Color -> terrain_color <int>
+- Terrain Tile (TGA) / Terrain Tile dropdown -> terrain_tile_tga <string>
+  Notes: SPBHD_16.mis uses "Terrain_tile_tga" (capital T) while TDMM_01a uses "terrain_tile_tga". Treat as the same field logically.
+- CNV file -> cnv_file <string>
+- TT file -> tt_file <string>
+
+Environment
+- Water Level -> water_level <int>
+- Fog Level -> fog_level <int>
+- Fog Color -> fog_color <int>
+- Weather Type -> weather_type <int>
+- Lowest Elevation -> lowest_elev <int>
+- Wind -> wind <int> <int>
+  Notes: the samples store two integers. The editor writes both.
+
+Editor view defaults (what the editor restores when loading the .mis)
+- View X -> viewx <int>
+- View Y -> viewy <int>
+- View Z -> viewz <int>
+- View Zoom -> viewzoom <float>
+- Map Zoom -> map_zoom <float>
+  Notes: the editor writes the float with two decimals in its formatting string.
+
+Gameplay or mission rules stored in general_information
+- attrib <int>
+  Notes: this is a bitfield-style integer. In the UI this commonly appears as checkboxes. The .mis stores the resulting integer only.
+- visible_if <int>
+- notvisible_if <int>
+  Notes: these are conditional visibility gates stored as integers. The UI may present these as checkboxes or dropdown logic; the saved .mis stores the integer.
+- arty <int>
+- Player Type -> player_type <int>
+- Max Saves -> max_saves <int>
+- Bonus Expiration -> bonus_expiration <int>
+
+Win/Lose configuration
+- Hard Win -> hardwin <int>
+- Hard Lose -> hardlose <int>
+- Subgoals Win -> subgoals_win <int> <int> <int> <int> <int> <int> <int> <int>
+- Subgoals Lose -> subgoals_lose <int> <int> <int> <int> <int> <int> <int> <int>
+- Win Scores -> win_scores <int> <int> <int> <int> <int> <int> <int> <int>
+- Lose Scores -> lose_scores <int> <int> <int> <int> <int> <int> <int> <int>
+
+Generic per-mission definition values (stored as 4 integers)
+- gen_def_val1 <int>
+- gen_def_val2 <int>
+- gen_def_val3 <int>
+- gen_def_val4 <int>
+  Notes: SPBHD_16.mis also includes capitalized variants Gen_Def_Val1..4. The editor stores the chosen integer values.
+
+Sun / time of day token
+- Sunset / time-of-day dropdown -> sunset <token> [optional extra tokens]
+  Notes: in the samples, sunset is stored as a token plus sometimes additional tokens. The editor writes the chosen text tokens literally.
+
+Counts (usually maintained by the editor)
+- Number of Items -> num_items <int>
+- Number of Events -> num_events <int>
+  Notes: even if shown in the UI, these are usually derived and updated to match the file contents on save.
+
+Waypoint name tables stored as integer lists
+- Waypoint Names Blue -> wp_names_blue <int> <int> <int> <int> <int> <int> <int> <int>
+- Waypoint Names Red  -> wp_names_red  <int> <int> <int> <int> <int> <int> <int> <int>
+  Notes: the UI usually presents these as drop-down selections per slot; the .mis stores the resolved integer ids per slot.
+
+Weapon defaults (loadout defaults stored in general_information)
+- Default Primary -> default_primary <string>
+- Default Secondary -> default_secondary <string>
+- Default Accessory -> default_accessory <string>
+
+2) Edit -> Layer Names and Layer Visibility
+UI strings found in dfbhdmed.exe
+- LAYER_NAMES / EDIT_LAYERNAMES
+- VISIBLE_LAYERS / LAYER_VISIBILITY / VIEW_BYLAYER
+Corresponding .mis blocks
+- begin layer <n>
+    description "<string>"   (or Description "<string>")
+    color "<int>"            (or Color "<int>")
+  end layer
+
+What the UI writes
+- Layer list entry name -> description "<string>" (or Description "<string>")
+- Layer list entry color -> color "<int>" (or Color "<int>")
+- Layer assignment on an item (when you choose a layer for an object in the UI) -> item line: layer <int>
+
+What the UI does not write to the .mis
+- Showing or hiding layers for convenience (visibility toggles) is an editor view state. If the visibility toggle is not represented by a saved integer field, it does not change the .mis. The saved .mis only contains the layer definitions (name/color) and each item's numeric layer assignment.
+
+3) Edit -> Groups
+UI strings found in dfbhdmed.exe
+- GROUPS / EDITGROUPS / EDIT_GROUPS
+Corresponding .mis blocks
+- begin group <n>
+    description "<string>"
+  end group
+
+What the UI writes
+- Group name/description field -> description "<string>"
+- Assigning an item to a group in the UI -> item line: group_id <int>
+
+4) Edit -> Waypoints
+UI strings found in dfbhdmed.exe
+- WAYPOINTS / EDITWAYPOINTS / EDIT_WAYPOINTS
+- SHOW_WAYPOINTS / HIDE_WAYPOINTS_TO / SHOW_WAYPOINTS_TO (view toggles)
+Corresponding .mis blocks
+- begin waypoint <n>
+    description "<string>"
+    attrib <int>
+    color <int>   (optional, only present in some missions)
+  end waypoint
+
+What the UI writes
+- Waypoint name/label -> description "<string>"
+- Waypoint attributes checkboxes -> attrib <int>
+  Notes: stored as a single integer. The UI may represent it as multiple checkboxes; the .mis stores the combined integer.
+- Waypoint display color -> color <int> (only if the editor uses color for that mission)
+
+How item-level waypoint fields map to the UI
+When an item is configured to follow or reference a waypoint, the editor stores the relationship in the item block:
+- Waypoint selector for an item -> waypoint_id <int>
+- Waypoint number for an item -> wpnumber <int>
+- Waypoint distance for an item -> wpdistance <int>
+- Advanced waypoint trigger selector for an item -> wp_adv_trigger <int>
+
+What the UI does not write to the .mis
+- Show/Hide waypoint overlays are display options and do not affect the saved .mis.
+
+5) Edit -> Area Triggers
+UI strings found in dfbhdmed.exe
+- AREA_TRIGGERS / EDITAREATRIGGERS / EDIT_AREATRIGGERS
+- ACTIVE_AREA / MISSION_AREA
+- IF logic strings: SINGLE_IS_WITHIN_AREA, GROUP_IS_WITHIN_AREA, and their NOT variants (these are used when building trigger conditions, see Events)
+Corresponding .mis blocks
+- begin areatrig <n>
+    description "<string>"
+    color <int>   (optional)
+    attrib <int>  (optional)
+  end areatrig
+
+What the UI writes
+- Area trigger name/label -> description "<string>"
+- Area trigger color -> color <int> (if the UI exposes color)
+- Area trigger flags -> attrib <int> (if the UI exposes flags as checkboxes)
+  Notes: stored as an integer bitfield-style value.
+
+What the UI does not write to the .mis
+- Setting an area as the "active area" for editing or view filtering is an editor state unless it is explicitly written as a field inside areatrig. In the sampled .mis files, only description, color, attrib appear.
+
+6) Edit -> Events
+UI strings found in dfbhdmed.exe
+- EVENTS / EDITEVENTS / EDIT_EVENTS
+- TRIGGERS, NEW_TRIGGER, DELETE_TRIGGER_?
+- ACTIONS, NEW_ACTION, DELETE_ACTION_?
+- Labels: TRIGGER_TYPE, TRIGGER_SUBTYPE, TRIGGER_VARIABLES, TRIGGER_CONDITION, TRIGGER_IF
+- Labels: ACTION_TYPE, ACTION_SUBTYPE, ACTION_VARIABLES
+Corresponding .mis blocks
+- begin event <n>
+    name "<string>"
+    reset_value <int>      (optional)
+    delay_value <int>      (optional)
+    attrib <int>           (optional)
+    begin triggers <k>
+      <row0>
+      <row1>
+      ...
+    end triggers
+    begin actions <m>
+      <row0>
+      <row1>
+      ...
+    end actions
+  end event
+
+What the UI writes at the event header level
+- Event name -> name "<string>"
+- Event reset value -> reset_value <int>
+- Event delay value -> delay_value <int>
+- Event flags/attributes -> attrib <int> (if exposed in the UI)
+
+Triggers subwindow -> begin triggers <k> rows
+- The editor stores triggers as a fixed-width numeric table, one row per trigger.
+- Each trigger row is saved as 8 integers:
+  <int0> <int1> <int2> <int3> <int4> <int5> <int6> <int7>
+- The UI trigger editor controls (type, subtype, variables, condition, IF logic, references to areas, groups, waypoints, events, players, weapons) modify these 8 integers.
+- The number after "begin triggers" is the row count <k>, and the editor keeps it consistent with the number of rows stored.
+
+Actions subwindow -> begin actions <m> rows
+- The editor stores actions as a fixed-width numeric table, one row per action.
+- Each action row is saved as 8 integers:
+  <int0> <int1> <int2> <int3> <int4> <int5> <int6> <int7>
+- The UI action editor controls (type, subtype, variables, targets) modify these 8 integers.
+- The number after "begin actions" is the row count <m>, and the editor keeps it consistent with the number of rows stored.
+
+Named trigger/action categories visible in strings (these correspond to trigger/action types you can pick in the UI)
+- EVENT_TRIGGER
+- AREA_TRIGGER
+- WPN_TRIGGER
+- SINGLE_TELEPORT_ACTION
+- GROUP_TELEPORT_ACTION
+- CHANGE_GROUP_ACTION
+- CHANGE_GTEAM_ACTION
+- CHANGE_STEAM_ACTION
+- GROUP_OPEN_DOOR_ACTION
+- GROUP_CLOSE_DOOR_ACTION
+- PARTICLE_EFFECT_ACTION
+
+Important note about decoding trigger/action columns
+- From the available evidence (strings + sample .mis), we can assert that the UI writes 8 integers per row and the various dropdowns/checkboxes/text fields in the trigger/action subwindows map onto those 8 integers.
+- The exact meaning of each of the 8 columns (for example, which column is "type" vs "subtype" vs "variable id") cannot be proven solely from the embedded strings without a full control-flow trace of the editor logic. This document therefore maps at the correct storage granularity: editing triggers/actions changes the 8-int rows.
+
+7) Edit -> Weapon Loadouts
+UI strings found in dfbhdmed.exe
+- WEAPON_LOADOUTS, loadout_selectable, loadout_subclasses, loadout_menu_textid
+- LOADOUT_RESTRICT, LOADOUT_SP
+Corresponding .mis blocks
+- begin weapon_availability
+    WPN_* <int>
+    ...
+  end weapon_availability
+
+What the UI writes
+Weapon availability toggles (usually checkboxes) are stored as integer lines under weapon_availability.
+For each weapon, the UI writes:
+- WPN_<weapon_name> <int>
+
+The following weapon keys are present in the sample .mis files and are directly saved:
+- WPN_AT4
+- WPN_Barret
+- WPN_CAR15AUTO
+- WPN_CAR15M203AUTO
+- WPN_CLAYMORE
+- WPN_G36AUTO
+- WPN_G3AUTO
+- WPN_GRENADEFB
+- WPN_GRENADEHE
+- WPN_GRENADESM
+- WPN_M16BURST
+- WPN_M16M203BURST
+- WPN_M21
+- WPN_M24
+- WPN_M249SAW
+- WPN_M60
+- WPN_M9Beretta
+- WPN_MAG58
+- WPN_MP5
+- WPN_PSG1
+- WPN_RemmingtonSG
+- WPN_SATCHEL_CHARGE
+- WPN_W300
+- WPN_colt45
+
+Also related to loadouts, the general_information block stores the defaults:
+- default_primary <string>
+- default_secondary <string>
+- default_accessory <string>
+
+8) Objects/Items list and the Item Properties / Item Attributes windows
+UI strings found in dfbhdmed.exe
+- EDIT_ITEM_ATTRIBUTES
+- ITEMATTRIB / AI_ATTRIBUTES
+- Position/Facing/Team/Layer related labels: POSITION, FACING, RANDOM_FACING, MAP_SYMBOL, HEIGHT_LOCK, FOV_CONES
+Corresponding .mis blocks
+- begin item <n>
+    type_id <int>
+    name "<string>"
+    iai_name "<string>"
+    ai_textfile "<string>"
+    id <int>
+    position <int> <int> <int>
+    facing <int> <int>
+    team <int>
+    map_symbol <int>
+    bmsi_attributes <int>   (present in SPBHD_16.mis; may be absent in other missions)
+    alert_state <int>       (present in SPBHD_16.mis; may be absent in other missions)
+    layer <int>
+    group_id <int>
+    waypoint_id <int>
+    wpnumber <int>
+    wpdistance <int>
+    ttoolindex <int>
+    fov <int>
+    waccuracy1 <int>
+    waccuracy2 <int>
+    perception2 <int>
+    perfectionist2 <int>
+    crouchtimer <int>
+    shoottimer <int>
+    movetimer <int>
+    advancetimer <int>
+    attention <int>
+    max_attack_distance <int>
+    edistances <int> <int>
+    obliqueness <int>
+    height_lock <int>
+    extra_valmode <int>
+    extra_val1 <int>
+    extra_val2 <int>
+    extra_val3 <int>
+    extra_val4 <int>
+    extra_val5 <int>
+    extra_bheight <int>
+    extra_mlink <int>
+    gen_string "<string>"
+  end item
+
+What the UI writes (core identity)
+- Object type dropdown -> type_id <int>
+- Object display/name field -> name "<string>"
+- IAI name field -> iai_name "<string>"
+- AI textfile field -> ai_textfile "<string>"
+- Object internal id -> id <int>
+  Notes: this is distinct from the item index after "begin item". The UI usually shows an "ID" field; it maps to this line.
+
+What the UI writes (placement and orientation)
+- Position X/Y/Z fields -> position <int> <int> <int>
+- Facing fields -> facing <int> <int>
+- Random facing checkbox -> this does not have a separate .mis key; it changes the stored facing values the editor writes.
+
+What the UI writes (team, layer, grouping)
+- Team dropdown -> team <int>
+- Layer dropdown -> layer <int>
+- Group assignment dropdown -> group_id <int>
+- Map symbol dropdown -> map_symbol <int>
+
+What the UI writes (waypoint references for the item)
+- Waypoint assignment -> waypoint_id <int>
+- Waypoint number -> wpnumber <int>
+- Waypoint distance -> wpdistance <int>
+- Advanced waypoint trigger -> wp_adv_trigger <int>
+
+What the UI writes (AI and behavior parameters)
+- Field of view -> fov <int>
+- Weapon accuracy sliders/fields -> waccuracy1 <int>, waccuracy2 <int>
+- Perception -> perception2 <int>
+- Perfectionist -> perfectionist2 <int>
+- Crouch timer -> crouchtimer <int>
+- Shoot timer -> shoottimer <int>
+- Move timer -> movetimer <int>
+- Advance timer -> advancetimer <int>
+- Attention -> attention <int>
+- Max attack distance -> max_attack_distance <int>
+- Engagement distances -> edistances <int> <int>
+
+What the UI writes (attributes/flags and extra fields)
+- Item attributes checkboxes -> bmsi_attributes <int> (when present for that item)
+- Alert state dropdown/field -> alert_state <int> (when present for that item)
+- Height lock checkbox/field -> height_lock <int>
+- Obliqueness -> obliqueness <int>
+- Tool index / ttoolindex field -> ttoolindex <int>
+
+Extra values are stored in dedicated integer slots. If the UI shows an "Extra" panel, each control maps 1:1:
+- Extra mode -> extra_valmode <int>
+- Extra 1..5 -> extra_val1..extra_val5 <int>
+- Extra building height -> extra_bheight <int>
+- Extra mission link -> extra_mlink <int>
+- Generic string -> gen_string "<string>"
+
+Important note about item fields being conditional
+- Not every item type exposes every field in the UI. The editor typically enables or disables controls depending on the item type.
+- In the .mis, the editor may omit a line entirely when a field does not apply to that item type (for example, bmsi_attributes and alert_state are present in SPBHD_16.mis but absent in TDMM_01a_removingbuildings.mis).
+
+9) Edit -> Replace (Global Replace)
+UI strings found in dfbhdmed.exe
+- EDIT_REPLACE
+MIS mapping
+- This is an operation, not a dedicated block. It changes existing lines inside begin item blocks (and potentially other blocks) depending on what you choose to replace.
+
+What Replace can change in the .mis (based on what the editor can legally rewrite)
+- Replacing an object type changes: type_id <int> (and often the item name string if you choose to update the display name)
+- Replacing a team changes: team <int>
+- Replacing a layer changes: layer <int>
+- Replacing a group changes: group_id <int>
+- Replacing a waypoint reference changes: waypoint_id <int>, wpnumber <int>, wpdistance <int>, wp_adv_trigger <int>
+- Replacing map symbols changes: map_symbol <int>
+
+10) Basic Edit operations (Copy, Cut, Paste, Delete, Insert Mode, Sort Objects)
+UI strings found in dfbhdmed.exe
+- EDIT_COPY, EDIT_CUT, EDIT_PASTE, EDIT_DELETE
+- EDIT_INSERTMODE
+- EDIT_SORTOBJ
+MIS mapping
+- Copy and Paste: duplicates selected item(s), resulting in additional begin item blocks with their fields copied (with updated indices and usually a new id value).
+- Cut and Delete: removes selected item(s), deleting their begin item blocks from the saved .mis, and updating num_items accordingly.
+- Insert Mode: affects how the editor inserts new objects while editing; the saved .mis reflects only the resulting set of item blocks.
+- Sort Objects: reorders item blocks and renumbers the begin item indices; the per-item fields remain the same.
+
+11) Briefing (present in the editor, not present in the sample .mis)
+UI strings found in dfbhdmed.exe
+- BRIEFING / EDITBRIEFING / EDIT_BRIEFING
+- begin briefing / endbriefing strings exist in the editor
+MIS mapping
+- The editor supports a "briefing" section stored as:
+  begin briefing
+    <briefing text or structured lines>
+  endbriefing
+- Because the provided sample .mis files do not contain this block, the exact internal line format used by this editor instance cannot be confirmed here. The mapping that can be confirmed is that the Briefing UI writes a dedicated briefing block in the .mis when used.
+
+End of document

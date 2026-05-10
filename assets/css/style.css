@@ -1,0 +1,315 @@
+:root{
+  --bg:#020617;
+  --panel:#0f172a;
+  --panel-muted:#111827;
+  --panel-subtle:#172036;
+  --panel-alt:#121c31;
+  --surface:#111b30;
+  --surface-subtle:#0c1628;
+  --surface-soft:#18243c;
+  --line:rgba(148,163,184,.28);
+  --line-strong:rgba(96,165,250,.45);
+  --line-heavy:rgba(96,165,250,.62);
+  --line-soft:rgba(148,163,184,.18);
+  --line-muted:rgba(148,163,184,.4);
+  --line-card:rgba(148,163,184,.24);
+  --text:#e5e7eb;
+  --text-strong:#f8fafc;
+  --text-muted:#94a3b8;
+  --text-soft:#7f8da3;
+  --text-disabled:#64748b;
+  --text-subtle:#cbd5e1;
+  --text-secondary:#c0d2ea;
+  --disabled-bg:#0b1324;
+  --disabled-text:#5f6f86;
+  --accent:#60a5fa;
+  --accent-soft:rgba(30,64,175,.22);
+  --accent-glow:rgba(96,165,250,.18);
+  --accent-glow-strong:rgba(96,165,250,.34);
+  --overlay:rgba(2,6,23,.8);
+  --overlay-soft:rgba(148,163,184,.1);
+  --overlay-border:rgba(148,163,184,.18);
+  --shadow-sm:0 14px 34px rgba(0,0,0,.28);
+  --shadow-md:0 24px 48px rgba(0,0,0,.45);
+  --radius-sm:10px;
+  --radius-md:14px;
+  --radius-pill:999px;
+  --focus-ring:0 0 0 2px rgba(96,165,250,.34);
+  --canvas:#040b18;
+  --dot:#c7d7f8;
+  --console-panel:#0b1324;
+  --console-bg:#07101f;
+  --console-line:rgba(96,165,250,.25);
+  --console-text:#dbe8ff;
+  --console-title:#c7d8f2;
+  --console-added:#86efac;
+  --console-removed:#fca5a5;
+  --console-stamp:#7dd3fc;
+  --tag-warn:#4b2e1f;
+  --tag-warn-hover:#5d3824;
+  --highlight:#f59e0b;
+  --highlight-current:#ef4444;
+  --highlight-text:#fff7ed;
+  --control-hover-bg:#17284a;
+  --control-active-bg:#1e3a66;
+}
+
+body[data-theme="night"],
+body[data-theme="forest"]{
+  --bg:#020617;
+  --panel:#0f172a;
+  --panel-muted:#111827;
+  --panel-subtle:#172036;
+  --panel-alt:#121c31;
+  --surface:#111b30;
+  --surface-subtle:#0c1628;
+  --surface-soft:#18243c;
+  --line:rgba(148,163,184,.28);
+  --line-strong:rgba(96,165,250,.45);
+  --line-heavy:rgba(96,165,250,.62);
+  --line-soft:rgba(148,163,184,.18);
+  --line-muted:rgba(148,163,184,.4);
+  --line-card:rgba(148,163,184,.24);
+  --text:#e5e7eb;
+  --text-strong:#f8fafc;
+  --text-muted:#94a3b8;
+  --text-soft:#7f8da3;
+  --text-disabled:#64748b;
+  --text-subtle:#cbd5e1;
+  --text-secondary:#c0d2ea;
+  --disabled-bg:#0b1324;
+  --disabled-text:#5f6f86;
+  --accent:#60a5fa;
+  --accent-soft:rgba(30,64,175,.22);
+  --accent-glow:rgba(96,165,250,.18);
+  --accent-glow-strong:rgba(96,165,250,.34);
+  --overlay:rgba(2,6,23,.8);
+  --overlay-soft:rgba(148,163,184,.1);
+  --overlay-border:rgba(148,163,184,.18);
+  --shadow-sm:0 14px 34px rgba(0,0,0,.28);
+  --shadow-md:0 24px 48px rgba(0,0,0,.45);
+  --focus-ring:0 0 0 2px rgba(96,165,250,.34);
+  --canvas:#040b18;
+  --console-panel:#0b1324;
+  --console-bg:#07101f;
+}
+
+html,
+body{
+  background:
+    radial-gradient(circle at center top, #111827 0, #020617 42%, #000 100%);
+}
+
+body{
+  font-family:system-ui, -apple-system, "Segoe UI", sans-serif;
+  color:var(--text);
+}
+
+#globalMenuWrap,
+#sidebar,
+#topbar,
+#selectedInfoPanel,
+#misRealtimePanel,
+#canvasShowPanel,
+#layerVisibilityPanel,
+#debugFogPanel,
+#sectionWindow,
+#liveMisWindow,
+#logsWindow,
+#globalReplaceWindow,
+#modalWindow,
+.itemCard,
+.secCard{
+  backdrop-filter:blur(10px);
+}
+
+#globalMenuWrap{
+  background:linear-gradient(180deg, rgba(8,15,30,.96), rgba(8,15,30,.84));
+  border-bottom:1px solid rgba(96,165,250,.2);
+  box-shadow:0 14px 30px rgba(0,0,0,.28);
+}
+
+#sidebar{
+  background:rgba(7,15,30,.8);
+  border-right:1px solid rgba(96,165,250,.16);
+}
+
+#topbar{
+  background:rgba(15,23,42,.9);
+  border-bottom:1px solid rgba(148,163,184,.2);
+  box-shadow:inset 0 -1px 0 rgba(255,255,255,.02);
+}
+
+#status{
+  color:var(--text-secondary);
+}
+
+input,
+select,
+button,
+textarea{
+  border-color:rgba(96,165,250,.28);
+  background:rgba(15,23,42,.88);
+  color:var(--text);
+}
+
+button,
+.modeBtn,
+.menuBtn,
+.menuItem,
+#misRealtimeClearBtn,
+#hideAllLayersBtn,
+#showAllLayersBtn,
+.xbtn{
+  border-radius:999px;
+  border:1px solid rgba(96,165,250,.55);
+  background:rgba(30,64,175,.22);
+  color:#bfdbfe;
+  box-shadow:none;
+}
+
+button:hover:not(:disabled),
+.modeBtn:hover:not(:disabled),
+.menuBtn:hover:not(:disabled),
+.menuItem:hover:not(:disabled){
+  background:rgba(37,99,235,.3);
+  border-color:rgba(147,197,253,.72);
+  color:#eff6ff;
+}
+
+button:active:not(:disabled),
+.modeBtn:active:not(:disabled),
+.menuBtn:active:not(:disabled),
+.menuItem:active:not(:disabled){
+  background:rgba(37,99,235,.38);
+}
+
+.modeBtn.active,
+#debugFogPresetBtns button.active,
+.secCard.active,
+.itemCard.active{
+  background:linear-gradient(180deg, rgba(30,64,175,.52), rgba(30,41,59,.92));
+  border-color:rgba(147,197,253,.9);
+  color:#fff;
+  box-shadow:0 0 0 1px rgba(147,197,253,.24), 0 10px 26px rgba(0,0,0,.22);
+}
+
+#selectedInfoPanel,
+#misRealtimePanel,
+#canvasShowPanel,
+#layerVisibilityPanel,
+#debugFogPanel,
+#sectionWindow,
+#liveMisWindow,
+#logsWindow,
+#globalReplaceWindow,
+#modalWindow,
+.itemCard,
+.secCard{
+  background:rgba(15,23,42,.9);
+  border-color:rgba(148,163,184,.24);
+  border-radius:12px;
+  box-shadow:var(--shadow-sm);
+}
+
+#misRealtimePanel,
+#selectedInfoPanel{
+  background:rgba(15,23,42,.94);
+}
+
+#misRealtimeTitle,
+#selectedInfoHeader,
+#layerVisibilityControls,
+.debugFogGroup h4,
+#sectionMeta,
+.groupEditorTitle,
+.layerEditorTitle{
+  color:var(--text-strong);
+}
+
+#misRealtimeConsole,
+#selectedInfoBody,
+textarea,
+pre{
+  background:rgba(7,16,31,.86);
+  border-color:rgba(96,165,250,.18);
+}
+
+#selectedInfoBody:hover{
+  background:rgba(10,22,42,.96);
+}
+
+.itemCard,
+.secCard{
+  background:rgba(15,23,42,.88);
+  transition:border-color .15s ease, transform .15s ease, background-color .15s ease;
+}
+
+.itemCard:hover,
+.secCard:hover{
+  border-color:rgba(147,197,253,.55);
+  background:rgba(17,30,54,.96);
+  transform:translateY(-1px);
+}
+
+.tag,
+.kbd{
+  background:rgba(255,255,255,.04);
+  border-color:rgba(148,163,184,.22);
+  color:#dbeafe;
+}
+
+#camDebug,
+#fpsCounter{
+  text-shadow:0 2px 10px rgba(0,0,0,.65);
+}
+
+#showPanelBtn,
+#showLayersBtn,
+#debugFogBtn{
+  background:rgba(30,64,175,.22);
+}
+
+#canvasWrap::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(180deg, rgba(2,6,23,.18), rgba(2,6,23,0) 22%);
+  z-index:1;
+}
+
+#cv{
+  box-shadow:inset 0 0 0 1px rgba(96,165,250,.1);
+}
+
+#modalOverlay,
+#sectionOverlay,
+#liveMisOverlay,
+#logsOverlay,
+#globalReplaceOverlay{
+  background:rgba(2,6,23,.8);
+}
+
+#modalWindow,
+#sectionWindow,
+#liveMisWindow,
+#logsWindow,
+#globalReplaceWindow{
+  border:1px solid rgba(96,165,250,.28);
+}
+
+.warn,
+.warning,
+#sectionWindow .hint.warn,
+#globalMenuWrap .warning{
+  background:rgba(85,49,22,.36);
+  border-color:rgba(251,146,60,.7);
+  color:#fdba74;
+}
+
+a,
+.menuBtn,
+.menuItem{
+  color:#bfdbfe;
+}

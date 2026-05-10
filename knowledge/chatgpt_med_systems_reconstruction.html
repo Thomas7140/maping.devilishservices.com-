@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reconstrução MED - Waypoints, Area Triggers, Layers, Groups e Events</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #131a2e;
+      --panel-2: #1a2340;
+      --line: #2d3a63;
+      --text: #e8ecff;
+      --muted: #aeb8de;
+      --accent: #7aa2ff;
+      --good: #55d38a;
+      --warn: #f0b35a;
+      --bad: #ff7a7a;
+      --shadow: 0 12px 28px rgba(0,0,0,.28);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, Arial, sans-serif;
+      background: linear-gradient(180deg, #0b1020 0%, #0f1730 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 360px 1fr 380px;
+      gap: 12px;
+      padding: 12px;
+      min-height: 100vh;
+    }
+
+    .panel {
+      background: rgba(19, 26, 46, 0.96);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .panel-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+    }
+
+    .panel-header h2, .panel-header h3 {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: .2px;
+    }
+
+    .panel-body {
+      padding: 12px;
+      overflow: auto;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    button, select, input, textarea {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 10px 12px;
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      transition: .15s ease;
+    }
+
+    button:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    button.primary { background: #22438f; }
+    button.good { background: #1f6c45; }
+    button.warn { background: #8c5d19; }
+    button.bad { background: #8a2f3d; }
+    button.ghost { background: transparent; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .row-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .section {
+      margin-bottom: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(255,255,255,.02);
+    }
+
+    .section h4 {
+      margin: 0 0 10px 0;
+      font-size: 13px;
+    }
+
+    .map-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: 100%;
+    }
+
+    .map-toolbar {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    canvas {
+      width: 100%;
+      height: calc(100vh - 180px);
+      min-height: 580px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #09101d;
+      display: block;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: 12px;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .card.active {
+      outline: 2px solid var(--accent);
+      background: rgba(122, 162, 255, .11);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      font-size: 11px;
+      color: var(--muted);
+      margin-right: 6px;
+      margin-top: 6px;
+    }
+
+    .log {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+      font-size: 12px;
+      line-height: 1.5;
+      background: #0a1120;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 180px;
+      max-height: 280px;
+      overflow: auto;
+    }
+
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .muted { color: var(--muted); }
+    .tiny { font-size: 11px; }
+
+    @media (max-width: 1300px) {
+      .app { grid-template-columns: 320px 1fr; }
+      .right-panel { grid-column: 1 / -1; }
+      canvas { height: 560px; }
+    }
+
+    @media (max-width: 920px) {
+      .app { grid-template-columns: 1fr; }
+      canvas { min-height: 420px; height: 420px; }
+      .map-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Reconstrução dos sistemas do MED</h2>
+      </div>
+      <div class="panel-body">
+        <div class="section">
+          <h4>Modo de edição</h4>
+          <div class="toolbar">
+            <button class="primary" data-mode="select">Selecionar</button>
+            <button data-mode="waypoint">Waypoint</button>
+            <button data-mode="trigger">Area Trigger</button>
+            <button data-mode="group">Group</button>
+            <button data-mode="event">Event</button>
+            <button data-mode="player">Mover Player</button>
+          </div>
+          <p class="hint" style="margin-top:10px;">
+            Clique no mapa para criar ou selecionar. Esta reconstrução trata Layers como organização visual, Groups como agrupadores lógicos, Events como lógica condicional, Area Triggers como volumes espaciais e Waypoints como rede de navegação.
+          </p>
+        </div>
+
+        <div class="section">
+          <h4>Camadas</h4>
+          <div class="row">
+            <div>
+              <label>Nova layer</label>
+              <input id="newLayerName" placeholder="Ex.: AI, Triggers, Gameplay" />
+            </div>
+            <div style="display:flex;align-items:end;">
+              <button id="addLayerBtn" class="good">Adicionar layer</button>
+            </div>
+          </div>
+          <div id="layersList" class="list"></div>
+        </div>
+
+        <div class="section">
+          <h4>Ferramentas</h4>
+          <div class="toolbar">
+            <button id="simulateBtn" class="good">Simular</button>
+            <button id="resetSimBtn" class="warn">Reset simulação</button>
+            <button id="exportBtn">Exportar JSON</button>
+            <button id="importBtn">Importar JSON</button>
+          </div>
+          <input id="importInput" type="file" accept="application/json" style="display:none" />
+        </div>
+
+        <div class="section">
+          <h4>Resumo técnico</h4>
+          <div class="hint">
+            <strong>Waypoints</strong>: nós com raio de ligação, links e event opcional ao alcançar.<br>
+            <strong>Area Triggers</strong>: retângulos com regras de entrada e saída.<br>
+            <strong>Groups</strong>: coleções de objetos ou entidades lógicas.<br>
+            <strong>Events</strong>: condition → action, disparadas por trigger, waypoint ou grupo.<br>
+            <strong>Layers</strong>: visibilidade, trava e organização de edição.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div class="topline">
+          <h3>Viewport do mapa</h3>
+          <div class="tiny muted" id="modeLabel">Modo atual: Selecionar</div>
+        </div>
+      </div>
+      <div class="panel-body map-wrap">
+        <div class="map-toolbar">
+          <button id="toggleGridBtn">Grid</button>
+          <button id="toggleLinksBtn">Links WP</button>
+          <button id="toggleNamesBtn">Nomes</button>
+          <button id="deleteBtn" class="bad">Apagar selecionado</button>
+        </div>
+        <canvas id="mapCanvas" width="1400" height="900"></canvas>
+        <div class="hint">
+          Dica: selecione dois waypoints e use o painel da direita para criar links. Entre em simulação para mover o player pelo mapa e testar triggers e events.
+        </div>
+      </div>
+    </section>
+
+    <section class="panel right-panel">
+      <div class="panel-header">
+        <h3>Inspector / Systems</h3>
+      </div>
+      <div class="panel-body">
+        <div class="section">
+          <h4>Seleção atual</h4>
+          <div id="selectionSummary" class="hint">Nada selecionado.</div>
+        </div>
+
+        <div id="inspector"></div>
+
+        <div class="section">
+          <h4>Eventos do mapa</h4>
+          <div id="eventsList" class="list"></div>
+        </div>
+
+        <div class="section">
+          <h4>Log da simulação</h4>
+          <div id="simLog" class="log"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const state = {
+      mode: 'select',
+      showGrid: true,
+      showLinks: true,
+      showNames: true,
+      simulating: false,
+      nextId: 1,
+      selection: null,
+      hover: null,
+      drag: null,
+      pendingLinkSource: null,
+      player: { x: 120, y: 120, radius: 12, speed: 2.0 },
+      layers: [
+        { id: 1, name: 'Default', visible: true, locked: false },
+        { id: 2, name: 'AI', visible: true, locked: false },
+        { id: 3, name: 'Triggers', visible: true, locked: false },
+      ],
+      waypoints: [],
+      triggers: [],
+      groups: [],
+      events: [],
+      log: [],
+      selectedWaypointIds: []
+    };
+
+    const canvas = document.getElementById('mapCanvas');
+    const ctx = canvas.getContext('2d');
+    const inspector = document.getElementById('inspector');
+    const selectionSummary = document.getElementById('selectionSummary');
+    const layersList = document.getElementById('layersList');
+    const eventsList = document.getElementById('eventsList');
+    const simLog = document.getElementById('simLog');
+    const modeLabel = document.getElementById('modeLabel');
+
+    function uid(prefix) {
+      return `${prefix}_${state.nextId++}`;
+    }
+
+    function log(msg) {
+      const ts = new Date().toLocaleTimeString('pt-BR');
+      state.log.unshift(`[${ts}] ${msg}`);
+      state.log = state.log.slice(0, 120);
+      simLog.textContent = state.log.join('\n');
+    }
+
+    function seedDemo() {
+      const w1 = createWaypoint(340, 240, 'WP_Start', 2);
+      const w2 = createWaypoint(520, 240, 'WP_A', 2);
+      const w3 = createWaypoint(700, 330, 'WP_B', 2);
+      w1.links.push(w2.id);
+      w2.links.push(w3.id);
+      const tr = createTrigger(520, 520, 180, 120, 'Trigger_Ambush', 3);
+      const gp = createGroup('Enemy_Squad_01');
+      gp.memberRefs.push({ type: 'waypoint', id: w2.id }, { type: 'waypoint', id: w3.id });
+      const ev1 = createEvent({
+        name: 'Enter Ambush Zone',
+        sourceType: 'trigger_enter',
+        sourceRef: tr.id,
+        conditions: [{ type: 'always' }],
+        actions: [
+          { type: 'log', value: 'Ambush ativada' },
+          { type: 'group_activate', value: gp.id },
+          { type: 'set_trigger_color', value: tr.id }
+        ]
+      });
+      const ev2 = createEvent({
+        name: 'Reach Final Waypoint',
+        sourceType: 'waypoint_reached',
+        sourceRef: w3.id,
+        conditions: [{ type: 'always' }],
+        actions: [{ type: 'log', value: 'Objetivo avançou ao alcançar WP_B' }]
+      });
+      w3.onReachEventId = ev2.id;
+      log('Cena inicial criada para demonstração.');
+    }
+
+    function getLayer(id) {
+      return state.layers.find(l => l.id === id);
+    }
+
+    function isLayerEditable(layerId) {
+      const layer = getLayer(layerId);
+      return layer && layer.visible && !layer.locked;
+    }
+
+    function createWaypoint(x, y, name = null, layerId = 1) {
+      const wp = {
+        id: uid('wp'),
+        name: name || `Waypoint_${state.waypoints.length + 1}`,
+        x, y,
+        radius: 16,
+        linkRadius: 180,
+        links: [],
+        layerId,
+        groupId: null,
+        onReachEventId: null,
+        flags: { active: true, oneShotEvent: false },
+        eventConsumed: false
+      };
+      state.waypoints.push(wp);
+      return wp;
+    }
+
+    function createTrigger(x, y, w = 120, h = 80, name = null, layerId = 3) {
+      const trigger = {
+        id: uid('trg'),
+        name: name || `AreaTrigger_${state.triggers.length + 1}`,
+        x, y, w, h,
+        layerId,
+        kind: 'box',
+        eventIds: [],
+        flags: { enabled: true, oneShot: false },
+        entered: false,
+        colorState: 'normal'
+      };
+      state.triggers.push(trigger);
+      return trigger;
+    }
+
+    function createGroup(name = null) {
+      const g = {
+        id: uid('grp'),
+        name: name || `Group_${state.groups.length + 1}`,
+        enabled: true,
+        layerId: 1,
+        memberRefs: [],
+        notes: ''
+      };
+      state.groups.push(g);
+      return g;
+    }
+
+    function createEvent(data = {}) {
+      const ev = {
+        id: uid('evt'),
+        name: data.name || `Event_${state.events.length + 1}`,
+        sourceType: data.sourceType || 'manual',
+        sourceRef: data.sourceRef || null,
+        conditions: data.conditions || [{ type: 'always' }],
+        actions: data.actions || [{ type: 'log', value: 'Event disparado' }],
+        enabled: true,
+        once: false,
+        consumed: false
+      };
+      state.events.push(ev);
+      if (ev.sourceType === 'trigger_enter' || ev.sourceType === 'trigger_exit') {
+        const trg = state.triggers.find(t => t.id === ev.sourceRef);
+        if (trg && !trg.eventIds.includes(ev.id)) trg.eventIds.push(ev.id);
+      }
+      return ev;
+    }
+
+    function screenToCanvas(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY,
+      };
+    }
+
+    function dist(a, b) {
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+
+    function pointInTrigger(p, t) {
+      return p.x >= t.x - t.w/2 && p.x <= t.x + t.w/2 && p.y >= t.y - t.h/2 && p.y <= t.y + t.h/2;
+    }
+
+    function hitTest(p) {
+      for (let i = state.waypoints.length - 1; i >= 0; i--) {
+        const wp = state.waypoints[i];
+        const layer = getLayer(wp.layerId);
+        if (!layer?.visible) continue;
+        if (Math.hypot(p.x - wp.x, p.y - wp.y) <= wp.radius + 6) {
+          return { type: 'waypoint', id: wp.id };
+        }
+      }
+      for (let i = state.triggers.length - 1; i >= 0; i--) {
+        const trg = state.triggers[i];
+        const layer = getLayer(trg.layerId);
+        if (!layer?.visible) continue;
+        if (pointInTrigger(p, trg)) return { type: 'trigger', id: trg.id };
+      }
+      return null;
+    }
+
+    function resolveSelection() {
+      if (!state.selection) return null;
+      const { type, id } = state.selection;
+      if (type === 'waypoint') return state.waypoints.find(x => x.id === id) || null;
+      if (type === 'trigger') return state.triggers.find(x => x.id === id) || null;
+      if (type === 'group') return state.groups.find(x => x.id === id) || null;
+      if (type === 'event') return state.events.find(x => x.id === id) || null;
+      return null;
+    }
+
+    function setSelection(sel) {
+      state.selection = sel;
+      renderInspector();
+      draw();
+    }
+
+    function modeName(mode) {
+      return {
+        select: 'Selecionar',
+        waypoint: 'Waypoint',
+        trigger: 'Area Trigger',
+        group: 'Group',
+        event: 'Event',
+        player: 'Mover Player'
+      }[mode] || mode;
+    }
+
+    function bindModeButtons() {
+      document.querySelectorAll('[data-mode]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.mode = btn.dataset.mode;
+          state.pendingLinkSource = null;
+          modeLabel.textContent = `Modo atual: ${modeName(state.mode)}`;
+        });
+      });
+    }
+
+    function renderLayers() {
+      layersList.innerHTML = '';
+      state.layers.forEach(layer => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <div class="card-title">${layer.name}</div>
+          <div>
+            <span class="pill">ID ${layer.id}</span>
+            <span class="pill">${layer.visible ? 'Visível' : 'Oculta'}</span>
+            <span class="pill">${layer.locked ? 'Travada' : 'Editável'}</span>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <button data-layer-visible="${layer.id}" class="ghost">${layer.visible ? 'Ocultar' : 'Mostrar'}</button>
+            <button data-layer-lock="${layer.id}" class="ghost">${layer.locked ? 'Destravar' : 'Travar'}</button>
+          </div>
+        `;
+        layersList.appendChild(div);
+      });
+
+      document.querySelectorAll('[data-layer-visible]').forEach(btn => {
+        btn.onclick = () => {
+          const layer = getLayer(Number(btn.dataset.layerVisible));
+          layer.visible = !layer.visible;
+          renderLayers();
+          draw();
+        };
+      });
+
+      document.querySelectorAll('[data-layer-lock]').forEach(btn => {
+        btn.onclick = () => {
+          const layer = getLayer(Number(btn.dataset.layerLock));
+          layer.locked = !layer.locked;
+          renderLayers();
+          draw();
+        };
+      });
+    }
+
+    function renderEventsList() {
+      eventsList.innerHTML = '';
+      state.events.forEach(ev => {
+        const card = document.createElement('div');
+        card.className = 'card' + (state.selection?.type === 'event' && state.selection?.id === ev.id ? ' active' : '');
+        card.innerHTML = `
+          <div class="card-title">${ev.name}</div>
+          <div class="tiny muted">${ev.sourceType} → ${ev.sourceRef || 'manual'}</div>
+          <div>
+            <span class="pill">${ev.enabled ? 'Ativo' : 'Desligado'}</span>
+            <span class="pill">${ev.once ? 'Once' : 'Repeat'}</span>
+          </div>
+        `;
+        card.onclick = () => setSelection({ type: 'event', id: ev.id });
+        eventsList.appendChild(card);
+      });
+    }
+
+    function renderInspector() {
+      const item = resolveSelection();
+      inspector.innerHTML = '';
+
+      if (!item) {
+        selectionSummary.textContent = 'Nada selecionado.';
+        return;
+      }
+
+      selectionSummary.innerHTML = `<strong>${state.selection.type}</strong> · ${item.name || item.id}`;
+
+      if (state.selection.type === 'waypoint') {
+        inspector.innerHTML = waypointInspector(item);
+        bindWaypointInspector(item);
+      }
+      if (state.selection.type === 'trigger') {
+        inspector.innerHTML = triggerInspector(item);
+        bindTriggerInspector(item);
+      }
+      if (state.selection.type === 'group') {
+        inspector.innerHTML = groupInspector(item);
+        bindGroupInspector(item);
+      }
+      if (state.selection.type === 'event') {
+        inspector.innerHTML = eventInspector(item);
+        bindEventInspector(item);
+      }
+    }
+
+    function layerOptions(selectedId) {
+      return state.layers.map(l => `<option value="${l.id}" ${l.id === selectedId ? 'selected' : ''}>${l.name}</option>`).join('');
+    }
+
+    function groupOptions(selectedId) {
+      return `<option value="">Nenhum</option>` + state.groups.map(g => `<option value="${g.id}" ${g.id === selectedId ? 'selected' : ''}>${g.name}</option>`).join('');
+    }
+
+    function eventOptions(selectedId) {
+      return `<option value="">Nenhum</option>` + state.events.map(ev => `<option value="${ev.id}" ${ev.id === selectedId ? 'selected' : ''}>${ev.name}</option>`).join('');
+    }
+
+    function waypointInspector(wp) {
+      return `
+        <div class="section">
+          <h4>Waypoint</h4>
+          <div class="row">
+            <div><label>Nome</label><input id="wpName" value="${wp.name}" /></div>
+            <div><label>Layer</label><select id="wpLayer">${layerOptions(wp.layerId)}</select></div>
+          </div>
+          <div class="row-3">
+            <div><label>X</label><input id="wpX" type="number" value="${Math.round(wp.x)}" /></div>
+            <div><label>Y</label><input id="wpY" type="number" value="${Math.round(wp.y)}" /></div>
+            <div><label>Raio link</label><input id="wpLinkRadius" type="number" value="${wp.linkRadius}" /></div>
+          </div>
+          <div class="row">
+            <div><label>Group</label><select id="wpGroup">${groupOptions(wp.groupId)}</select></div>
+            <div><label>On Reach Event</label><select id="wpEvent">${eventOptions(wp.onReachEventId)}</select></div>
+          </div>
+          <div class="row">
+            <button id="wpSave" class="good">Salvar</button>
+            <button id="wpAddLink">Modo link</button>
+          </div>
+          <div class="hint">Links atuais: ${wp.links.length ? wp.links.join(', ') : 'nenhum'}</div>
+        </div>
+      `;
+    }
+
+    function bindWaypointInspector(wp) {
+      document.getElementById('wpSave').onclick = () => {
+        wp.name = document.getElementById('wpName').value.trim() || wp.name;
+        wp.x = Number(document.getElementById('wpX').value);
+        wp.y = Number(document.getElementById('wpY').value);
+        wp.linkRadius = Number(document.getElementById('wpLinkRadius').value);
+        wp.layerId = Number(document.getElementById('wpLayer').value);
+        wp.groupId = document.getElementById('wpGroup').value || null;
+        wp.onReachEventId = document.getElementById('wpEvent').value || null;
+        renderAll();
+      };
+      document.getElementById('wpAddLink').onclick = () => {
+        state.pendingLinkSource = wp.id;
+        state.mode = 'select';
+        modeLabel.textContent = `Modo atual: Selecionar (aguardando destino de link)`;
+        log(`Selecione outro waypoint para linkar com ${wp.name}.`);
+      };
+    }
+
+    function triggerInspector(trg) {
+      return `
+        <div class="section">
+          <h4>Area Trigger</h4>
+          <div class="row">
+            <div><label>Nome</label><input id="trgName" value="${trg.name}" /></div>
+            <div><label>Layer</label><select id="trgLayer">${layerOptions(trg.layerId)}</select></div>
+          </div>
+          <div class="row-3">
+            <div><label>X</label><input id="trgX" type="number" value="${Math.round(trg.x)}" /></div>
+            <div><label>Y</label><input id="trgY" type="number" value="${Math.round(trg.y)}" /></div>
+            <div><label>W</label><input id="trgW" type="number" value="${trg.w}" /></div>
+          </div>
+          <div class="row-3">
+            <div><label>H</label><input id="trgH" type="number" value="${trg.h}" /></div>
+            <div><label>Enabled</label><select id="trgEnabled"><option value="1" ${trg.flags.enabled ? 'selected' : ''}>Sim</option><option value="0" ${!trg.flags.enabled ? 'selected' : ''}>Não</option></select></div>
+            <div><label>One Shot</label><select id="trgOneShot"><option value="1" ${trg.flags.oneShot ? 'selected' : ''}>Sim</option><option value="0" ${!trg.flags.oneShot ? 'selected' : ''}>Não</option></select></div>
+          </div>
+          <div class="row">
+            <button id="trgSave" class="good">Salvar</button>
+            <button id="trgMakeEvent">Criar event de entrada</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function bindTriggerInspector(trg) {
+      document.getElementById('trgSave').onclick = () => {
+        trg.name = document.getElementById('trgName').value.trim() || trg.name;
+        trg.layerId = Number(document.getElementById('trgLayer').value);
+        trg.x = Number(document.getElementById('trgX').value);
+        trg.y = Number(document.getElementById('trgY').value);
+        trg.w = Number(document.getElementById('trgW').value);
+        trg.h = Number(document.getElementById('trgH').value);
+        trg.flags.enabled = document.getElementById('trgEnabled').value === '1';
+        trg.flags.oneShot = document.getElementById('trgOneShot').value === '1';
+        renderAll();
+      };
+      document.getElementById('trgMakeEvent').onclick = () => {
+        const ev = createEvent({
+          name: `${trg.name}_OnEnter`,
+          sourceType: 'trigger_enter',
+          sourceRef: trg.id,
+          conditions: [{ type: 'always' }],
+          actions: [{ type: 'log', value: `${trg.name} acionado` }]
+        });
+        renderAll();
+        setSelection({ type: 'event', id: ev.id });
+      };
+    }
+
+    function groupInspector(g) {
+      return `
+        <div class="section">
+          <h4>Group</h4>
+          <div class="row">
+            <div><label>Nome</label><input id="grpName" value="${g.name}" /></div>
+            <div><label>Enabled</label><select id="grpEnabled"><option value="1" ${g.enabled ? 'selected' : ''}>Sim</option><option value="0" ${!g.enabled ? 'selected' : ''}>Não</option></select></div>
+          </div>
+          <div>
+            <label>Notas</label>
+            <textarea id="grpNotes" rows="4">${g.notes || ''}</textarea>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <button id="grpSave" class="good">Salvar</button>
+            <button id="grpAttachSelected">Anexar waypoint selecionado</button>
+          </div>
+          <div class="hint">Membros: ${g.memberRefs.length ? g.memberRefs.map(m => `${m.type}:${m.id}`).join(', ') : 'nenhum'}</div>
+        </div>
+      `;
+    }
+
+    function bindGroupInspector(g) {
+      document.getElementById('grpSave').onclick = () => {
+        g.name = document.getElementById('grpName').value.trim() || g.name;
+        g.enabled = document.getElementById('grpEnabled').value === '1';
+        g.notes = document.getElementById('grpNotes').value;
+        renderAll();
+      };
+      document.getElementById('grpAttachSelected').onclick = () => {
+        if (state.selection?.type === 'group') {
+          const lastWp = state.waypoints[state.waypoints.length - 1];
+          if (lastWp) {
+            g.memberRefs.push({ type: 'waypoint', id: lastWp.id });
+            lastWp.groupId = g.id;
+            renderAll();
+            log(`Waypoint ${lastWp.name} anexado ao grupo ${g.name}.`);
+          }
+        }
+      };
+    }
+
+    function eventInspector(ev) {
+      return `
+        <div class="section">
+          <h4>Event</h4>
+          <div class="row">
+            <div><label>Nome</label><input id="evName" value="${ev.name}" /></div>
+            <div><label>Enabled</label><select id="evEnabled"><option value="1" ${ev.enabled ? 'selected' : ''}>Sim</option><option value="0" ${!ev.enabled ? 'selected' : ''}>Não</option></select></div>
+          </div>
+          <div class="row">
+            <div><label>Source Type</label>
+              <select id="evSourceType">
+                ${['manual','trigger_enter','trigger_exit','waypoint_reached','group_activated'].map(t => `<option value="${t}" ${ev.sourceType === t ? 'selected' : ''}>${t}</option>`).join('')}
+              </select>
+            </div>
+            <div><label>Source Ref</label><input id="evSourceRef" value="${ev.sourceRef || ''}" /></div>
+          </div>
+          <div>
+            <label>Ações (uma por linha: tipo:valor)</label>
+            <textarea id="evActions" rows="6">${ev.actions.map(a => `${a.type}:${a.value ?? ''}`).join('\n')}</textarea>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <button id="evSave" class="good">Salvar</button>
+            <button id="evRun">Executar agora</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function bindEventInspector(ev) {
+      document.getElementById('evSave').onclick = () => {
+        ev.name = document.getElementById('evName').value.trim() || ev.name;
+        ev.enabled = document.getElementById('evEnabled').value === '1';
+        ev.sourceType = document.getElementById('evSourceType').value;
+        ev.sourceRef = document.getElementById('evSourceRef').value || null;
+        ev.actions = document.getElementById('evActions').value
+          .split('\n')
+          .map(line => line.trim())
+          .filter(Boolean)
+          .map(line => {
+            const idx = line.indexOf(':');
+            return idx === -1 ? { type: line, value: '' } : { type: line.slice(0, idx), value: line.slice(idx + 1) };
+          });
+        renderAll();
+      };
+      document.getElementById('evRun').onclick = () => runEvent(ev, 'manual execution');
+    }
+
+    function renderAll() {
+      renderLayers();
+      renderEventsList();
+      renderInspector();
+      simLog.textContent = state.log.join('\n');
+      draw();
+    }
+
+    function drawGrid() {
+      if (!state.showGrid) return;
+      const step = 40;
+      ctx.strokeStyle = 'rgba(255,255,255,.06)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += step) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += step) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+    }
+
+    function drawWaypoints() {
+      if (state.showLinks) {
+        ctx.lineWidth = 2;
+        state.waypoints.forEach(wp => {
+          if (!getLayer(wp.layerId)?.visible) return;
+          wp.links.forEach(linkId => {
+            const target = state.waypoints.find(x => x.id === linkId);
+            if (!target || !getLayer(target.layerId)?.visible) return;
+            ctx.strokeStyle = 'rgba(122,162,255,.45)';
+            ctx.beginPath(); ctx.moveTo(wp.x, wp.y); ctx.lineTo(target.x, target.y); ctx.stroke();
+          });
+        });
+      }
+
+      state.waypoints.forEach(wp => {
+        if (!getLayer(wp.layerId)?.visible) return;
+        ctx.beginPath();
+        ctx.fillStyle = state.selection?.type === 'waypoint' && state.selection?.id === wp.id ? '#b2c7ff' : '#7aa2ff';
+        ctx.arc(wp.x, wp.y, wp.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,.35)';
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(122,162,255,.16)';
+        ctx.arc(wp.x, wp.y, wp.linkRadius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        if (state.showNames) {
+          ctx.fillStyle = '#dce5ff';
+          ctx.font = '12px Inter, sans-serif';
+          ctx.fillText(wp.name, wp.x + 18, wp.y - 16);
+        }
+      });
+    }
+
+    function drawTriggers() {
+      state.triggers.forEach(trg => {
+        if (!getLayer(trg.layerId)?.visible) return;
+        const fill = trg.colorState === 'triggered' ? 'rgba(240,179,90,.22)' : 'rgba(85,211,138,.15)';
+        const stroke = trg.colorState === 'triggered' ? '#f0b35a' : '#55d38a';
+        ctx.fillStyle = fill;
+        ctx.strokeStyle = state.selection?.type === 'trigger' && state.selection?.id === trg.id ? '#ffffff' : stroke;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.rect(trg.x - trg.w/2, trg.y - trg.h/2, trg.w, trg.h);
+        ctx.fill();
+        ctx.stroke();
+        if (state.showNames) {
+          ctx.fillStyle = '#d8ffe7';
+          ctx.font = '12px Inter, sans-serif';
+          ctx.fillText(trg.name, trg.x - trg.w/2, trg.y - trg.h/2 - 8);
+        }
+      });
+    }
+
+    function drawPlayer() {
+      ctx.beginPath();
+      ctx.fillStyle = '#ff7a7a';
+      ctx.arc(state.player.x, state.player.y, state.player.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.4)';
+      ctx.stroke();
+      ctx.fillStyle = '#ffdede';
+      ctx.font = '12px Inter, sans-serif';
+      ctx.fillText('Player', state.player.x + 16, state.player.y - 10);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#09101d';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      drawGrid();
+      drawTriggers();
+      drawWaypoints();
+      drawPlayer();
+
+      if (state.pendingLinkSource) {
+        const src = state.waypoints.find(w => w.id === state.pendingLinkSource);
+        if (src) {
+          ctx.fillStyle = '#ffe08a';
+          ctx.font = '13px Inter, sans-serif';
+          ctx.fillText(`Selecione destino do link a partir de ${src.name}`, 16, 24);
+        }
+      }
+    }
+
+    function addLayer() {
+      const input = document.getElementById('newLayerName');
+      const name = input.value.trim();
+      if (!name) return;
+      state.layers.push({ id: state.layers.length ? Math.max(...state.layers.map(l => l.id)) + 1 : 1, name, visible: true, locked: false });
+      input.value = '';
+      renderLayers();
+    }
+
+    function deleteSelection() {
+      if (!state.selection) return;
+      const { type, id } = state.selection;
+      if (type === 'waypoint') state.waypoints = state.waypoints.filter(x => x.id !== id);
+      if (type === 'trigger') state.triggers = state.triggers.filter(x => x.id !== id);
+      if (type === 'group') state.groups = state.groups.filter(x => x.id !== id);
+      if (type === 'event') state.events = state.events.filter(x => x.id !== id);
+      state.selection = null;
+      renderAll();
+    }
+
+    function maybeCreateLink(targetWp) {
+      if (!state.pendingLinkSource || state.pendingLinkSource === targetWp.id) return false;
+      const src = state.waypoints.find(w => w.id === state.pendingLinkSource);
+      if (!src) return false;
+      if (!src.links.includes(targetWp.id)) src.links.push(targetWp.id);
+      state.pendingLinkSource = null;
+      log(`Link criado: ${src.name} -> ${targetWp.name}`);
+      renderAll();
+      return true;
+    }
+
+    canvas.addEventListener('mousedown', e => {
+      const p = screenToCanvas(e);
+      const hit = hitTest(p);
+
+      if (state.mode === 'player') {
+        state.player.x = p.x;
+        state.player.y = p.y;
+        updateSimulationState();
+        draw();
+        return;
+      }
+
+      if (state.mode === 'waypoint') {
+        const wp = createWaypoint(p.x, p.y, null, 2);
+        setSelection({ type: 'waypoint', id: wp.id });
+        log(`Waypoint criado: ${wp.name}`);
+        renderAll();
+        return;
+      }
+
+      if (state.mode === 'trigger') {
+        const trg = createTrigger(p.x, p.y);
+        setSelection({ type: 'trigger', id: trg.id });
+        log(`Area Trigger criada: ${trg.name}`);
+        renderAll();
+        return;
+      }
+
+      if (state.mode === 'group') {
+        const g = createGroup();
+        setSelection({ type: 'group', id: g.id });
+        log(`Group criada: ${g.name}`);
+        renderAll();
+        return;
+      }
+
+      if (state.mode === 'event') {
+        const ev = createEvent();
+        setSelection({ type: 'event', id: ev.id });
+        log(`Event criada: ${ev.name}`);
+        renderAll();
+        return;
+      }
+
+      if (state.mode === 'select') {
+        if (hit?.type === 'waypoint' && state.pendingLinkSource) {
+          const target = state.waypoints.find(w => w.id === hit.id);
+          if (target && maybeCreateLink(target)) return;
+        }
+
+        if (hit) {
+          setSelection(hit);
+          const item = resolveSelection();
+          if (item && isLayerEditable(item.layerId || 1)) {
+            state.drag = { sel: hit, dx: p.x - (item.x || 0), dy: p.y - (item.y || 0) };
+          }
+        } else {
+          setSelection(null);
+        }
+      }
+    });
+
+    canvas.addEventListener('mousemove', e => {
+      const p = screenToCanvas(e);
+      if (state.drag) {
+        const item = resolveSelection();
+        if (item) {
+          item.x = p.x - state.drag.dx;
+          item.y = p.y - state.drag.dy;
+          draw();
+        }
+      }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      state.drag = null;
+    });
+
+    function runEvent(ev, reason) {
+      if (!ev || !ev.enabled) return;
+      if (ev.once && ev.consumed) return;
+      const conditionsOk = ev.conditions.every(c => evaluateCondition(c));
+      if (!conditionsOk) return;
+      log(`Event: ${ev.name} (${reason})`);
+      ev.actions.forEach(a => executeAction(a));
+      if (ev.once) ev.consumed = true;
+      renderAll();
+    }
+
+    function evaluateCondition(cond) {
+      if (!cond || cond.type === 'always') return true;
+      if (cond.type === 'group_enabled') {
+        const grp = state.groups.find(g => g.id === cond.value);
+        return !!grp?.enabled;
+      }
+      return true;
+    }
+
+    function executeAction(action) {
+      switch (action.type) {
+        case 'log':
+          log(String(action.value || 'Event disparado'));
+          break;
+        case 'group_activate': {
+          const grp = state.groups.find(g => g.id === action.value);
+          if (grp) {
+            grp.enabled = true;
+            log(`Group ativado: ${grp.name}`);
+            state.events.filter(ev => ev.sourceType === 'group_activated' && ev.sourceRef === grp.id).forEach(ev => runEvent(ev, 'group activated'));
+          }
+          break;
+        }
+        case 'group_deactivate': {
+          const grp = state.groups.find(g => g.id === action.value);
+          if (grp) {
+            grp.enabled = false;
+            log(`Group desativado: ${grp.name}`);
+          }
+          break;
+        }
+        case 'set_trigger_color': {
+          const trg = state.triggers.find(t => t.id === action.value);
+          if (trg) trg.colorState = 'triggered';
+          break;
+        }
+        case 'move_player_to_waypoint': {
+          const wp = state.waypoints.find(w => w.id === action.value);
+          if (wp) {
+            state.player.x = wp.x;
+            state.player.y = wp.y;
+            log(`Player movido para ${wp.name}`);
+          }
+          break;
+        }
+      }
+    }
+
+    function updateSimulationState() {
+      state.triggers.forEach(trg => {
+        if (!trg.flags.enabled) return;
+        const inside = pointInTrigger(state.player, trg);
+        if (inside && !trg.entered) {
+          trg.entered = true;
+          state.events.filter(ev => ev.sourceType === 'trigger_enter' && ev.sourceRef === trg.id).forEach(ev => runEvent(ev, 'trigger enter'));
+          if (trg.flags.oneShot) trg.flags.enabled = false;
+        }
+        if (!inside && trg.entered) {
+          trg.entered = false;
+          state.events.filter(ev => ev.sourceType === 'trigger_exit' && ev.sourceRef === trg.id).forEach(ev => runEvent(ev, 'trigger exit'));
+        }
+      });
+
+      state.waypoints.forEach(wp => {
+        if (dist(state.player, wp) <= wp.radius + state.player.radius) {
+          if (wp.onReachEventId && (!wp.flags.oneShotEvent || !wp.eventConsumed)) {
+            const ev = state.events.find(e => e.id === wp.onReachEventId);
+            if (ev) runEvent(ev, 'waypoint reached');
+            if (wp.flags.oneShotEvent) wp.eventConsumed = true;
+          }
+          state.events.filter(ev => ev.sourceType === 'waypoint_reached' && ev.sourceRef === wp.id).forEach(ev => runEvent(ev, 'waypoint reached'));
+        }
+      });
+    }
+
+    let anim = null;
+    function simulateStep() {
+      if (!state.simulating) return;
+      updateSimulationState();
+      draw();
+      anim = requestAnimationFrame(simulateStep);
+    }
+
+    function startSimulation() {
+      if (state.simulating) return;
+      state.simulating = true;
+      log('Simulação iniciada.');
+      simulateStep();
+    }
+
+    function stopSimulation() {
+      state.simulating = false;
+      if (anim) cancelAnimationFrame(anim);
+      anim = null;
+    }
+
+    function resetSimulation() {
+      stopSimulation();
+      state.player.x = 120;
+      state.player.y = 120;
+      state.triggers.forEach(t => {
+        t.entered = false;
+        t.colorState = 'normal';
+        t.flags.enabled = true;
+      });
+      state.events.forEach(e => e.consumed = false);
+      state.waypoints.forEach(w => w.eventConsumed = false);
+      log('Simulação resetada.');
+      renderAll();
+    }
+
+    function exportJSON() {
+      const payload = {
+        layers: state.layers,
+        waypoints: state.waypoints,
+        triggers: state.triggers,
+        groups: state.groups,
+        events: state.events,
+        player: state.player
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'med_systems_reconstruction.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importJSON(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          state.layers = data.layers || [];
+          state.waypoints = data.waypoints || [];
+          state.triggers = data.triggers || [];
+          state.groups = data.groups || [];
+          state.events = data.events || [];
+          state.player = data.player || state.player;
+          state.selection = null;
+          state.pendingLinkSource = null;
+          log('JSON importado com sucesso.');
+          renderAll();
+        } catch (err) {
+          alert('Falha ao importar JSON.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    document.getElementById('addLayerBtn').onclick = addLayer;
+    document.getElementById('deleteBtn').onclick = deleteSelection;
+    document.getElementById('toggleGridBtn').onclick = () => { state.showGrid = !state.showGrid; draw(); };
+    document.getElementById('toggleLinksBtn').onclick = () => { state.showLinks = !state.showLinks; draw(); };
+    document.getElementById('toggleNamesBtn').onclick = () => { state.showNames = !state.showNames; draw(); };
+    document.getElementById('simulateBtn').onclick = startSimulation;
+    document.getElementById('resetSimBtn').onclick = resetSimulation;
+    document.getElementById('exportBtn').onclick = exportJSON;
+    document.getElementById('importBtn').onclick = () => document.getElementById('importInput').click();
+    document.getElementById('importInput').addEventListener('change', e => {
+      if (e.target.files?.[0]) importJSON(e.target.files[0]);
+    });
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'Delete') deleteSelection();
+      if (e.key.toLowerCase() === 'g') { state.showGrid = !state.showGrid; draw(); }
+      if (e.key.toLowerCase() === 's') startSimulation();
+      if (e.key.toLowerCase() === 'r') resetSimulation();
+    });
+
+    bindModeButtons();
+    seedDemo();
+    renderAll();
+  </script>
+</body>
+</html>

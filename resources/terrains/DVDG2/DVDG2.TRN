@@ -1,0 +1,53 @@
+terrain_name     ""
+terrain_creator  "Jason Tull"
+
+;terrain values
+
+water_height      0            ;default, if zero will take from mission
+
+
+polytrn_colormap    dvdg2_c.tga
+polytrn_detailmap   det_grav.tga
+polytrn_polydata    dvdg2.cpt
+polytrn_tilestrip   trntile1.tga
+polytrn_charmap     dvdg2_m.pcx
+polytrn_foliagemap  dvdg2_f.pcx
+
+polytrn_detaildensity		160
+polytrn_sectorcount		8                   ; width of sectors
+polytrn_wrapx			0                   ; do we wrap on X?
+polytrn_wrapy			1                   ; do we wrap on Y?
+
+polytrn_origin			-4	-4           ; move terrain origin by this amount (X,Y)  
+     
+polytrn_sectors			0	0	1	3	3	3	3	3 ; width here must match above
+polytrn_sectors			0	0	2	4	4	4	4	4
+polytrn_sectors			0	0	1	3	3	3	3	3
+polytrn_sectors			0	0	2	4	4	4	4	4
+polytrn_sectors			0	0	1	3	3	3	3	3
+polytrn_sectors			0	0	2	4	4	4	4	4
+polytrn_sectors			0	0	1	3	3	3	3	3
+polytrn_sectors			0	0	2	4	4	4	4	4
+
+lock_topleft		0	0
+lock_topright		1	0
+lock_bottomleft		0	0
+lock_bottomright	1	0
+
+
+
+foliage
+  graphic         grass3.3di                ; the 3DI to place on the terrain - must be <=20 verts
+  color_lower     0                         ; 0=match ground  1=50% blend  2=retain full color
+  color_upper     2                         ; 0=match ground  1=50% blend  2=retain full color
+  match           254                       ; match with up to four different colors in the foliagemap
+end
+
+foliage
+  graphic         grass4.3di                ; the 3DI to place on the terrain - must be <=20 verts
+  color_lower     0                         ; 0=match ground  1=50% blend  2=retain full color
+  color_upper     1                         ; 0=match ground  1=50% blend  2=retain full color
+  match           252                       ; match with up to four different colors in the foliagemap
+end
+
+			    

@@ -1,0 +1,589 @@
+DFBHD Mission Editor UI Effects on .MIS (What the UI Actually Writes)
+Generated: 2026-02-23 (America/Sao_Paulo)
+
+Sources
+- dfbhdmed_ui_to_mis_mapping.txt (UI strings and observed .mis writes)
+- BMS_plaintext_spec.txt (plain-text rules and bitmask/enums derived from bms.h + bms.cpp)
+
+Goal
+Describe, with no omissions, which dfbhdmed.exe UI controls change the saved .mis file, and exactly what they change.
+
+General rule: when a UI action is marked as "no .mis write" it only affects editor state (camera, view filters, selection, rendering). The .mis changes only after Save, and only via the fields described below.
+
+--------------------------------------------------------------------
+A) .MIS structure written by the editor
+--------------------------------------------------------------------
+The editor saves a plain-text .mis composed of blocks:
+  begin <block_type> [index_or_id]
+    key value...
+  end <block_type>
+
+Block types observed (from dfbhdmed_ui_to_mis_mapping.txt samples):
+- general_information
+- layer
+- group
+- waypoint
+- areatrig
+- event (with nested triggers and actions tables)
+- item
+- weapon_availability
+
+Editor-maintained counts (written into general_information):
+- num_items is updated to match the number of begin item blocks on save.
+- num_events is updated to match the number of begin event blocks on save.
+
+--------------------------------------------------------------------
+B) UI -> .MIS mapping, by editor screen / menu
+--------------------------------------------------------------------
+
+1) Edit -> General Information
+
+Menu path: Edit -> General Information
+Block: begin general_information ... end general_information
+
+Identity and version
+- File Version -> file_version <int>
+- Mission Name -> name "<string>"
+- Mission Designer -> designer "<string>"
+
+Terrain and file references
+- Terrain Type -> terrain <token>
+- Terrain Color -> terrain_color <int>
+- Terrain Tile -> terrain_tile_tga <string> (case variants may appear)
+- CNV file -> cnv_file <string>
+- TT file -> tt_file <string>
+
+Environment and atmosphere
+- Water Level -> water_level <int>
+- Fog Level -> fog_level <int>
+- Fog Color -> fog_color <int>
+- Weather Type -> weather_type <int>
+- Lowest Elevation -> lowest_elev <int>
+- Wind -> wind <int> <int>
+
+Editor view defaults stored in the file (restored on load)
+- View X -> viewx <int>
+- View Y -> viewy <int>
+- View Z -> viewz <int>
+- View Zoom -> viewzoom <float>
+- Map Zoom -> map_zoom <float>
+
+Gameplay / mission rules stored as plain integers
+- attrib <int>  (bitmask, see Appendix 1)
+- visible_if <int>
+- notvisible_if <int>
+- arty <int>
+- Player Type -> player_type <int>
+- Max Saves -> max_saves <int>
+- Bonus Expiration -> bonus_expiration <int>
+
+Win/Lose configuration
+- Hard Win -> hardwin <int>
+- Hard Lose -> hardlose <int>
+- Subgoals Win -> subgoals_win <int x8>
+- Subgoals Lose -> subgoals_lose <int x8>
+- Win Scores -> win_scores <int x8>
+- Lose Scores -> lose_scores <int x8>
+
+Generic per-mission definition values
+- gen_def_val1..gen_def_val4 <int>
+
+Sun / time-of-day token
+- Sunset / time-of-day -> sunset <token> [optional extra tokens]
+
+Counts (typically maintained by editor)
+- Number of Items -> num_items <int>
+- Number of Events -> num_events <int>
+
+Waypoint name tables (stored as integer lists)
+- Waypoint Names Blue -> wp_names_blue <int x8>
+- Waypoint Names Red  -> wp_names_red  <int x8>
+
+Weapon defaults stored in general_information
+- default_primary <string>
+- default_secondary <string>
+- default_accessory <string>
+
+2) Edit -> Layer Names and Layer Visibility
+
+Menu path: Edit -> Layer Names
+Blocks: begin layer <n> ... end layer
+Lines stored per layer block:
+- description "<string>"  (or Description "<string>")
+- color "<int>"           (or Color "<int>")
+
+Item-level layer assignment (changed via item properties UI):
+- item line: layer <int>
+
+No .mis write:
+- View toggles for showing/hiding layers are editor-only state unless represented by a saved field (not observed in samples).
+
+3) Edit -> Groups
+
+Menu path: Edit -> Groups
+Blocks: begin group <n> ... end group
+Lines stored per group block:
+- description "<string>"
+
+Item-level group assignment (changed via item properties UI):
+- item line: group_id <int>
+
+4) Edit -> Waypoints
+
+Menu path: Edit -> Waypoints
+Blocks: begin waypoint <n> ... end waypoint
+Lines stored per waypoint block:
+- description "<string>"
+- attrib <int> (bitmask, see Appendix 2)
+- color <int> (optional, mission dependent)
+
+Item-level waypoint reference fields (changed via item properties UI):
+- waypoint_id <int>
+- wpnumber <int>
+- wpdistance <int>
+- wp_adv_trigger <int>
+
+No .mis write:
+- Show/Hide waypoint overlay is editor-only view state.
+
+5) Edit -> Area Triggers
+
+Menu path: Edit -> Area Triggers
+Blocks: begin areatrig <n> ... end areatrig
+Lines stored per areatrig block (mission dependent; samples show only these):
+- description "<string>"
+- color <int> (optional)
+- attrib <int> (optional bitmask, if exposed by the UI)
+
+No .mis write:
+- Picking an active area for editing/filtering is editor-only state unless saved as a field (not observed in samples).
+
+6) Edit -> Events
+
+Menu path: Edit -> Events
+Blocks: begin event <n> ... end event, with nested tables
+
+Event header lines (mission dependent):
+- name "<string>"
+- reset_value <int> (optional)
+- delay_value <int> (optional)
+- attrib <int> (optional bitmask; event_flags in BMS spec, see Appendix 3)
+
+Triggers table
+- Stored as: begin triggers <k> ... end triggers
+- Each trigger row is exactly 8 integers:
+  condition_flags main_type sub_type param1 param2 param3 param4 unknown7
+  This corresponds 1:1 to the Trigger struct in BMS_plaintext_spec.txt.
+- UI edits in the Triggers subwindow update one or more of these 8 integers per row.
+
+Actions table
+- Stored as: begin actions <m> ... end actions
+- Each action row is exactly 8 integers:
+  reserved0 action_type action_sub_type param1 param2 param3 param4 reserved1
+  This corresponds 1:1 to the Action struct in BMS_plaintext_spec.txt.
+- UI edits in the Actions subwindow update one or more of these 8 integers per row.
+
+Type/subtype enums (what the dropdowns mean in storage terms)
+- Trigger main types and trigger subtypes are stored as integers (see Appendix 4).
+- Action types and their subtypes are stored as integers (see Appendix 5).
+
+Counts
+- The <k> after begin triggers is kept consistent with the number of trigger rows.
+- The <m> after begin actions is kept consistent with the number of action rows.
+
+7) Edit -> Weapon Loadouts
+
+Menu path: Edit -> Weapon Loadouts
+Block: begin weapon_availability ... end weapon_availability
+
+Each weapon toggle writes one line:
+- WPN_<weapon_key> <int>
+
+Weapon keys observed in the provided samples:
+- WPN_AT4 <int>
+- WPN_Barret <int>
+- WPN_CAR15AUTO <int>
+- WPN_CAR15M203AUTO <int>
+- WPN_CLAYMORE <int>
+- WPN_G36AUTO <int>
+- WPN_G3AUTO <int>
+- WPN_GRENADEFB <int>
+- WPN_GRENADEHE <int>
+- WPN_GRENADESM <int>
+- WPN_M16BURST <int>
+- WPN_M16M203BURST <int>
+- WPN_M21 <int>
+- WPN_M24 <int>
+- WPN_M249SAW <int>
+- WPN_M60 <int>
+- WPN_M9Beretta <int>
+- WPN_MAG58 <int>
+- WPN_MP5 <int>
+- WPN_PSG1 <int>
+- WPN_RemmingtonSG <int>
+- WPN_SATCHEL_CHARGE <int>
+- WPN_W300 <int>
+- WPN_colt45 <int>
+
+Related defaults in general_information:
+- default_primary <string>
+- default_secondary <string>
+- default_accessory <string>
+
+8) Items (Objects) and Item Properties
+
+UI: Objects list plus Item Properties / Item Attributes / AI Attributes windows
+Block: begin item <n> ... end item
+
+Core identity fields
+- Object type -> type_id <int>
+- Display/name -> name "<string>"
+- IAI name -> iai_name "<string>"
+- AI textfile -> ai_textfile "<string>"
+- Internal ID -> id <int> (distinct from the begin item index)
+
+Placement and orientation
+- Position X/Y/Z -> position <int> <int> <int>
+- Facing -> facing <int> <int>
+- Random Facing -> no dedicated key; it changes the stored facing values written
+
+Team, layer, grouping, symbol
+- team <int>
+- layer <int>
+- group_id <int>
+- map_symbol <int>
+
+Waypoint references (per item)
+- waypoint_id <int>
+- wpnumber <int>
+- wpdistance <int>
+- wp_adv_trigger <int>
+
+AI and behavior parameters (mission dependent; UI may disable for some types)
+- fov <int>
+- waccuracy1 <int>
+- waccuracy2 <int>
+- perception2 <int>
+- perfectionist2 <int>
+- crouchtimer <int>
+- shoottimer <int>
+- movetimer <int>
+- advancetimer <int>
+- attention <int>
+- max_attack_distance <int>
+- edistances <int> <int>
+- obliqueness <int>
+- ttoolindex <int>
+- height_lock <int>
+
+Item attributes and conditional fields
+- bmsi_attributes <int> (bitmask, only written when applicable; see Appendix 6)
+- alert_state <int> (only written when applicable)
+
+Extra value slots and generic string (only written when the item type uses them)
+- extra_valmode <int>
+- extra_val1 <int>
+- extra_val2 <int>
+- extra_val3 <int>
+- extra_val4 <int>
+- extra_val5 <int>
+- extra_bheight <int>
+- extra_mlink <int>
+- gen_string "<string>"
+
+Important behavior: per-item field omission
+- If a control is disabled for a given item type, the editor may omit the corresponding .mis line entirely for that item.
+
+9) Edit -> Global Replace
+
+Menu path: Edit -> Global Replace
+This is an operation, not its own block. It rewrites existing lines inside blocks.
+
+Observed/allowed replacements and the .mis effect:
+- Object type -> type_id <int> (and optionally name "<string>" if you also update display name)
+- Team -> team <int>
+- Layer -> layer <int>
+- Group -> group_id <int>
+- Waypoint reference -> waypoint_id <int>, wpnumber <int>, wpdistance <int>, wp_adv_trigger <int>
+- Map symbol -> map_symbol <int>
+
+10) Basic Edit operations
+
+Menu path: Edit -> Copy / Cut / Paste / Delete / Insert Mode / Sort Objects
+
+Copy/Paste
+- Duplicates selected item(s), producing new begin item blocks with copied fields.
+- The begin item indices may change, and new id values may be assigned depending on editor behavior.
+
+Cut/Delete
+- Removes selected item(s), deleting their begin item blocks, and updating num_items on save.
+
+Insert Mode
+- Affects insertion workflow; the .mis only reflects the final set of item blocks after save.
+
+Sort Objects
+- Reorders begin item blocks and may renumber the begin item indices; per-item fields are unchanged.
+
+11) Briefing
+
+Menu path: Edit -> Briefing
+If used, the editor writes a dedicated block:
+  begin briefing
+    ...
+  end briefing
+
+Note: the exact internal line format inside briefing is not proven by the provided samples; only the existence and purpose of the block is supported by the mapping document.
+
+--------------------------------------------------------------------
+Appendix 1) general_information attrib bitmask values (AttribFlags)
+--------------------------------------------------------------------
+attrib 0 = None
+attrib 0 = None
+attrib 1 = WaterOverrideEnable
+attrib 2 = FogDistanceOverrideEnable
+attrib 4 = FogColorOverrideEnable
+attrib 8 = WeatherOverrideEnable
+attrib 32 = RotateMap180
+attrib 64 = SinglePlayerRespawn
+attrib 65536 = AdvanceAndSecure
+attrib 131072 = ConquerAndControl
+attrib 1048576 = EnableNVG
+attrib 4194304 = StartWithNVGOn
+attrib 8388608 = AttackAndDefend
+attrib 16777216 = Coop
+attrib 33554432 = Deathmatch
+attrib 67108864 = KingOfTheHill
+attrib 134217728 = FlagBall
+attrib 268435456 = CaptureTheFlag
+attrib 536870912 = TeamDeathmatch
+attrib 1073741824 = TeamKingOfTheHill
+attrib 2147483648 = SearchAndDestroy
+
+Combination rule for attrib (plain text)
+- Add flags: attrib = attrib OR <flag_value>
+- Remove flags: attrib = attrib AND (NOT <flag_value>)
+
+--------------------------------------------------------------------
+Appendix 2) waypoint attrib bitmask values (WaypointFlags)
+--------------------------------------------------------------------
+waypoint_flags 0 = None
+waypoint_flags 1 = DoesNotLoop
+waypoint_flags 2 = BlueTeam
+waypoint_flags 4 = RedTeam
+
+--------------------------------------------------------------------
+Appendix 3) event attrib bitmask values (EventFlags)
+--------------------------------------------------------------------
+event_flags 0 = None
+event_flags 1 = ResetAfter
+event_flags 2 = PreMission
+event_flags 4 = PostMission
+event_flags 16 = Unknown4
+event_flags 32 = Unknown5
+
+--------------------------------------------------------------------
+Appendix 4) Trigger enums used by the Events UI (stored as integers in trigger rows)
+--------------------------------------------------------------------
+10.3 Trigger types
+Trigger.main_type is an enum (TriggerMainType). Trigger.sub_type is stored as i32 and interpreted according to main_type (separate subtype enums exist in bms.h).
+TriggerMainType (int32_t):
+  Group = 1 (0x00000001)
+  Single = 2 (0x00000002)
+  Event = 3 (0x00000003)
+  MissionVariable = 4 (0x00000004)
+  SecondTimeThrough = 5 (0x00000005)
+  Teammate = 6 (0x00000006)
+  Player = 7 (0x00000007)
+
+GroupTriggerType (int32_t):
+  Null = 0 (0x00000000)
+  GroupSeesGroup = 1 (0x00000001)
+  GroupHasTargetedGroup = 2 (0x00000002)
+  GroupAtRedAlert = 3 (0x00000003)
+  GroupDestroyed = 4 (0x00000004)
+  GroupAlive = 5 (0x00000005)
+  GroupHasLostMoreUnits = 6 (0x00000006)
+  GroupAtWaypoint = 7 (0x00000007)
+  GroupIntact = 9 (0x00000009)
+  GroupIsWithinArea = 10 (0x0000000A)
+  GroupHoldingGroup = 11 (0x0000000B)
+  GroupHasMoreUnits = 12 (0x0000000C)
+  GroupHasShotGroup = 13 (0x0000000D)
+  GroupAtYellowAlert = 14 (0x0000000E)
+  GroupHasTargetedSingle = 15 (0x0000000F)
+  GroupSeesSingle = 16 (0x00000010)
+  GroupHasShotSingle = 17 (0x00000011)
+
+SingleTriggerType (int32_t):
+  Null = 0 (0x00000000)
+  SingleSeesGroup = 1 (0x00000001)
+  SingleHasTargetedGroup = 2 (0x00000002)
+  SingleAtRedAlert = 3 (0x00000003)
+  SingleDestroyed = 4 (0x00000004)
+  SingleAlive = 5 (0x00000005)
+  SingleHasLostMoreUnits = 6 (0x00000006)
+  SingleAtWaypoint = 7 (0x00000007)
+  SingleIntact = 9 (0x00000009)
+  SingleIsWithinArea = 10 (0x0000000A)
+  SingleHoldingGroup = 11 (0x0000000B)
+  SingleHasMoreUnits = 12 (0x0000000C)
+  SingleHasShotGroup = 13 (0x0000000D)
+  SingleAtYellowAlert = 14 (0x0000000E)
+  SingleHasTargetedSingle = 15 (0x0000000F)
+  SingleSeesSingle = 16 (0x00000010)
+  SingleHasShotSingle = 17 (0x00000011)
+  SingleOnTopOf = 42 (0x0000002A)
+  SingleFartherThan = 43 (0x0000002B)
+  SingleHasNoLOS = 44 (0x0000002C)
+  SingleDoesNotSeeOrFarther = 45 (0x0000002D)
+
+MissionVariableTriggerType (int32_t):
+  MissionVariableIsEqual = 1 (0x00000001)
+  MissionVariableIsLessThan = 2 (0x00000002)
+  MissionVariableIsLessThanOrEqual = 3 (0x00000003)
+  MissionVariableIsGreaterThan = 4 (0x00000004)
+  MissionVariableIsGreaterThanOrEqual = 5 (0x00000005)
+
+TeammateTriggerType (int32_t):
+  TeammateIsEnabled = 1 (0x00000001)
+  TeammateMedicAssisting = 2 (0x00000002)
+  TeammateEvacuating = 3 (0x00000003)
+
+PlayerTriggerType (int32_t):
+  PlayerBerserk = 18 (0x00000012)
+  PlayerFirstPerson = 19 (0x00000013)
+  PlayerThirdPerson = 20 (0x00000014)
+  PlayerCockpitView = 21 (0x00000015)
+  PlayerDialogDone = 34 (0x00000022)
+  PlayerDialogFinished = 35 (0x00000023)
+  PlayerAwol = 36 (0x00000024)
+  PlayerSatchel = 37 (0x00000025)
+  PlayerAttachedToSsn = 38 (0x00000026)
+  PlayerOnSsn = 39 (0x00000027)
+  PlayerDrivingSsn = 40 (0x00000028)
+  PlayerOnGun = 41 (0x00000029)
+
+Plain text implication: store trigger as main_type, sub_type, then param1..param4 plus condition_flags and unknown7.
+
+Action struct fields (in serialized order):
+  reserved0: int32_t
+  action_type: ActionType
+  action_sub_type: int32_t
+  param1: int32_t
+  param2: int32_t
+  param3: int32_t
+  param4: int32_t
+  reserved1: int32_t
+
+--------------------------------------------------------------------
+Appendix 5) Action enums used by the Events UI (stored as integers in action rows)
+--------------------------------------------------------------------
+10.4 Action types
+Action.action_type is an enum (ActionType). Action.action_sub_type is stored as i32 and interpreted according to action_type (subtype enums exist for AI, mission variables, teammate).
+ActionType (int32_t):
+  Null = 0 (0x00000000)
+  RedirectGroupTo = 1 (0x00000001)
+  KillGroup = 2 (0x00000002)
+  ChangeGroupAI = 3 (0x00000003)
+  VaporizeGroup = 4 (0x00000004)
+  MisvarChange = 5 (0x00000005)
+  OutputText = 6 (0x00000006)
+  PlayWavList = 7 (0x00000007)
+  BlueWin = 8 (0x00000008)
+  RedWin = 9 (0x00000009)
+  GreenWin = 10 (0x0000000A)
+  GroupVelocity = 11 (0x0000000B)
+  AreaAiRed = 12 (0x0000000C)
+  AreaAiBlue = 13 (0x0000000D)
+  SubGoalWon = 14 (0x0000000E)
+  SubGoalLost = 15 (0x0000000F)
+  ChangeGTeamAction = 16 (0x00000010)
+  ChangeGroupAction = 17 (0x00000011)
+  GroupTeleportAction = 18 (0x00000012)
+  RedirectSingleTo = 19 (0x00000013)
+  KillSingle = 20 (0x00000014)
+  ChangeSingleAI = 21 (0x00000015)
+  VaporizeSingle = 22 (0x00000016)
+  SingleVelocity = 23 (0x00000017)
+  ChangeSteamAction = 24 (0x00000018)
+  SingleChangeGroup = 25 (0x00000019)
+  SingleTeleportAction = 26 (0x0000001A)
+  ParticleEffectAction = 27 (0x0000001B)
+  GroupOpenDoorAction = 30 (0x0000001E)
+  GroupCloseDoorAction = 31 (0x0000001F)
+  GroupResetHasVisited = 32 (0x00000020)
+  SingleResetHasVisited = 33 (0x00000021)
+  ResetEvent = 34 (0x00000022)
+  ShowWinSubgoal = 35 (0x00000023)
+  ShowLoseSubgoal = 36 (0x00000024)
+  AttachToEmplaced = 37 (0x00000025)
+  SetLightState = 38 (0x00000026)
+  Teammates = 39 (0x00000027)
+  ShowWaypoints = 40 (0x00000028)
+  ExecuteWac = 41 (0x00000029)
+  SsnTargetSsnPri = 42 (0x0000002A)
+  SsnTargetSsnExc = 43 (0x0000002B)
+  SsnTargetGroupPri = 44 (0x0000002C)
+  SsnTargetGroupExc = 45 (0x0000002D)
+  GroupTargetSsnPri = 46 (0x0000002E)
+  GroupTargetSsnExc = 47 (0x0000002F)
+  GroupTargetGroupPri = 48 (0x00000030)
+  GroupTargetGroupExc = 49 (0x00000031)
+
+AIActionSubType (int32_t):
+  GuardBit = 2 (0x00000002)
+  Accuracy = 8 (0x00000008)
+  BlindBit = 15 (0x0000000F)
+  BerserkBit = 16 (0x00000010)
+  ClimberBit = 17 (0x00000011)
+  CowardBit = 21 (0x00000015)
+  Skill1 = 26 (0x0000001A)
+  Skill2 = 27 (0x0000001B)
+  AiState = 28 (0x0000001C)
+  SpeedKmh1 = 29 (0x0000001D)
+  SpeedKmh2 = 30 (0x0000001E)
+  TargetSsn1 = 31 (0x0000001F)
+  AnimNum = 34 (0x00000022)
+  HudItem = 37 (0x00000025)
+  TmateStatus = 39 (0x00000027)
+  AiNodePathBit = 40 (0x00000028)
+  AttackDistanceValue = 41 (0x00000029)
+  EngageDistanceMin = 42 (0x0000002A)
+  IndestructableBit = 43 (0x0000002B)
+  TargetSsn2 = 44 (0x0000002C)
+  StartFiringBit = 45 (0x0000002D)
+  FiringAngle = 46 (0x0000002E)
+
+MissionVariableActionSubType (int32_t):
+  Null = 0 (0x00000000)
+  Set = 1 (0x00000001)
+  Add = 2 (0x00000002)
+  Subtract = 3 (0x00000003)
+  Increment = 4 (0x00000004)
+  Decrement = 5 (0x00000005)
+
+TeammateActionSubType (int32_t):
+  Null = 0 (0x00000000)
+  MedicAssist = 1 (0x00000001)
+  EvacuateTt = 2 (0x00000002)
+  EvacuateAt = 3 (0x00000003)
+
+Plain text implication: store action as action_type, action_sub_type, then param1..param4 plus reserved0 and reserved1.
+
+--------------------------------------------------------------------
+Appendix 6) Item bmsi_attributes bitmask values (BmsiAttributeFlags / AI Attributes)
+--------------------------------------------------------------------
+bmsi_attributes 0 = None
+bmsi_attributes 1 = Blind
+bmsi_attributes 2 = Guarding
+bmsi_attributes 16 = RemoveIfLessThan
+bmsi_attributes 32 = RemoveIfMoreThan
+bmsi_attributes 64 = Multiplayer
+bmsi_attributes 2048 = Berserk
+bmsi_attributes 16384 = FlyingOrganic
+bmsi_attributes 65536 = Coward
+bmsi_attributes 262144 = AdvancedAmmo
+bmsi_attributes 2097152 = Indestructible
+bmsi_attributes 4194304 = NavigationWaypoint
+bmsi_attributes 8388608 = Reflective
+bmsi_attributes 16777216 = NoShadow
