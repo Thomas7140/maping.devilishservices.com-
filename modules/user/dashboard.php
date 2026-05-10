@@ -1,61 +1,15 @@
 <?php
 declare(strict_types=1);
 
-session_start();
+require_once dirname(__DIR__) . '/auth/bootstrap.php';
 
 header('X-Content-Type-Options: nosniff');
 
 $root = dirname(__DIR__, 2);
-$db = null;
-
-foreach ([
-    $root . '/includes/db.php',
-    $root . '/config/db.php',
-    $root . '/db.php',
-    $root . '/includes/database.php',
-] as $dbFile) {
-    if (is_file($dbFile)) {
-        require_once $dbFile;
-        break;
-    }
-}
-
-if (isset($pdo) && $pdo instanceof PDO) {
-    $db = $pdo;
-} elseif (isset($conn) && $conn instanceof PDO) {
-    $db = $conn;
-} elseif (isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO) {
-    $db = $GLOBALS['pdo'];
-}
+$db = maping_pdo();
 
 function h(mixed $v): string {
     return htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-}
-
-function current_username(): string {
-    foreach (['username','user_name','name','email'] as $key) {
-        if (!empty($_SESSION[$key])) {
-            return preg_replace('/[^A-Za-z0-9._@-]+/', '_', (string)$_SESSION[$key]);
-        }
-    }
-    if (!empty($_SESSION['user']) && is_array($_SESSION['user'])) {
-        foreach (['username','name','email','id'] as $key) {
-            if (!empty($_SESSION['user'][$key])) {
-                return preg_replace('/[^A-Za-z0-9._@-]+/', '_', (string)$_SESSION['user'][$key]);
-            }
-        }
-    }
-    if (!empty($_SESSION['user_id'])) {
-        return 'user_' . preg_replace('/[^A-Za-z0-9._-]+/', '_', (string)$_SESSION['user_id']);
-    }
-    return 'guest';
-}
-
-function current_user_id() {
-    if (!empty($_SESSION['user_id'])) return $_SESSION['user_id'];
-    if (!empty($_SESSION['id'])) return $_SESSION['id'];
-    if (!empty($_SESSION['user']['id'])) return $_SESSION['user']['id'];
-    return null;
 }
 
 function safe_path_segment(string $value, string $fallback = 'user'): string {
@@ -72,55 +26,66 @@ function safe_path_segment(string $value, string $fallback = 'user'): string {
     return $value === '' ? $fallback : $value;
 }
 
-$username = current_username();
-$userId = current_user_id();
-$displayName = $username;
-$completedFolderName = $username;
+$authUser = maping_current_user();
+$userId = $authUser['id'] ?? null;
+$displayName = 'guest';
+$completedFolderName = 'guest';
+
+if (is_array($authUser)) {
+    $folderInfo = maping_user_folder_name($authUser);
+    $displayName = (string) ($folderInfo['display_name'] ?? 'guest');
+    $completedFolderName = (string) ($folderInfo['folder_name'] ?? 'guest');
+}
 
 $dbRows = [];
+$bmsRows = [];
 $completedRows = [];
 
 // DB rows first.
 if ($db instanceof PDO) {
     try {
         if ($userId !== null) {
-            $userStmt = $db->prepare('SELECT display_name, email FROM users WHERE id = :id LIMIT 1');
-            $userStmt->execute([':id' => $userId]);
-            $userRow = $userStmt->fetch(PDO::FETCH_ASSOC);
-            if (is_array($userRow)) {
-                $displayName = trim((string)($userRow['display_name'] ?? ''));
-                if ($displayName === '') {
-                    $displayName = trim((string)($userRow['email'] ?? $username));
-                }
-                $completedFolderName = safe_path_segment($displayName, (string)$userId);
+            $stmt = $db->prepare(
+                'SELECT id, original_filename, original_extension, stored_filename,
+                        stored_relative_path, conversion_status, stored_size_bytes, created_at
+                 FROM user_map_uploads
+                 WHERE user_id = :uid
+                 ORDER BY created_at DESC, id DESC
+                 LIMIT 500'
+            );
+            $stmt->execute([':uid' => $userId]);
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                $filename = $r['stored_filename'] ?? $r['original_filename'] ?? '';
+                $dbRows[] = [
+                    'id' => $r['id'] ?? '',
+                    'original_filename' => $r['original_filename'] ?? '',
+                    'stored_filename' => $filename,
+                    'original_extension' => $r['original_extension'] ?? strtolower(pathinfo((string) ($r['original_filename'] ?? ''), PATHINFO_EXTENSION)),
+                    'stored_relative_path' => $r['stored_relative_path'] ?? '',
+                    'conversion_status' => $r['conversion_status'] ?? '',
+                    'stored_size_bytes' => $r['stored_size_bytes'] ?? '',
+                    'created_at' => $r['created_at'] ?? '',
+                ];
             }
         }
-
-        $where = [];
-        $params = [];
-        if ($userId !== null) {
-            $where[] = 'user_id = :uid';
-            $params[':uid'] = $userId;
-        }
-        // Also match username columns when present; ignore if columns do not exist.
-        $sql = 'SELECT * FROM user_map_uploads';
-        if ($where) $sql .= ' WHERE ' . implode(' OR ', $where);
-        $sql .= ' ORDER BY COALESCE(uploaded_at, created_at, updated_at) DESC, id DESC LIMIT 500';
-        $stmt = $db->prepare($sql);
-        $stmt->execute($params);
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
-            $filename = $r['stored_filename'] ?? $r['filename'] ?? $r['map_filename'] ?? $r['original_filename'] ?? '';
-            $dbRows[] = [
-                'id' => $r['id'] ?? '',
-                'original_filename' => $r['original_filename'] ?? '',
-                'stored_filename' => $filename,
-                'original_extension' => $r['original_extension'] ?? strtolower(pathinfo((string)$r['original_filename'], PATHINFO_EXTENSION)),
-                'stored_path' => $r['stored_path'] ?? '',
-                'conversion_status' => $r['conversion_status'] ?? '',
-                'file_size' => $r['file_size'] ?? $r['size'] ?? '',
-                'uploaded_at' => $r['uploaded_at'] ?? $r['created_at'] ?? $r['updated_at'] ?? '',
-                'status' => $r['status'] ?? 'listed',
-            ];
+        // user_bms_exports
+        try {
+            if ($userId !== null) {
+                $bstmt = $db->prepare(
+                    'SELECT id, source_mis_filename, stored_filename, stored_relative_path,
+                            stored_size_bytes, sha256_hash, created_at
+                     FROM user_bms_exports
+                     WHERE user_id = :uid
+                     ORDER BY created_at DESC, id DESC
+                     LIMIT 500'
+                );
+                $bstmt->execute([':uid' => $userId]);
+                foreach ($bstmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                    $bmsRows[] = $r;
+                }
+            }
+        } catch (Throwable $e) {
+            $bmsError = $e->getMessage();
         }
     } catch (Throwable $e) {
         // Do not break dashboard if schema differs.
@@ -144,7 +109,7 @@ if (is_dir($completedDir)) {
 }
 
 usort($dbRows, function($a, $b) {
-    return strcmp((string)($b['uploaded_at'] ?? ''), (string)($a['uploaded_at'] ?? ''));
+    return strcmp((string)($b['created_at'] ?? ''), (string)($a['created_at'] ?? ''));
 });
 
 usort($completedRows, function($a, $b) {
@@ -227,8 +192,7 @@ function fmt_size(mixed $size): string {
                             <th>Original Ext</th>
                             <th>Conversion</th>
                             <th>Size</th>
-                            <th>Uploaded / Updated</th>
-                            <th>Status</th>
+                            <th>Created</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -237,12 +201,51 @@ function fmt_size(mixed $size): string {
                             <td><?= h($r['id']) ?></td>
                             <td><?= h($r['original_filename']) ?></td>
                             <td><?= h($r['stored_filename']) ?></td>
-                            <td><?= h($r['stored_path']) ?></td>
+                            <td><?= h($r['stored_relative_path']) ?></td>
                             <td><span class="pill"><?= h(strtoupper((string)$r['original_extension'])) ?></span></td>
                             <td><?= h($r['conversion_status']) ?></td>
-                            <td><?= h(fmt_size($r['file_size'])) ?></td>
-                            <td><?= h($r['uploaded_at']) ?></td>
-                            <td><?= h($r['status']) ?></td>
+                            <td><?= h(fmt_size($r['stored_size_bytes'])) ?></td>
+                            <td><?= h($r['created_at']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+
+        <div class="card">
+            <div class="cardHead">
+                <div class="cardTitle">Database Table: user_bms_exports</div>
+                <div class="cardMeta"><?= h((string)count($bmsRows)) ?> rows</div>
+            </div>
+            <?php if (!empty($bmsError)): ?>
+                <div class="warn">Could not read user_bms_exports: <?= h($bmsError) ?></div>
+            <?php endif; ?>
+            <?php if (!$bmsRows): ?>
+                <div class="empty">No BMS export records found for this user.</div>
+            <?php else: ?>
+                <table class="filterTable" id="bmsExportsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Source MIS</th>
+                            <th>Stored BMS File</th>
+                            <th>Stored Path</th>
+                            <th>Size</th>
+                            <th>SHA256</th>
+                            <th>Exported At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($bmsRows as $r): ?>
+                        <tr>
+                            <td><?= h($r['id'] ?? '') ?></td>
+                            <td><?= h($r['source_mis_filename'] ?? '') ?></td>
+                            <td><?= h($r['stored_filename'] ?? '') ?></td>
+                            <td><?= h($r['stored_relative_path'] ?? '') ?></td>
+                            <td><?= h(fmt_size($r['stored_size_bytes'] ?? '')) ?></td>
+                            <td style="font-size:11px;color:#7899bb;word-break:break-all"><?= h(substr((string)($r['sha256_hash'] ?? ''), 0, 16)) ?><?= !empty($r['sha256_hash']) ? '…' : '' ?></td>
+                            <td><?= h($r['created_at'] ?? '') ?></td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>

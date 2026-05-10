@@ -1347,11 +1347,11 @@
           <label><input type="checkbox" id="showFovCones" checked> FOV Cones</label>
           <label><input type="checkbox" id="showAreaTriggers" checked> Area Triggers</label>
           <label><input type="checkbox" id="showWater" checked> Water</label>
-          <label><input type="checkbox" id="showTeamBlue" checked> Team Blue</label>
-          <label><input type="checkbox" id="showTeamRed" checked> Team Red</label>
-          <label><input type="checkbox" id="showTeamGreen" checked> Team Green</label>
-          <label><input type="checkbox" id="showTeamYellow" checked> Team Yellow</label>
-          <label><input type="checkbox" id="showTeamViolet" checked> Team Violet</label>
+          <label><input type="checkbox" id="showTeamBlue" checked> <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#3380ff;margin-right:2px;vertical-align:middle;"></span> Team Blue</label>
+          <label><input type="checkbox" id="showTeamRed" checked> <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff3333;margin-right:2px;vertical-align:middle;"></span> Team Red</label>
+          <label><input type="checkbox" id="showTeamGreen" checked> <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#33d933;margin-right:2px;vertical-align:middle;"></span> Team Green</label>
+          <label><input type="checkbox" id="showTeamYellow" checked> <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#ffd91a;margin-right:2px;vertical-align:middle;"></span> Team Yellow</label>
+          <label><input type="checkbox" id="showTeamViolet" checked> <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#bf33ff;margin-right:2px;vertical-align:middle;"></span> Team Violet</label>
           <label><input type="checkbox" id="showCollisionModels" checked> Colision Models</label>
           <label><input type="checkbox" id="showAbsoluteMode" checked> Absolute Mode</label>
         </div>
@@ -2014,6 +2014,10 @@
     itemsById: new Map(),
     itemSectionByStart: new Map(),
     layerVisibility: new Map(),
+    undoStack: [],
+    redoStack: [],
+    listGroupBy: null,
+    insertMode: false,
 
     glb: {
       THREE: null,
@@ -2479,6 +2483,11 @@
   function markItemsChanged(options = {}){
     const structureChanged = options.structure !== false;
     const invalidateFilter = options.invalidateFilter !== undefined ? !!options.invalidateFilter : structureChanged;
+    if (structureChanged && options.pushUndo !== false){
+      state.undoStack.push({ items: structuredClone(state.items), sectionBlocks: structuredClone(state.sectionBlocks), rawText: state.rawText });
+      if (state.undoStack.length > 50) state.undoStack.shift();
+      state.redoStack = [];
+    }
     state.liveMisDirty = true;
     if (invalidateFilter){
       state.itemsVersion += 1;
@@ -5428,7 +5437,8 @@
     renderSelectedInfoPanel();
     if (!listEl) return;
     const items = getFilteredItems();
-    listEl.innerHTML = items.slice(0, 1200).map(it => {
+
+    function makeCardHtml(it){
       const active = (it.id === state.selectedId || state.multiSelectedIds.has(it.id)) ? "active" : "";
       const tid = (it.kv.type_id || "").toString();
       const def = getDefForItem(it);
@@ -5436,15 +5446,43 @@
       const typeText = def?.type ? def.type : (tid ? `type_id ${tid}` : "(sem type_id)");
       const graphic = def?.graphic ? def.graphic : "";
       const gTag = graphic ? `<span class="tag">${escapeHtml(graphic)}</span>` : "";
-
-      return `
-        <div class="itemCard ${active}" data-id="${it.id}">
+      return `<div class="itemCard ${active}" data-id="${it.id}">
           <div><b>#${it.id}</b> ${escapeHtml(typeText)} ${gTag}</div>
           <div class="meta">${escapeHtml(label || "")}</div>
           <div class="meta">type_id=${escapeHtml(tid)} pos=${it.x.toFixed(0)} ${it.y.toFixed(0)} ${it.z.toFixed(0)}</div>
-        </div>
-      `;
-    }).join("");
+        </div>`;
+    }
+
+    const TEAM_NAMES = ["Green", "Blue", "Red", "Yellow", "Violet"];
+    let html = "";
+    const sliced = items.slice(0, 1200);
+    if (state.listGroupBy){
+      const groups = new Map();
+      for (const it of sliced){
+        let key;
+        if (state.listGroupBy === "layer"){
+          key = "Layer " + (Number(it?.kv?.layer) || 0);
+        } else if (state.listGroupBy === "type"){
+          const def = getDefForItem(it);
+          key = def?.type || (it?.kv?.type_id ? `type_id ${it.kv.type_id}` : "Unknown");
+        } else if (state.listGroupBy === "team"){
+          const t = Number(it?.kv?.team);
+          key = Number.isFinite(t) ? (TEAM_NAMES[t] || `Team ${t}`) : "No Team";
+        } else {
+          key = "All";
+        }
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(it);
+      }
+      const sortedKeys = [...groups.keys()].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+      for (const key of sortedKeys){
+        html += `<div style="padding:2px 6px;font-size:10px;font-weight:bold;opacity:0.6;text-transform:uppercase;border-top:1px solid rgba(255,255,255,0.1);margin-top:4px;">${escapeHtml(key)}</div>`;
+        html += groups.get(key).map(makeCardHtml).join("");
+      }
+    } else {
+      html = sliced.map(makeCardHtml).join("");
+    }
+    listEl.innerHTML = html;
 
     listEl.querySelectorAll(".itemCard").forEach(el => {
       el.addEventListener("click", (evt) => {
@@ -6560,6 +6598,187 @@
     "edit.delete": deleteSelectedItem,
     "edit.globalReplace": runGlobalReplace,
     "edit.weaponLoadouts": () => openSectionEditor("weapon_availability"),
+
+    "edit.cut": () => {
+      if (copySelectedItem()) deleteSelectedItem();
+    },
+
+    "edit.undo": () => {
+      if (!state.undoStack || !state.undoStack.length){
+        statusEl.textContent = "Nothing to undo.";
+        return;
+      }
+      const snap = state.undoStack.pop();
+      state.redoStack = state.redoStack || [];
+      state.redoStack.push({ items: structuredClone(state.items), sectionBlocks: structuredClone(state.sectionBlocks), rawText: state.rawText });
+      state.items = snap.items;
+      state.sectionBlocks = snap.sectionBlocks;
+      state.rawText = snap.rawText;
+      markItemsChanged({ structure: true, pushUndo: false });
+      renderList();
+      requestRender();
+      scheduleLiveMisRefresh();
+      statusEl.textContent = `Undo (${state.undoStack.length} remaining)`;
+    },
+
+    "edit.redo": () => {
+      if (!state.redoStack || !state.redoStack.length){
+        statusEl.textContent = "Nothing to redo.";
+        return;
+      }
+      const snap = state.redoStack.pop();
+      state.undoStack = state.undoStack || [];
+      state.undoStack.push({ items: structuredClone(state.items), sectionBlocks: structuredClone(state.sectionBlocks), rawText: state.rawText });
+      state.items = snap.items;
+      state.sectionBlocks = snap.sectionBlocks;
+      state.rawText = snap.rawText;
+      markItemsChanged({ structure: true, pushUndo: false });
+      renderList();
+      requestRender();
+      scheduleLiveMisRefresh();
+      statusEl.textContent = `Redo (${state.redoStack.length} remaining)`;
+    },
+
+    "edit.insertMode": () => {
+      state.insertMode = !state.insertMode;
+      statusEl.textContent = state.insertMode ? "Insert mode ON — click canvas to place copied item." : "Insert mode OFF.";
+    },
+
+    "view.byLayer": () => {
+      state.listGroupBy = "layer";
+      invalidateFilteredItemsCache();
+      renderList();
+      statusEl.textContent = "List sorted by Layer.";
+    },
+
+    "view.byType": () => {
+      state.listGroupBy = "type";
+      invalidateFilteredItemsCache();
+      renderList();
+      statusEl.textContent = "List sorted by Type.";
+    },
+
+    "view.bySide": () => {
+      state.listGroupBy = "team";
+      invalidateFilteredItemsCache();
+      renderList();
+      statusEl.textContent = "List sorted by Side/Team.";
+    },
+
+    "view.selectBlinkGroup": () => {
+      const input = window.prompt("Select all items in group (1–63):", "");
+      if (input === null) return;
+      const groupNum = parseInt(input, 10);
+      if (!Number.isFinite(groupNum) || groupNum < 1 || groupNum > 63){
+        statusEl.textContent = "Invalid group number.";
+        return;
+      }
+      const matches = state.items.filter(it => Number(it?.kv?.group) === groupNum);
+      if (!matches.length){ statusEl.textContent = `No items found in group ${groupNum}.`; return; }
+      state.selectedId = matches[0].id;
+      state.multiSelectedIds = new Set(matches.map(it => it.id));
+      renderList();
+      renderItemWindow();
+      requestRender();
+      statusEl.textContent = `Selected ${matches.length} item(s) in group ${groupNum}.`;
+    },
+
+    "view.selectBySSN": () => {
+      const input = window.prompt("Select item by SSN (id number):", "");
+      if (input === null) return;
+      const ssn = parseInt(input, 10);
+      if (!Number.isFinite(ssn)){ statusEl.textContent = "Invalid SSN."; return; }
+      const match = state.items.find(it => Number(it?.kv?.id) === ssn);
+      if (!match){ statusEl.textContent = `No item with SSN ${ssn} found.`; return; }
+      selectById(match.id);
+      statusEl.textContent = `Selected item SSN ${ssn}.`;
+    },
+
+    "tools.integrityCheck": () => {
+      if (!state.items.length){ statusEl.textContent = "No map loaded."; return; }
+      const issues = [];
+      const seenSSNs = new Map();
+      for (const it of state.items){
+        const ssn = Number(it?.kv?.id);
+        if (!Number.isFinite(ssn) || ssn <= 0) issues.push(`Item #${it.id}: missing or invalid SSN (id=${it?.kv?.id})`);
+        else if (seenSSNs.has(ssn)) issues.push(`Duplicate SSN ${ssn} on items #${seenSSNs.get(ssn)} and #${it.id}`);
+        else seenSSNs.set(ssn, it.id);
+        if (!Number.isFinite(it.x) || !Number.isFinite(it.y)) issues.push(`Item #${it.id} SSN ${ssn}: invalid position (${it.x}, ${it.y})`);
+        const tid = Number(it?.kv?.type_id);
+        if (!Number.isFinite(tid) || tid <= 0) issues.push(`Item #${it.id} SSN ${ssn}: missing type_id`);
+      }
+      if (!issues.length){
+        statusEl.textContent = `Integrity check passed — ${state.items.length} items OK.`;
+        window.alert(`Integrity check passed!\n${state.items.length} items checked, no issues found.`);
+      } else {
+        const msg = `${issues.length} issue(s) found:\n\n` + issues.slice(0, 40).join("\n") + (issues.length > 40 ? `\n...and ${issues.length - 40} more (see Logs)` : "");
+        issues.forEach(i => addLog(`[integrity] ${i}`));
+        statusEl.textContent = `Integrity check: ${issues.length} issue(s) found (see Logs).`;
+        window.alert(msg);
+      }
+    },
+
+    "tools.cleanupSSNs": () => {
+      if (!state.items.length){ statusEl.textContent = "No map loaded."; return; }
+      const confirm = window.confirm(`Renumber all ${state.items.length} item SSNs sequentially starting from 1?\n\nThis cannot be undone. Save your map first.`);
+      if (!confirm) return;
+      let next = 1;
+      const oldToNew = new Map();
+      for (const it of state.items){
+        const old = Number(it?.kv?.id);
+        oldToNew.set(old, next);
+        it.kv.id = String(next);
+        it.lines = (it.lines || []).map(raw => /^\s*id\b/i.test(String(raw)) ? `  id ${next}` : raw);
+        next++;
+      }
+      for (const sec of state.sectionBlocks){
+        if (sec.kind !== "item") continue;
+        const old = Number(sec?.kv?.id);
+        const newId = oldToNew.get(old);
+        if (newId != null){
+          sec.kv.id = String(newId);
+          sec.lines = (sec.lines || []).map(raw => /^\s*id\b/i.test(String(raw)) ? `  id ${newId}` : raw);
+        }
+      }
+      markItemsChanged({ structure: true });
+      renderList();
+      scheduleLiveMisRefresh();
+      statusEl.textContent = `SSNs renumbered 1–${state.items.length}.`;
+    },
+
+    "tools.wrapObjects": () => {
+      if (!state.items.length){ statusEl.textContent = "No map loaded."; return; }
+      const limit = 32767;
+      let wrapped = 0;
+      for (const it of state.items){
+        let changed = false;
+        if (Math.abs(it.x) > limit){ it.x = ((it.x + limit) % (limit * 2)) - limit; changed = true; }
+        if (Math.abs(it.y) > limit){ it.y = ((it.y + limit) % (limit * 2)) - limit; changed = true; }
+        if (changed){
+          if (it.kv.position) it.kv.position = `${it.x} ${it.y} ${it.z}`;
+          it.lines = (it.lines || []).map(raw => /^\s*position\b/i.test(String(raw)) ? `  position ${it.x} ${it.y} ${it.z}` : raw);
+          wrapped++;
+        }
+      }
+      if (wrapped){
+        markItemsChanged({ structure: true });
+        renderList();
+        requestRender();
+        scheduleLiveMisRefresh();
+      }
+      statusEl.textContent = wrapped ? `Wrapped ${wrapped} out-of-bounds item(s) back into map bounds.` : "All items are within map bounds — nothing to wrap.";
+    },
+
+    "tools.tileTool": () => { statusEl.textContent = "Tile Tool: not available in the web editor."; },
+    "tools.textTool": () => { statusEl.textContent = "Text Tool: not available in the web editor."; },
+
+    "page.one": () => { statusEl.textContent = "Page 1 — item list panel is always visible."; },
+    "page.two": () => { statusEl.textContent = "Page 2 — use the canvas and 3D view."; },
+
+    "app.exit": () => {
+      if (window.confirm("Exit the editor? Any unsaved changes will be lost.")) window.close();
+    },
+
     "mis.liveChanges": openLiveMisWindow,
     "logs.open": openLogsWindow,
     "uiStyle.default": () => setTheme("default"),
@@ -6719,9 +6938,9 @@
           const itemBtn = document.createElement("button");
           itemBtn.className = `menuItemBtn${child.attention ? " attention" : ""}`;
           itemBtn.textContent = child.label;
-          const handler = menuHandlers[child.command];
           itemBtn.addEventListener("click", () => {
             closeMenus();
+            const handler = menuHandlers[child.command];
             if (handler) handler();
             else showNotImplemented(child.label);
           });
@@ -6824,6 +7043,11 @@
     waypoint: new Float32Array(0),
     selected: new Float32Array(0),
     paste: new Float32Array(0),
+    psp0: new Float32Array(0),
+    psp1: new Float32Array(0),
+    psp2: new Float32Array(0),
+    psp3: new Float32Array(0),
+    psp4: new Float32Array(0),
   };
   const scratchModelMatrix = mat4Identity();
   const scratchMVPMatrix = mat4Identity();
@@ -7455,13 +7679,19 @@
 
 
 
+  function isItemPSP(it){
+    const def = getDefForItem(it);
+    if (!def) return false;
+    return def.attrib.some(a => /SpawnPoint/i.test(a));
+  }
+
   function collectItemPointGroups(){
     if (!renderUiState.showAnchorPoints){
-      return { enabled: false, normalBuf: null, normalLen: 0, waypointBuf: null, waypointLen: 0, selectedBuf: null, selectedLen: 0, pasteBuf: null, pasteLen: 0 };
+      return { enabled: false, normalBuf: null, normalLen: 0, waypointBuf: null, waypointLen: 0, selectedBuf: null, selectedLen: 0, pasteBuf: null, pasteLen: 0, pspBufs: [null,null,null,null,null], pspLens: [0,0,0,0,0] };
     }
     const items = getFilteredItems().filter((it) => isItemLayerVisible(it));
     if (!items.length && !(state.pastePlacementActive && state.pastePreviewWorld && state.itemClipboardItems.length)){
-      return { enabled: true, normalBuf: null, normalLen: 0, waypointBuf: null, waypointLen: 0, selectedBuf: null, selectedLen: 0, pasteBuf: null, pasteLen: 0 };
+      return { enabled: true, normalBuf: null, normalLen: 0, waypointBuf: null, waypointLen: 0, selectedBuf: null, selectedLen: 0, pasteBuf: null, pasteLen: 0, pspBufs: [null,null,null,null,null], pspLens: [0,0,0,0,0] };
     }
 
     const normalCount = 3 * items.length;
@@ -7470,6 +7700,8 @@
     let normalBuf = ensureScratchCapacity('normal', normalCount);
     let waypointBuf = ensureScratchCapacity('waypoint', waypointCount);
     let selectedBuf = ensureScratchCapacity('selected', selectedCount);
+    const pspBufs = [0,1,2,3,4].map(t => ensureScratchCapacity('psp'+t, 3*items.length));
+    const pspLens = [0,0,0,0,0];
     let normalLen = 0;
     let waypointLen = 0;
     let selectedLen = 0;
@@ -7482,6 +7714,12 @@
         selectedBuf[selectedLen++]=x; selectedBuf[selectedLen++]=y; selectedBuf[selectedLen++]=z;
       } else if (state.selectedWaypointMarkerIds.has(it.id)){
         waypointBuf[waypointLen++]=x; waypointBuf[waypointLen++]=y; waypointBuf[waypointLen++]=z;
+      } else if (isItemPSP(it)){
+        const team = Math.min(4, Math.max(0, Number(it?.kv?.team) || 0));
+        const buf = pspBufs[team];
+        const li = pspLens[team];
+        buf[li]=x; buf[li+1]=y; buf[li+2]=z;
+        pspLens[team] += 3;
       } else {
         normalBuf[normalLen++]=x; normalBuf[normalLen++]=y; normalBuf[normalLen++]=z;
       }
@@ -7499,7 +7737,7 @@
       }
     }
 
-    return { enabled: true, normalBuf, normalLen, waypointBuf, waypointLen, selectedBuf, selectedLen, pasteBuf, pasteLen };
+    return { enabled: true, normalBuf, normalLen, waypointBuf, waypointLen, selectedBuf, selectedLen, pasteBuf, pasteLen, pspBufs, pspLens };
   }
 
   function ensureThreeItemsReady(){
@@ -7513,10 +7751,16 @@
     items.drawCountByGroup = new Map();
 
     const groupDefs = [
-      ['normal', [0.88,0.9,1.0,1], 8],
-      ['waypoint', [1.0,0.8,0.2,1], 8],
-      ['selected', [0.35,0.45,0.95,1], 11],
-      ['paste', [0.34,0.83,0.55,0.9], 13],
+      ['normal',  [0.88,0.9,1.0,1], 8],
+      ['waypoint',[1.0,0.8,0.2,1], 8],
+      ['selected',[0.35,0.45,0.95,1], 11],
+      ['paste',   [0.34,0.83,0.55,0.9], 13],
+      // PSP team-colored groups (larger dots, rendered on top)
+      ['psp0', [0.2,0.85,0.2,1],   13], // team 0 = Green
+      ['psp1', [0.2,0.5,1.0,1],    13], // team 1 = Blue
+      ['psp2', [1.0,0.2,0.2,1],    13], // team 2 = Red
+      ['psp3', [1.0,0.85,0.1,1],   13], // team 3 = Yellow
+      ['psp4', [0.75,0.2,1.0,1],   13], // team 4 = Violet
     ];
 
     for (const [group, color, size] of groupDefs){
@@ -7574,12 +7818,14 @@
       updateThreeItemGroup('waypoint', null, 0);
       updateThreeItemGroup('selected', null, 0);
       updateThreeItemGroup('paste', null, 0);
+      for (let t=0;t<5;t++) updateThreeItemGroup('psp'+t, null, 0);
       return;
     }
     updateThreeItemGroup('normal', groups.normalBuf, groups.normalLen);
     updateThreeItemGroup('waypoint', groups.waypointBuf, groups.waypointLen);
     updateThreeItemGroup('selected', groups.selectedBuf, groups.selectedLen);
     updateThreeItemGroup('paste', groups.pasteBuf, groups.pasteLen);
+    for (let t=0;t<5;t++) updateThreeItemGroup('psp'+t, groups.pspBufs[t], groups.pspLens[t]);
 
     applyThreeCameraFromPV(P, V);
     state.glb.renderer.resetState();
