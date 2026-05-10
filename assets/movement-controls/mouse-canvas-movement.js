@@ -18,6 +18,9 @@
     state.cameraLookPending = false;
     state.cameraLookStart = null;
     state.cameraLookButton = 0;
+    state.cameraPanActive = false;
+    state.cameraPanLastSx = 0;
+    state.cameraPanLastSy = 0;
     if (document.pointerLockElement === cv && document.exitPointerLock) document.exitPointerLock();
     if (shouldFinalizeClick){
       const pickedId = state.pendingLeftClick.pickedId;
@@ -104,6 +107,11 @@
     state.boxSelectAdditive = false;
     const additiveSelection = !!(e.shiftKey && picked && state.selectedId != null && picked.id !== state.selectedId && state.multiSelectedIds.has(state.selectedId));
     selectById(picked ? picked.id : null, { additive: additiveSelection });
+    if (!picked) {
+      state.cameraPanActive = true;
+      state.cameraPanLastSx = sx;
+      state.cameraPanLastSy = sy;
+    }
     state.lastMouse = { sx, sy };
   });
 
@@ -160,6 +168,16 @@
 
     if (state.boxSelecting && state.boxStart){
       state.boxCurrent = { sx, sy };
+    } else if (state.cameraPanActive && (e.buttons & 1) && !state.draggingItem && !state.gizmoDrag && !state.cameraLookActive){
+      const nowW = screenToWorld(sx, sy, 0);
+      const prevW = screenToWorld(state.cameraPanLastSx, state.cameraPanLastSy, 0);
+      if (nowW && prevW) {
+        cam.pos.x -= (nowW.x - prevW.x);
+        cam.pos.y -= (nowW.y - prevW.y);
+        requestRender();
+      }
+      state.cameraPanLastSx = sx;
+      state.cameraPanLastSy = sy;
     } else if (state.draggingItem && state.selectedId){
       const active = state.items.filter((it) => it.id === state.selectedId || state.multiSelectedIds.has(it.id));
       const zPlane = rawToWorld((active[0]?.z) || 0, 'z');

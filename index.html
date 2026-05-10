@@ -1161,15 +1161,116 @@
 <body>
   <div id="globalMenuWrap">
     <div class="globalMenuContent">
+      <div class="dsBrand"><span class="dsLogo">DS</span><div><strong>Devilish Services</strong><small>BHD Map/MIS Editor</small></div></div>
       <div class="menuBar" id="menuBar"></div>
+      <div class="dsHeaderAuth" aria-label="Authentication">
+        <button id="openUploadMapBtn" type="button" class="dsAuthPill" hidden>Upload Map</button>
+        <a href="modules/user/dashboard.php" class="top-link user-dashboard-link" id="userDashboardLink" hidden>Dashboard</a>
+        <div id="authUserBadge" class="authUserBadge" hidden></div>
+        <button id="openLoginBtn" type="button" class="dsAuthPill">Login</button>
+        <button id="openRegisterBtn" type="button" class="dsAuthPill dsAuthPillAccent">Register</button>
+        <button id="logoutBtn" type="button" class="dsAuthPill" hidden>Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auth overlays -->
+  <div id="loginOverlay" class="authOverlay" aria-hidden="true">
+    <div class="authWindow" role="dialog" aria-modal="true" aria-label="Login">
+      <div class="windowTitle">Login <span class="spacer"></span><button class="xbtn" id="loginCloseBtn" type="button">X</button></div>
+      <div id="loginMessage" class="authMessage" hidden></div>
+      <form id="loginForm" class="authForm">
+        <label class="authField"><span>Email</span><input id="loginEmail" name="email" type="email" autocomplete="email" required /></label>
+        <label class="authField"><span>Password</span><input id="loginPassword" name="password" type="password" autocomplete="current-password" required /></label>
+        <div class="authActions">
+          <button id="switchToRegisterBtn" type="button">Create account</button>
+          <button id="loginSubmitBtn" type="submit" class="primary">Login</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="registerOverlay" class="authOverlay" aria-hidden="true">
+    <div class="authWindow" role="dialog" aria-modal="true" aria-label="Register">
+      <div class="windowTitle">Register <span class="spacer"></span><button class="xbtn" id="registerCloseBtn" type="button">X</button></div>
+      <div id="registerMessage" class="authMessage" hidden></div>
+      <form id="registerForm" class="authForm">
+        <label class="authField"><span>Display Name</span><input id="registerDisplayName" name="display_name" type="text" autocomplete="nickname" /></label>
+        <label class="authField"><span>Email</span><input id="registerEmail" name="email" type="email" autocomplete="email" required /></label>
+        <label class="authField"><span>Password</span><input id="registerPassword" name="password" type="password" autocomplete="new-password" minlength="10" required /></label>
+        <label class="authField"><span>Confirm Password</span><input id="registerPasswordConfirm" name="password_confirm" type="password" autocomplete="new-password" minlength="10" required /></label>
+        <div class="authActions">
+          <button id="switchToLoginBtn" type="button">Already have an account?</button>
+          <button id="registerSubmitBtn" type="submit" class="primary">Create Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="uploadMapOverlay" class="authOverlay" aria-hidden="true">
+    <div class="authWindow uploadMapWindow" role="dialog" aria-modal="true" aria-label="Upload map">
+      <div class="windowTitle">Upload Map <span class="spacer"></span><button class="xbtn" id="uploadMapCloseBtn" type="button">X</button></div>
+      <div id="uploadMapMessage" class="authMessage">Choose a .mis or .bms file to upload.</div>
+      <div class="uploadMapPickerRow">
+        <button id="uploadMapChooseBtn" type="button" class="primary">Choose File</button>
+        <div id="uploadMapSelectedFile" class="uploadMapSelectedFile">No file selected.</div>
+      </div>
+      <div class="hint">BMS files will be converted to MIS before loading.</div>
+      <div class="authActions">
+        <button id="uploadMapCancelBtn" type="button">Cancel</button>
+        <button id="uploadMapSubmitBtn" type="button" class="primary" disabled>Upload</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="exportBmsOverlay" class="authOverlay" aria-hidden="true">
+    <div class="authWindow uploadMapWindow" role="dialog" aria-modal="true" aria-label="BMS export ready">
+      <div class="windowTitle">Convert to BMS <span class="spacer"></span><button class="xbtn" id="exportBmsCloseBtn" type="button">X</button></div>
+      <div id="exportBmsMessage" class="authMessage">Your binary mission is ready to download.</div>
+      <div id="exportBmsProgressGroup" class="uploadProgressGroup" hidden>
+        <div class="uploadProgressHead"><span>Conversion</span><span id="exportBmsProgressValue">0%</span></div>
+        <div class="uploadProgressTrack exportProgressTrack">
+          <div id="exportBmsProgressFill" class="uploadProgressFill uploadProgressFillAccent"></div>
+          <div id="exportBmsProgressBoxes" class="exportProgressBoxes" aria-label="BMS conversion progress"></div>
+        </div>
+      </div>
+      <div id="exportBmsFilename" class="uploadMapSelectedFile" style="padding:8px 14px;">mission.bms</div>
+      <div id="exportBmsPath" class="hint">completed-maps</div>
+      <div class="authActions">
+        <button id="exportBmsCancelBtn" type="button">Close</button>
+        <button id="exportBmsDownloadBtn" type="button" class="primary">Download BMS</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="uploadProgressOverlay" aria-hidden="true">
+    <div id="uploadProgressWindow" role="dialog" aria-modal="true" aria-label="Upload progress">
+      <div class="windowTitle">Map Upload <span class="spacer"></span><button class="xbtn" id="uploadProgressCloseBtn" type="button">Cancel</button></div>
+      <div id="uploadProgressStatus" class="authMessage">Preparing upload...</div>
+      <div class="uploadProgressGroup">
+        <div class="uploadProgressHead"><span>Upload</span><span id="uploadProgressValue">0%</span></div>
+        <div class="uploadProgressTrack"><div id="uploadProgressFill" class="uploadProgressFill"></div></div>
+      </div>
+      <div id="conversionProgressGroup" class="uploadProgressGroup" hidden>
+        <div class="uploadProgressHead"><span>Conversion</span><span id="conversionProgressValue">0%</span></div>
+        <div class="uploadProgressTrack"><div id="conversionProgressFill" class="uploadProgressFill uploadProgressFillAccent"></div></div>
+      </div>
     </div>
   </div>
 
   <div id="appLayout">
   <div id="sidebar">
     <input id="fileMis" type="file" accept=".mis,.txt" style="display:none;" />
+    <input id="uploadMapInput" type="file" accept=".mis,.bms" style="display:none;" />
 
 <div class="hint" id="defStatus" style="margin-top:6px;">Item catalog loaded (embedded ITEMS.DEF).</div>
+
+    <label class="uploadedMapSelectWrap" for="uploadedMapSelect">
+      <span>User uploaded files</span>
+      <select id="uploadedMapSelect" disabled>
+        <option value="">Sign in to view uploaded maps</option>
+      </select>
+    </label>
 
     <div class="row" style="margin-top:10px;">
       <input id="search" placeholder="Search by type_id, id, name" />
@@ -1186,6 +1287,8 @@
       </div>
       <pre id="selectedInfoBody">No item selected.</pre>
     </div>
+
+    <div id="list" aria-label="Map items list"></div>
 
     <div id="misRealtimePanel">
       <div id="misRealtimeHeader">
@@ -1232,23 +1335,25 @@
 
       <div id="canvasShowPanel" aria-hidden="true">
         <div id="canvasShowPanelList">
-          <label><input type="checkbox" id="showCharTiles"> Char Tiles</label>
-          <label><input type="checkbox" id="showFoliage"> Foliage</label>
-          <label><input type="checkbox" id="showVehicles"> Vehicles</label>
-          <label><input type="checkbox" id="showPeople"> People</label>
-          <label><input type="checkbox" id="showBuildings"> Buildings</label>
-          <label><input type="checkbox" id="showObjects"> Objects</label>
-          <label><input type="checkbox" id="showDecorations"> Decorations</label>
-          <label><input type="checkbox" id="showMarkers"> Markers</label>
-          <label><input type="checkbox" id="showWpDistance"> WP Distance</label>
-          <label><input type="checkbox" id="showFovCones"> FOV Cones</label>
-          <label><input type="checkbox" id="showAreaTriggers"> Area Triggers</label>
-          <label><input type="checkbox" id="showWater"> Water</label>
-          <label><input type="checkbox" id="showTeamBlue"> Team Blue</label>
-          <label><input type="checkbox" id="showTeamRed"> Team Red</label>
-          <label><input type="checkbox" id="showTeamGreen"> Team Green</label>
-          <label><input type="checkbox" id="showCollisionModels"> Colision Models</label>
-          <label><input type="checkbox" id="showAbsoluteMode"> Absolute Mode</label>
+          <label><input type="checkbox" id="showCharTiles" checked> Char Tiles</label>
+          <label><input type="checkbox" id="showFoliage" checked> Foliage</label>
+          <label><input type="checkbox" id="showVehicles" checked> Vehicles</label>
+          <label><input type="checkbox" id="showPeople" checked> People</label>
+          <label><input type="checkbox" id="showBuildings" checked> Buildings</label>
+          <label><input type="checkbox" id="showObjects" checked> Objects</label>
+          <label><input type="checkbox" id="showDecorations" checked> Decorations</label>
+          <label><input type="checkbox" id="showMarkers" checked> Markers</label>
+          <label><input type="checkbox" id="showWpDistance" checked> WP Distance</label>
+          <label><input type="checkbox" id="showFovCones" checked> FOV Cones</label>
+          <label><input type="checkbox" id="showAreaTriggers" checked> Area Triggers</label>
+          <label><input type="checkbox" id="showWater" checked> Water</label>
+          <label><input type="checkbox" id="showTeamBlue" checked> Team Blue</label>
+          <label><input type="checkbox" id="showTeamRed" checked> Team Red</label>
+          <label><input type="checkbox" id="showTeamGreen" checked> Team Green</label>
+          <label><input type="checkbox" id="showTeamYellow" checked> Team Yellow</label>
+          <label><input type="checkbox" id="showTeamViolet" checked> Team Violet</label>
+          <label><input type="checkbox" id="showCollisionModels" checked> Colision Models</label>
+          <label><input type="checkbox" id="showAbsoluteMode" checked> Absolute Mode</label>
         </div>
       </div>
 
@@ -1778,6 +1883,7 @@
   </div>
 
 <script src="resources/itemsDef.js"></script>
+<script src="resources/3d-items-index.js"></script>
 
 <script>
   const state = {
@@ -1916,6 +2022,7 @@
       scene: null,
       camera: null,
       loader: null,
+      fileNameByGraphic: new Map(Object.entries(window.GLB_FILE_INDEX || {})),
       templateByGraphic: new Map(),
       dimensionsByGraphic: new Map(),
       missingGraphics: new Set(),
@@ -2135,6 +2242,11 @@
   const showSectorsEl = document.getElementById("showSectors");
   const showStatsEl = document.getElementById("showStats");
   const showAnchorPointsEl = document.getElementById("showAnchorPoints");
+  const showTeamBlueEl = document.getElementById("showTeamBlue");
+  const showTeamRedEl = document.getElementById("showTeamRed");
+  const showTeamGreenEl = document.getElementById("showTeamGreen");
+  const showTeamYellowEl = document.getElementById("showTeamYellow");
+  const showTeamVioletEl = document.getElementById("showTeamViolet");
 
   const renderUiState = {
     speedLevel: Math.max(1, Math.min(8, Math.round(parseFloat(speedLevelEl?.value || '4') || 4))),
@@ -2163,6 +2275,10 @@
   for (const el of [speedLevelEl, speedScalarEl, groundClampEl, clearanceEl, radiusEl, mainAreaEl, showSectorsEl, showStatsEl, showAnchorPointsEl]){
     el?.addEventListener('input', syncRenderUiState);
     el?.addEventListener('change', syncRenderUiState);
+  }
+
+  for (const el of [showTeamBlueEl, showTeamRedEl, showTeamGreenEl, showTeamYellowEl, showTeamVioletEl]){
+    el?.addEventListener('change', () => { requestRender(); syncGlbItems(); });
   }
 
   const ui = {
@@ -3257,6 +3373,88 @@
     return { defsCount: defs.length, otherDefsCount: otherItemDefs.length };
   }
 
+  function buildGlbGraphicFileIndex(fileNames){
+    const index = new Map();
+    for (const fileName of fileNames || []){
+      if (!/\.glb$/i.test(fileName)) continue;
+      const normalizedName = String(fileName || "").trim();
+      if (!normalizedName) continue;
+      const base = normalizedName.replace(/\.glb$/i, "").trim();
+      if (!base) continue;
+      const key = base.toLowerCase();
+      if (index.has(key)) continue;
+      index.set(key, normalizedName);
+    }
+    return index;
+  }
+
+  async function listGlbFileNamesFromEditorFolder(){
+    if (!state.editorFolderHandle) return null;
+    try{
+      let dir = state.editorFolderHandle;
+      for (const part of ["resources", "3d_items"]){
+        dir = await dir.getDirectoryHandle(part);
+      }
+
+      const names = [];
+      for await (const [fileName, handle] of dir.entries()){
+        if (handle.kind !== "file") continue;
+        if (!/\.glb$/i.test(fileName)) continue;
+        names.push(String(fileName || "").trim());
+      }
+
+      names.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+      addLog(`[3d_items] catalog loaded from editor folder (.glb names): ${names.length}`);
+      return names;
+    } catch (err){
+      addLog(`[3d_items] error building 3d_items list from editor folder: ${err?.message || err}`);
+      return null;
+    }
+  }
+
+  async function loadGlbCatalog(){
+    let names = null;
+    if (state.isLocalRuntime && state.editorFolderHandle){
+      names = await listGlbFileNamesFromEditorFolder();
+    }
+    if (!names || !names.length){
+      names = Array.isArray(window.GLB_FILE_NAMES)
+        ? window.GLB_FILE_NAMES.slice()
+        : Object.values(window.GLB_FILE_INDEX || {});
+    }
+
+    const nextIndex = buildGlbGraphicFileIndex(names);
+    const prevIndex = state.glb.fileNameByGraphic;
+    let changed = prevIndex.size !== nextIndex.size;
+    if (!changed){
+      for (const [key, value] of nextIndex.entries()){
+        if (prevIndex.get(key) !== value){
+          changed = true;
+          break;
+        }
+      }
+    }
+
+    state.glb.fileNameByGraphic = nextIndex;
+    addLog(`[3d_items] catalog ready: ${nextIndex.size} .glb files`);
+
+    if (!changed) return;
+    state.glb.templateByGraphic.clear();
+    state.glb.dimensionsByGraphic.clear();
+    state.glb.missingGraphics.clear();
+    state.glb.structureDirty = true;
+    if (state.glb.ready) syncGlbItems();
+  }
+
+  function resolveGlbFileName(graphic){
+    const rawGraphic = String(graphic || "").trim();
+    if (!rawGraphic) return "";
+    const lookupKey = rawGraphic.toLowerCase();
+    return state.glb.fileNameByGraphic.get(lookupKey)
+      || window.GLB_FILE_INDEX?.[lookupKey]
+      || `${rawGraphic}.glb`;
+  }
+
   function buildSubtypeOptionsFromDEF(){
     // Sub-Type now becomes "catalog": value = type_id (DEF id)
     const groups = {};
@@ -4009,7 +4207,20 @@
     return state.layerVisibility.get(key) !== false;
   }
 
+  function isItemTeamVisible(it){
+    const team = Number(it?.kv?.team ?? 0);
+    switch (team){
+      case 1: return showTeamBlueEl?.checked !== false;
+      case 2: return showTeamRedEl?.checked !== false;
+      case 0: return showTeamGreenEl?.checked !== false;
+      case 3: return showTeamYellowEl?.checked !== false;
+      case 4: return showTeamVioletEl?.checked !== false;
+      default: return true;
+    }
+  }
+
   function isItemLayerVisible(it){
+    if (!isItemTeamVisible(it)) return false;
     const rawLayer = String(it?.kv?.layer ?? "").trim();
     if (!rawLayer) return true;
     const num = Number(rawLayer);
@@ -6327,6 +6538,7 @@
         state.editorFolderHandle = handle;
         statusEl.textContent = `Editor folder set: ${handle.name}`;
         await loadAndApplyItemCatalogs();
+        await loadGlbCatalog();
         await Promise.all([loadGameStrings(), loadWeaponDefs(), loadWpNames(), loadAiTextfileCatalog(), preloadEnvironmentFiles()]);
         await refreshGeneralTerrainOptions();
         renderMenuBar();
@@ -7552,9 +7764,10 @@
   async function loadGraphicTemplate(graphic){
     const key = String(graphic || "").trim();
     if (!key) return null;
-    if (state.glb.templateByGraphic.has(key)) return state.glb.templateByGraphic.get(key);
+    const lookupKey = key.toLowerCase();
+    if (state.glb.templateByGraphic.has(lookupKey)) return state.glb.templateByGraphic.get(lookupKey);
 
-    const path = `resources/3d_items/${key}.glb`;
+    const path = `resources/3d_items/${resolveGlbFileName(key)}`;
     try {
       const glbData = await loadBinaryResource(path);
       if (!glbData) throw new Error(`Failed to read GLB: ${path}`);
@@ -7611,13 +7824,13 @@
 
       convertNamedTopLevelObjectsToLodGroups(root);
 
-      state.glb.templateByGraphic.set(key, root);
+      state.glb.templateByGraphic.set(lookupKey, root);
       return root;
     } catch (err) {
       const placeholder = createMissingGlbPlaceholder(key);
-      state.glb.templateByGraphic.set(key, placeholder);
-      if (!state.glb.missingGraphics.has(key)){
-        state.glb.missingGraphics.add(key);
+      state.glb.templateByGraphic.set(lookupKey, placeholder);
+      if (!state.glb.missingGraphics.has(lookupKey)){
+        state.glb.missingGraphics.add(lookupKey);
         addLog(`[3d_items] GLB missing or invalid: ${path}`);
       }
       return placeholder;
@@ -8946,6 +9159,7 @@ PointerLock: ${document.pointerLockElement===cv?'on':'off'}`;
 
   const _origLoadMisFile = loadMisFile;
   loadMisFile = async function(file, fileHandle = null){
+    await loadGlbCatalog();
     await _origLoadMisFile(file, fileHandle);
     try{ await loadTerrainFromMis(); }catch(err){ addLog(`[terrain] load error: ${err?.message || err}`); camDebugEl.textContent = `Failed to load terrain: ${err.message||err}`; }
     fitView();
@@ -8976,6 +9190,7 @@ PointerLock: ${document.pointerLockElement===cv?'on':'off'}`;
     setRenderBackend(resolveInitialRenderBackend(), { force: true });
     try{
       await loadAndApplyItemCatalogs();
+      await loadGlbCatalog();
     } catch (err){
       console.error(err);
       defStatusEl.textContent = "Error loading embedded catalog (see console).";
@@ -9031,5 +9246,6 @@ PointerLock: ${document.pointerLockElement===cv?'on':'off'}`;
  </script>
 <script src="assets/movement-controls/mouse-canvas-movement.js"></script>
 <script src="assets/movement-controls/KB-canvas-movement.js"></script>
+<script src="assets/js/server-auth.js"></script>
 </body>
 </html>

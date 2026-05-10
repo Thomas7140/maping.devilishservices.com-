@@ -313,3 +313,72 @@ a,
 .menuItem{
   color:#bfdbfe;
 }
+/* ============================================================
+   Auth & server-save styles
+   ============================================================ */
+
+/* --- Header brand --- */
+.dsBrand{display:flex;align-items:center;gap:10px;color:var(--text-strong);flex-shrink:0}
+.dsLogo{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:var(--accent);color:#020617;font-weight:800;font-size:14px;letter-spacing:-.5px}
+.dsBrand strong{font-size:14px;font-weight:700;color:var(--text-strong);line-height:1.2}
+.dsBrand small{display:block;font-size:11px;color:var(--text-muted);line-height:1.2}
+
+/* --- Header auth area --- */
+.dsHeaderAuth{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto}
+.dsAuthPill{padding:4px 14px;border-radius:var(--radius-pill);border:1px solid var(--line-strong);background:var(--surface);color:var(--text);font-size:12px;cursor:pointer;transition:background .15s}
+.dsAuthPill:hover{background:var(--control-hover-bg)}
+.dsAuthPillAccent{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.dsAuthPillAccent:hover{background:var(--control-active-bg)}
+.authUserBadge{font-size:12px;color:var(--text-muted);padding:4px 10px;border-radius:var(--radius-pill);background:var(--surface-subtle);border:1px solid var(--line)}
+.top-link{font-size:12px;color:var(--accent);text-decoration:none;padding:4px 10px}
+.top-link:hover{text-decoration:underline}
+
+/* --- Auth overlays --- */
+.authOverlay{position:fixed;inset:0;z-index:400;background:var(--overlay);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .15s}
+.authOverlay.open{opacity:1;pointer-events:auto}
+.authWindow{background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--radius-md);width:360px;max-width:calc(100vw - 32px);box-shadow:var(--shadow-md);display:flex;flex-direction:column}
+.uploadMapWindow{width:440px}
+.windowTitle{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);font-size:13px;font-weight:600;color:var(--text-strong)}
+.windowTitle .spacer{flex:1}
+.xbtn{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:4px 8px;border-radius:6px}
+.xbtn:hover{background:var(--surface-soft);color:var(--text)}
+
+/* --- Auth forms --- */
+.authForm{display:flex;flex-direction:column;gap:14px;padding:16px 14px}
+.authField{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text-muted)}
+.authField input{background:var(--surface-subtle);border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--text);font-size:13px}
+.authField input:focus{outline:none;border-color:var(--accent);box-shadow:var(--focus-ring)}
+.authActions{display:flex;justify-content:flex-end;gap:8px;padding:0 14px 14px;flex-wrap:wrap}
+.authActions button{padding:6px 16px;border-radius:var(--radius-pill);border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:12px;cursor:pointer}
+.authActions button:hover{background:var(--control-hover-bg)}
+.authActions button.primary{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.authActions button.primary:hover{background:var(--control-active-bg)}
+.authMessage{padding:8px 14px;font-size:12px;color:var(--text-muted);border-bottom:1px solid var(--line)}
+.authMessage[data-tone="error"]{color:#fca5a5;background:rgba(239,68,68,.08)}
+.authMessage[hidden]{display:none}
+
+/* --- Upload map modal --- */
+.uploadMapPickerRow{display:flex;align-items:center;gap:10px;padding:10px 14px}
+.uploadMapSelectedFile{font-size:12px;color:var(--text-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hint{font-size:11px;color:var(--text-soft);padding:0 14px 10px}
+
+/* --- Uploaded map select (sidebar) --- */
+.uploadedMapSelectWrap{display:flex;flex-direction:column;gap:4px;margin-top:8px;font-size:12px;color:var(--text-muted)}
+.uploadedMapSelectWrap select{width:100%;background:var(--surface-subtle);border:1px solid var(--line);border-radius:8px;padding:6px 8px;color:var(--text);font-size:12px}
+.uploadedMapSelectWrap select:focus{outline:none;border-color:var(--accent)}
+
+/* --- Upload progress overlay --- */
+#uploadProgressOverlay{position:fixed;inset:0;z-index:500;background:var(--overlay);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .15s}
+#uploadProgressOverlay.open{opacity:1;pointer-events:auto}
+#uploadProgressWindow{background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--radius-md);width:380px;max-width:calc(100vw - 32px);box-shadow:var(--shadow-md)}
+.uploadProgressGroup{padding:10px 14px}
+.uploadProgressHead{display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:6px}
+.uploadProgressTrack{height:8px;background:var(--surface-subtle);border-radius:4px;overflow:hidden;position:relative}
+.uploadProgressFill{height:100%;background:var(--accent);border-radius:4px;width:0;transition:width .25s}
+.uploadProgressFillAccent{background:#7dd3fc}
+
+/* --- Export BMS progress boxes --- */
+.exportProgressTrack{height:20px;background:var(--surface-subtle);border-radius:4px;overflow:hidden;position:relative}
+.exportProgressBoxes{position:absolute;inset:0;display:flex;gap:1px;padding:2px}
+.exportProgressBox{flex:1;border-radius:2px;background:var(--surface-soft)}
+.exportProgressBox.filled{background:var(--accent)}

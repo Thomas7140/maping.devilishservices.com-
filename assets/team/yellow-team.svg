@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <circle cx="128" cy="128" r="118" fill="#ffd400" stroke="#1b1b1b" stroke-width="10"/>
+  <path d="M80 184V54h14v130H80zm18-124h94l-22 33 22 33H98V60z" fill="#fff6bf" stroke="#1b1b1b" stroke-width="7" stroke-linejoin="round"/>
+  <text x="128" y="224" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#1b1b1b">YELLOW</text>
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <rect x="28" y="28" width="200" height="200" rx="28" fill="#ffd400" stroke="#1b1b1b" stroke-width="10"/>
+  <path d="M128 54l24 49 54 8-39 38 9 54-48-25-48 25 9-54-39-38 54-8 24-49z" fill="#ffffff" stroke="#1b1b1b" stroke-width="7" stroke-linejoin="round"/>
+  <text x="128" y="236" text-anchor="middle" font-family="Arial,sans-serif" font-size="24" font-weight="700" fill="#1b1b1b">PSP</text>
+</svg>
