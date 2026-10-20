@@ -1,4 +1,4 @@
-# Devilish Services DFBHD Updater 1.7.0.0
+# Devilish Services DFBHD Updater 1.8.0.0
 
 This is the complete source tree needed to build the portable Windows updater for:
 
@@ -24,14 +24,14 @@ The updater patches the user's existing dfbhd.exe; no NovaLogic game executable 
 - Large Address Aware
 - reliable-ordered hole-skip patch
 - client-side co-op NPC navigation/replication fix
-- Direct3D 8 to Direct3D 9 compatibility wrapper
+- Direct3D 8 -> Direct3D 9 -> Direct3D 12 compatibility layer
 
 ### Team Sabre Client
 
 Team Sabre is treated as a separate executable build. Until Team Sabre-specific engine offsets are independently mapped, the updater applies only:
 
 - generic PE Large Address Aware
-- Direct3D 8 to Direct3D 9 compatibility wrapper
+- Direct3D 8 -> Direct3D 9 -> Direct3D 12 compatibility layer
 
 It deliberately does not apply Black Hawk Down offsets to Team Sabre.
 
@@ -83,7 +83,7 @@ Requirements on the build computer:
 Run:
 
     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-    Set-Location "D:\Devil-DFBHD-Updater-1.7.0.0"
+    Set-Location "D:\Devil-DFBHD-Updater-1.8.0.0"
     .\Build.ps1
 
 Output:
@@ -97,3 +97,24 @@ The produced updater is self-contained, single-file, untrimmed, ReadyToRun-disab
 The documented BHD patch algorithms and byte sites for mission memory, LAA, server scheduler, ordered hole skip, and NPC replication are based on the MIT-licensed community work in BadgerLove/bhd-patches. The applicable license is included under ThirdParty.
 
 The Direct3D wrapper is crosire/d3d8to9, BSD-2-Clause. Its license is also included under ThirdParty.
+
+
+## Direct3D 12 and resolution controls
+
+Version 1.8.0.0 replaces the previous D3D8-to-D3D9-only client layer with a pinned dxwrapper build configured as:
+
+- Direct3D 8 -> Direct3D 9
+- Direct3D 9 -> Direct3D 12 using Windows D3D9On12
+- optional borderless fullscreen
+- configurable refresh rate and VSync
+- optional anisotropic filtering
+- optional 2x/4x/8x/16x MSAA
+- Game default, desktop-native, 1080p, 1440p, 3440x1440 ultrawide, 4K, 5120x1440, 5120x2160, 8K and custom resolutions
+
+Anti-aliasing defaults to Off because post-processing or multisampling can make this older game's image look softer. Anisotropic filtering remains enabled by default to improve texture clarity at oblique viewing angles.
+
+The original engine is not rewritten as a native Direct3D 12 engine. The compatibility chain translates the game's Direct3D 8 rendering calls to Direct3D 12.
+
+## Game executable version
+
+The updater now stamps the Windows VERSIONINFO resource in the installed dfbhd.exe to 1.8.0.0 after the verified engine byte patches are applied. This changes Windows Explorer FileVersion/ProductVersion only and does not intentionally modify the NovaLogic multiplayer protocol/version handshake.
