@@ -67,6 +67,16 @@ internal static class UpdateEngine
 
             FileVersionInfo vi = FileVersionInfo.GetVersionInfo(target);
 
+            bool needsVersionStamp =
+                !string.Equals(
+                    vi.FileVersion,
+                    PatchEngine.Version,
+                    StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(
+                    vi.ProductVersion,
+                    PatchEngine.Version,
+                    StringComparison.OrdinalIgnoreCase);
+
             var lines = new List<string>
             {
                 $"Profile: {profile.DisplayName()}",
@@ -74,7 +84,7 @@ internal static class UpdateEngine
                 $"SHA256: {hash}",
                 $"Windows FileVersion: {vi.FileVersion ?? "(not set)"}",
                 $"Windows ProductVersion: {vi.ProductVersion ?? "(not set)"}",
-                $"Patch status: {(report.Changed ? "updates are available" : "supported patches already installed")}",
+                $"Patch status: {(report.Changed || needsVersionStamp ? "updates are available" : "supported patches/version already installed")}",
                 ""
             };
 
@@ -108,7 +118,8 @@ internal static class UpdateEngine
 
     public static InstallResult Install(
         UpdateProfile profile,
-        string selectedFolder)
+        string selectedFolder,
+        GraphicsOptions? graphics = null)
     {
         string folder = NormalizeFolder(selectedFolder);
         string target = Path.Combine(folder, "dfbhd.exe");
@@ -143,6 +154,30 @@ internal static class UpdateEngine
 
             _ = new PeImage(verify);
 
+            VersionResourceUpdater.Stamp(
+                temp,
+                PatchEngine.Version);
+
+            byte[] stampedVerify = File.ReadAllBytes(temp);
+            _ = new PeImage(stampedVerify);
+
+            FileVersionInfo stampedInfo =
+                FileVersionInfo.GetVersionInfo(temp);
+
+            if (!string.Equals(
+                    stampedInfo.FileVersion,
+                    PatchEngine.Version,
+                    StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(
+                    stampedInfo.ProductVersion,
+                    PatchEngine.Version,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                File.Delete(temp);
+                throw new InvalidDataException(
+                    "Windows FileVersion/ProductVersion stamping did not verify.");
+            }
+
             File.Move(temp, target, true);
 
             byte[] installed = File.ReadAllBytes(target);
@@ -151,7 +186,7 @@ internal static class UpdateEngine
                     SHA256.HashData(installed));
 
             EngineModernizationResult modernization =
-                EngineModernization.Install(profile, target);
+                EngineModernization.Install(profile, target, graphics);
 
             if (!modernization.Success)
                 throw new InvalidOperationException(modernization.Summary);
@@ -168,6 +203,8 @@ internal static class UpdateEngine
                 $"Profile: {profile.DisplayName()}",
                 $"Executable: {target}",
                 $"SHA256: {installedHash}",
+                $"Windows FileVersion: {PatchEngine.Version}",
+                $"Windows ProductVersion: {PatchEngine.Version}",
                 "",
                 backup.Summary,
                 "",
