@@ -1,0 +1,49 @@
+name: Build Complete DFBHD Updater
+
+on:
+  push:
+    branches:
+      - devil-dfbhd-updater-complete-1.7.0.0
+    paths:
+      - "Devil-DFBHD-Updater-1.7.0.0/**"
+      - ".github/workflows/build-complete-dfbhd-updater.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Build portable updater
+        shell: pwsh
+        run: |
+          Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+          Set-Location "$env:GITHUB_WORKSPACE\Devil-DFBHD-Updater-1.7.0.0"
+          .\Build.ps1
+
+      - name: Prepare full source ZIP
+        shell: pwsh
+        run: |
+          $root = "$env:GITHUB_WORKSPACE\Devil-DFBHD-Updater-1.7.0.0"
+          Get-ChildItem -Path $root -Directory -Recurse -Force -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -in @("bin","obj") } |
+            Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item "$root\portable-publish" -Recurse -Force -ErrorAction SilentlyContinue
+          Compress-Archive -Path "$root\*" -DestinationPath "$env:GITHUB_WORKSPACE\Devil-DFBHD-Updater-1.7.0.0-FULL-SOURCE.zip" -Force
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Devil-DFBHD-Updater-1.7.0.0-Complete
+          path: |
+            Devil-DFBHD-Updater-1.7.0.0-FULL-SOURCE.zip
+            Devil-DFBHD-Updater-1.7.0.0/artifacts/Devil_dfbhd_update_012105_xx.exe
+          if-no-files-found: error
