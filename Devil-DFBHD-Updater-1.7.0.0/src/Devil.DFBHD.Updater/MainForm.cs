@@ -39,7 +39,7 @@ internal sealed class MainForm : Form
     {
         _settings = SettingsStore.Load();
 
-        Text = "Devilish Services DFBHD Update 1.8.0.1";
+        Text = "Devilish Services DFBHD Update 1.8.0.2";
         StartPosition = FormStartPosition.CenterScreen;
         MinimumSize = new Size(960, 760);
         Size = new Size(1120, 920);
@@ -74,7 +74,7 @@ internal sealed class MainForm : Form
         var heading = new Label
         {
             AutoSize = true,
-            Text = "Devil DFBHD Engine / Updater 1.8.0.1",
+            Text = "Devil DFBHD Engine / Updater 1.8.0.2",
             Font = new Font(Font.FontFamily, 16F, FontStyle.Bold),
             Margin = new Padding(0, 0, 0, 4)
         };
