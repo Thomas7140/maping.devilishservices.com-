@@ -24,6 +24,9 @@ internal sealed class MainForm : Form
     private readonly CheckBox _anisotropic = new();
     private readonly ComboBox _antiAliasing = new();
 
+    private readonly GroupBox _networkGroup = new();
+    private readonly NumericUpDown _maxPacketSize = new();
+
     private readonly RichTextBox _output = new();
 
     private readonly Button _scanButton = new();
@@ -36,8 +39,8 @@ internal sealed class MainForm : Form
 
         Text = "Devilish Services DFBHD Update 1.8.0.0";
         StartPosition = FormStartPosition.CenterScreen;
-        MinimumSize = new Size(940, 720);
-        Size = new Size(1100, 860);
+        MinimumSize = new Size(960, 760);
+        Size = new Size(1120, 920);
         Font = new Font("Segoe UI", 9F);
         AutoScaleMode = AutoScaleMode.Dpi;
 
@@ -53,9 +56,10 @@ internal sealed class MainForm : Form
             Dock = DockStyle.Fill,
             Padding = new Padding(14),
             ColumnCount = 1,
-            RowCount = 6
+            RowCount = 7
         };
 
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -76,7 +80,7 @@ internal sealed class MainForm : Form
         var subheading = new Label
         {
             AutoSize = true,
-            Text = "Direct3D 12 translation, high-resolution controls, file-version stamping and verified engine patches.",
+            Text = "Direct3D 12 translation, true high-resolution EXE patching, UDP packet tuning, version stamping and verified engine fixes.",
             Margin = new Padding(0, 0, 0, 12)
         };
 
@@ -148,6 +152,9 @@ internal sealed class MainForm : Form
         BuildGraphicsGroup();
         root.Controls.Add(_graphicsGroup, 0, 2);
 
+        BuildNetworkGroup();
+        root.Controls.Add(_networkGroup, 0, 3);
+
         var buttonPanel = new FlowLayoutPanel
         {
             Dock = DockStyle.Top,
@@ -164,7 +171,7 @@ internal sealed class MainForm : Form
         buttonPanel.Controls.Add(_installButton);
         buttonPanel.Controls.Add(_restoreButton);
 
-        root.Controls.Add(buttonPanel, 0, 3);
+        root.Controls.Add(buttonPanel, 0, 4);
 
         _output.Dock = DockStyle.Fill;
         _output.ReadOnly = true;
@@ -175,16 +182,16 @@ internal sealed class MainForm : Form
             "Ready." +
             Environment.NewLine +
             Environment.NewLine +
-            "DFBHD Server: verified engine patches + 125 Hz scheduler; no graphics wrapper." +
+            "DFBHD Server: verified engine patches + 125 Hz scheduler + configurable UDP packet ceiling; no graphics wrapper." +
             Environment.NewLine +
-            "DFBHD Client: engine patches + NPC replication fix + Direct3D 12 translation." +
+            "DFBHD Client: engine patches + NPC replication fix + Direct3D 12 translation + high-resolution EXE patch." +
             Environment.NewLine +
-            "DFBHDTS: safety mode; generic LAA + Direct3D 12 translation only." +
+            "DFBHDTS: safety mode; LAA + validated high-resolution signature patch + Direct3D 12 translation." +
             Environment.NewLine +
             Environment.NewLine +
-            "High-resolution rendering can use desktop native, 1080p, 1440p, ultrawide, 4K, 5K/8K or custom dimensions.";
+            "Default network packet ceiling is 1400 bytes. The updater will not allow values above 1472 bytes.";
 
-        root.Controls.Add(_output, 0, 4);
+        root.Controls.Add(_output, 0, 5);
 
         var footer = new Label
         {
@@ -193,11 +200,11 @@ internal sealed class MainForm : Form
             Text =
                 "Backups are stored in .devil-dfbhd-backups. " +
                 "Unknown engine bytes abort without writing dfbhd.exe. " +
-                "The Windows FileVersion/ProductVersion is stamped separately from the multiplayer protocol.",
+                "Windows FileVersion/ProductVersion is stamped separately from the multiplayer protocol.",
             Padding = new Padding(0, 8, 0, 0)
         };
 
-        root.Controls.Add(footer, 0, 5);
+        root.Controls.Add(footer, 0, 6);
 
         AcceptButton = _scanButton;
     }
@@ -238,6 +245,7 @@ internal sealed class MainForm : Form
                 "7680 x 4320",
                 "Custom"
             });
+
         _resolutionPreset.SelectedIndexChanged += (_, _) =>
             ApplyResolutionPresetToControls();
 
@@ -298,12 +306,13 @@ internal sealed class MainForm : Form
         };
 
         dimensions.Controls.Add(_customWidth);
-        dimensions.Controls.Add(new Label
-        {
-            AutoSize = true,
-            Text = " x ",
-            Padding = new Padding(0, 6, 0, 0)
-        });
+        dimensions.Controls.Add(
+            new Label
+            {
+                AutoSize = true,
+                Text = " x ",
+                Padding = new Padding(0, 6, 0, 0)
+            });
         dimensions.Controls.Add(_customHeight);
 
         table.Controls.Add(NewLabel("Render size"), 0, 1);
@@ -323,20 +332,54 @@ internal sealed class MainForm : Form
         checks.Controls.Add(_vsync);
         checks.Controls.Add(_anisotropic);
 
-        table.Controls.Add(
-            new Label
-            {
-                AutoSize = true,
-                Text = "Quality",
-                Anchor = AnchorStyles.Left
-            },
-            0,
-            2);
-
+        table.Controls.Add(NewLabel("Quality"), 0, 2);
         table.SetColumnSpan(checks, 3);
         table.Controls.Add(checks, 1, 2);
 
         _graphicsGroup.Controls.Add(table);
+    }
+
+    private void BuildNetworkGroup()
+    {
+        _networkGroup.Text = "Multiplayer / UDP tuning";
+        _networkGroup.Dock = DockStyle.Top;
+        _networkGroup.AutoSize = true;
+        _networkGroup.Padding = new Padding(12);
+
+        var table = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            ColumnCount = 3,
+            RowCount = 1
+        };
+
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 190F));
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130F));
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+
+        _maxPacketSize.Minimum = 576;
+        _maxPacketSize.Maximum = 1472;
+        _maxPacketSize.Value = 1400;
+        _maxPacketSize.Increment = 8;
+        _maxPacketSize.Width = 110;
+        _maxPacketSize.ThousandsSeparator = true;
+
+        table.Controls.Add(NewLabel("Max UDP packet size"), 0, 0);
+        table.Controls.Add(_maxPacketSize, 1, 0);
+        table.Controls.Add(
+            new Label
+            {
+                AutoSize = true,
+                Anchor = AnchorStyles.Left,
+                Text =
+                    "bytes — 1400 recommended. Applied to dfv.cfg as mpmaxpacketsize for local outgoing traffic; 1472 is the hard safety ceiling.",
+                Padding = new Padding(8, 6, 0, 0)
+            },
+            2,
+            0);
+
+        _networkGroup.Controls.Add(table);
     }
 
     private static Label NewLabel(string text) =>
@@ -412,7 +455,9 @@ internal sealed class MainForm : Form
         _dfbhdPath.Text = _settings.DfbhdPath;
         _tsPath.Text = _settings.DfbhdTsPath;
 
-        GraphicsOptions g = _settings.Graphics ?? new GraphicsOptions();
+        GraphicsOptions g =
+            _settings.Graphics
+            ?? new GraphicsOptions();
 
         _resolutionPreset.SelectedItem =
             _resolutionPreset.Items.Contains(g.ResolutionPreset)
@@ -456,6 +501,16 @@ internal sealed class MainForm : Form
         _vsync.Checked = g.VSync;
         _anisotropic.Checked = g.AnisotropicFiltering;
 
+        NetworkOptions n =
+            _settings.Network
+            ?? new NetworkOptions();
+
+        _maxPacketSize.Value =
+            Math.Clamp(
+                n.MaxPacketSize,
+                (int)_maxPacketSize.Minimum,
+                (int)_maxPacketSize.Maximum);
+
         ApplyResolutionPresetToControls();
     }
 
@@ -468,7 +523,7 @@ internal sealed class MainForm : Form
         (int width, int height, bool editable) =
             preset switch
             {
-                "Game default" => (1920, 1080, false),
+                "Game default" => (1024, 768, false),
                 "Desktop native" => GetDesktopResolution(),
                 "1920 x 1080" => (1920, 1080, false),
                 "2560 x 1440" => (2560, 1440, false),
@@ -504,9 +559,16 @@ internal sealed class MainForm : Form
     {
         Rectangle bounds =
             Screen.PrimaryScreen?.Bounds
-            ?? new Rectangle(0, 0, 1920, 1080);
+            ?? new Rectangle(
+                0,
+                0,
+                1920,
+                1080);
 
-        return (bounds.Width, bounds.Height, false);
+        return (
+            bounds.Width,
+            bounds.Height,
+            false);
     }
 
     private GraphicsOptions CurrentGraphicsOptions()
@@ -526,22 +588,51 @@ internal sealed class MainForm : Form
         var options = new GraphicsOptions
         {
             ResolutionPreset = preset,
-            Width = preset == "Game default" ? 0 : (int)_customWidth.Value,
-            Height = preset == "Game default" ? 0 : (int)_customHeight.Value,
+            Width = preset == "Game default"
+                ? 0
+                : (int)_customWidth.Value,
+            Height = preset == "Game default"
+                ? 0
+                : (int)_customHeight.Value,
             RefreshRate = refresh,
             BorderlessFullscreen = _borderless.Checked,
             VSync = _vsync.Checked,
             AnisotropicFiltering = _anisotropic.Checked,
-            AntiAliasingSamples = aa is 2 or 4 or 8 or 16 ? aa : 0
+            AntiAliasingSamples =
+                aa is 2 or 4 or 8 or 16
+                    ? aa
+                    : 0
         };
 
-        _settings.Graphics = options.Clone();
-        SettingsStore.Save(_settings);
+        _settings.Graphics =
+            options.Clone();
+
+        SettingsStore.Save(
+            _settings);
 
         return options;
     }
 
-    private static int ParseLeadingInteger(string? value)
+    private NetworkOptions CurrentNetworkOptions()
+    {
+        var options =
+            new NetworkOptions
+            {
+                MaxPacketSize =
+                    (int)_maxPacketSize.Value
+            };
+
+        _settings.Network =
+            options.Clone();
+
+        SettingsStore.Save(
+            _settings);
+
+        return options;
+    }
+
+    private static int ParseLeadingInteger(
+        string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
             return 0;
@@ -552,7 +643,9 @@ internal sealed class MainForm : Form
                     .TakeWhile(char.IsDigit)
                     .ToArray());
 
-        return int.TryParse(digits, out int result)
+        return int.TryParse(
+                digits,
+                out int result)
             ? result
             : 0;
     }
@@ -560,7 +653,8 @@ internal sealed class MainForm : Form
     private void UpdateGraphicsEnabledState()
     {
         _graphicsGroup.Enabled =
-            SelectedProfile() != UpdateProfile.DfbhdServer;
+            SelectedProfile()
+            != UpdateProfile.DfbhdServer;
     }
 
     private UpdateProfile SelectedProfile()
@@ -574,7 +668,8 @@ internal sealed class MainForm : Form
         return UpdateProfile.Dfbhd;
     }
 
-    private TextBox TextBoxFor(UpdateProfile profile) =>
+    private TextBox TextBoxFor(
+        UpdateProfile profile) =>
         profile switch
         {
             UpdateProfile.DfbhdServer => _serverPath,
@@ -585,8 +680,13 @@ internal sealed class MainForm : Form
 
     private string SelectedFolder()
     {
-        UpdateProfile profile = SelectedProfile();
-        string value = TextBoxFor(profile).Text.Trim();
+        UpdateProfile profile =
+            SelectedProfile();
+
+        string value =
+            TextBoxFor(profile)
+                .Text
+                .Trim();
 
         SettingsStore.SetPath(
             _settings,
@@ -596,24 +696,34 @@ internal sealed class MainForm : Form
         return value;
     }
 
-    private void BrowseFor(UpdateProfile profile)
+    private void BrowseFor(
+        UpdateProfile profile)
     {
-        using var dialog = new FolderBrowserDialog
-        {
-            Description = $"Select the {profile.DisplayName()} folder containing dfbhd.exe",
-            UseDescriptionForTitle = true,
-            ShowNewFolderButton = false
-        };
+        using var dialog =
+            new FolderBrowserDialog
+            {
+                Description =
+                    $"Select the {profile.DisplayName()} folder containing dfbhd.exe",
+                UseDescriptionForTitle = true,
+                ShowNewFolderButton = false
+            };
 
-        string existing = TextBoxFor(profile).Text.Trim();
+        string existing =
+            TextBoxFor(profile)
+                .Text
+                .Trim();
 
         if (Directory.Exists(existing))
             dialog.InitialDirectory = existing;
 
-        if (dialog.ShowDialog(this) != DialogResult.OK)
+        if (dialog.ShowDialog(this)
+            != DialogResult.OK)
+        {
             return;
+        }
 
-        TextBoxFor(profile).Text = dialog.SelectedPath;
+        TextBoxFor(profile).Text =
+            dialog.SelectedPath;
 
         SettingsStore.SetPath(
             _settings,
@@ -625,40 +735,62 @@ internal sealed class MainForm : Form
             case UpdateProfile.DfbhdServer:
                 _serverRadio.Checked = true;
                 break;
+
             case UpdateProfile.Dfbhd:
                 _dfbhdRadio.Checked = true;
                 break;
+
             case UpdateProfile.DfbhdTs:
                 _tsRadio.Checked = true;
                 break;
         }
     }
 
-    private void ScanSelected(object? sender, EventArgs e)
+    private void ScanSelected(
+        object? sender,
+        EventArgs e)
     {
         RunUiOperation(() =>
         {
-            UpdateProfile profile = SelectedProfile();
-            string folder = SelectedFolder();
+            UpdateProfile profile =
+                SelectedProfile();
+
+            string folder =
+                SelectedFolder();
+
+            GraphicsOptions? graphics =
+                profile == UpdateProfile.DfbhdServer
+                    ? null
+                    : CurrentGraphicsOptions();
+
+            NetworkOptions network =
+                CurrentNetworkOptions();
 
             ScanResult scan =
                 UpdateEngine.Scan(
                     profile,
-                    folder);
+                    folder,
+                    graphics);
 
-            _output.Text = scan.Summary;
+            _output.Text =
+                scan.Summary;
 
-            if (profile != UpdateProfile.DfbhdServer)
+            if (profile
+                != UpdateProfile.DfbhdServer &&
+                graphics is not null)
             {
-                GraphicsOptions g = CurrentGraphicsOptions();
-
                 _output.AppendText(
                     Environment.NewLine +
                     Environment.NewLine +
-                    $"Selected graphics: Direct3D 12, {g.ResolutionPreset}, " +
-                    $"{(g.RefreshRate > 0 ? g.RefreshRate + " Hz" : "default refresh")}, " +
-                    $"{(g.BorderlessFullscreen ? "borderless" : "game fullscreen/window mode")}.");
+                    $"Selected graphics: Direct3D 12, {graphics.ResolutionPreset}, " +
+                    $"{(graphics.RefreshRate > 0 ? graphics.RefreshRate + " Hz" : "default refresh")}, " +
+                    $"{(graphics.BorderlessFullscreen ? "borderless" : "game fullscreen/window mode")}.");
             }
+
+            _output.AppendText(
+                Environment.NewLine +
+                Environment.NewLine +
+                $"Selected UDP packet ceiling: {network.MaxPacketSize} bytes.");
 
             if (!scan.Success)
             {
@@ -672,21 +804,37 @@ internal sealed class MainForm : Form
         });
     }
 
-    private void InstallSelected(object? sender, EventArgs e)
+    private void InstallSelected(
+        object? sender,
+        EventArgs e)
     {
         RunUiOperation(() =>
         {
-            UpdateProfile profile = SelectedProfile();
-            string folder = SelectedFolder();
+            UpdateProfile profile =
+                SelectedProfile();
+
+            string folder =
+                SelectedFolder();
+
+            GraphicsOptions? graphics =
+                profile == UpdateProfile.DfbhdServer
+                    ? null
+                    : CurrentGraphicsOptions();
+
+            NetworkOptions network =
+                CurrentNetworkOptions();
 
             ScanResult scan =
                 UpdateEngine.Scan(
                     profile,
-                    folder);
+                    folder,
+                    graphics);
 
-            _output.Text = scan.Summary;
+            _output.Text =
+                scan.Summary;
 
-            if (!scan.Success || !scan.Compatible)
+            if (!scan.Success ||
+                !scan.Compatible)
             {
                 MessageBox.Show(
                     this,
@@ -698,8 +846,12 @@ internal sealed class MainForm : Form
                 return;
             }
 
-            GraphicsOptions graphics =
-                CurrentGraphicsOptions();
+            string graphicsLine =
+                profile == UpdateProfile.DfbhdServer ||
+                graphics is null
+                    ? ""
+                    : Environment.NewLine +
+                      $"Graphics: Direct3D 12 / {graphics.ResolutionPreset}";
 
             DialogResult answer =
                 MessageBox.Show(
@@ -707,42 +859,55 @@ internal sealed class MainForm : Form
                     $"Install Devil DFBHD Update {PatchEngine.Version} for {profile.DisplayName()}?" +
                     Environment.NewLine +
                     Environment.NewLine +
-                    "The current dfbhd.exe will be backed up first." +
-                    (profile == UpdateProfile.DfbhdServer
-                        ? ""
-                        : Environment.NewLine +
-                          $"Graphics: Direct3D 12 / {graphics.ResolutionPreset}"),
+                    "The current dfbhd.exe and any changed dfv.cfg will be backed up first." +
+                    graphicsLine +
+                    Environment.NewLine +
+                    $"UDP packet ceiling: {network.MaxPacketSize} bytes",
                     "Confirm update",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question,
                     MessageBoxDefaultButton.Button2);
 
-            if (answer != DialogResult.Yes)
+            if (answer
+                != DialogResult.Yes)
+            {
                 return;
+            }
 
             InstallResult result =
                 UpdateEngine.Install(
                     profile,
                     folder,
-                    graphics);
+                    graphics,
+                    network);
 
-            _output.Text = result.Summary;
+            _output.Text =
+                result.Summary;
 
             MessageBox.Show(
                 this,
                 result.Summary,
-                result.Success ? "Update complete" : "Update failed",
+                result.Success
+                    ? "Update complete"
+                    : "Update failed",
                 MessageBoxButtons.OK,
-                result.Success ? MessageBoxIcon.Information : MessageBoxIcon.Error);
+                result.Success
+                    ? MessageBoxIcon.Information
+                    : MessageBoxIcon.Error);
         });
     }
 
-    private void RestoreSelected(object? sender, EventArgs e)
+    private void RestoreSelected(
+        object? sender,
+        EventArgs e)
     {
         RunUiOperation(() =>
         {
-            UpdateProfile profile = SelectedProfile();
-            string folder = SelectedFolder();
+            UpdateProfile profile =
+                SelectedProfile();
+
+            string folder =
+                SelectedFolder();
 
             if (!Directory.Exists(folder))
             {
@@ -759,32 +924,41 @@ internal sealed class MainForm : Form
             DialogResult answer =
                 MessageBox.Show(
                     this,
-                    $"Restore the newest {profile.DisplayName()} executable backup and renderer state?",
+                    $"Restore the newest {profile.DisplayName()} executable, renderer and dfv.cfg backups?",
                     "Confirm restore",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question,
                     MessageBoxDefaultButton.Button2);
 
-            if (answer != DialogResult.Yes)
+            if (answer
+                != DialogResult.Yes)
+            {
                 return;
+            }
 
             InstallResult result =
                 UpdateEngine.Restore(
                     profile,
                     folder);
 
-            _output.Text = result.Summary;
+            _output.Text =
+                result.Summary;
 
             MessageBox.Show(
                 this,
                 result.Summary,
-                result.Success ? "Restore complete" : "Restore problem",
+                result.Success
+                    ? "Restore complete"
+                    : "Restore problem",
                 MessageBoxButtons.OK,
-                result.Success ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
+                result.Success
+                    ? MessageBoxIcon.Information
+                    : MessageBoxIcon.Warning);
         });
     }
 
-    private void RunUiOperation(Action action)
+    private void RunUiOperation(
+        Action action)
     {
         try
         {
@@ -797,7 +971,8 @@ internal sealed class MainForm : Form
         }
         catch (Exception ex)
         {
-            _output.Text = ex.ToString();
+            _output.Text =
+                ex.ToString();
 
             MessageBox.Show(
                 this,
