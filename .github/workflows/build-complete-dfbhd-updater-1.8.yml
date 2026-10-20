@@ -29,6 +29,25 @@ jobs:
           Set-Location "$env:GITHUB_WORKSPACE\Devil-DFBHD-Updater-1.7.0.0"
           .\Build.ps1
 
+      - name: Verify dfbhd.exe version stamping logic
+        shell: pwsh
+        run: |
+          $updater = "$env:GITHUB_WORKSPACE\Devil-DFBHD-Updater-1.7.0.0\artifacts\Devil_dfbhd_update_012105_xx.exe"
+          $target = "$env:RUNNER_TEMP\version-resource-test.exe"
+          Copy-Item "$env:WINDIR\System32\notepad.exe" $target -Force
+
+          & $updater --self-test-version-resource $target
+          if ($LASTEXITCODE -ne 0) {
+            throw "Version resource self-test failed with exit code $LASTEXITCODE"
+          }
+
+          $info = (Get-Item $target).VersionInfo
+          if ($info.FileVersion -ne "1.8.0.0" -or $info.ProductVersion -ne "1.8.0.0") {
+            throw "Version stamp verification failed. FileVersion=$($info.FileVersion), ProductVersion=$($info.ProductVersion)"
+          }
+
+          Write-Host "Version stamp verified: FileVersion/ProductVersion 1.8.0.0"
+
       - name: Prepare full source ZIP
         shell: pwsh
         run: |
