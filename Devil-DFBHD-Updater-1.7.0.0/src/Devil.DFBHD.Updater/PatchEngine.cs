@@ -42,7 +42,8 @@ internal static class PatchEngine
 
     public static PatchReport BuildPatchedImage(
         UpdateProfile profile,
-        byte[] original)
+        byte[] original,
+        GraphicsOptions? graphics = null)
     {
         byte[] data = (byte[])original.Clone();
         var notes = new List<string>();
@@ -58,8 +59,21 @@ internal static class PatchEngine
         if (profile == UpdateProfile.DfbhdTs)
         {
             changed |= ApplyLargeAddressAware(data, notes);
-            notes.Add("Team Sabre safety mode: BHD fixed-address patches were not applied.");
-            notes.Add("Team Sabre receives LAA plus the client graphics compatibility layer.");
+
+            if (graphics is not null &&
+                !string.Equals(
+                    graphics.ResolutionPreset,
+                    "Game default",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                changed |= ApplyResolutionOverride(
+                    data,
+                    graphics,
+                    notes);
+            }
+
+            notes.Add("Team Sabre safety mode: BHD fixed-address gameplay/network patches were not applied.");
+            notes.Add("Team Sabre receives LAA, the validated resolution signature patch, and the client graphics compatibility layer.");
             return new PatchReport(data, changed, notes);
         }
 
@@ -73,11 +87,107 @@ internal static class PatchEngine
         changed |= ApplyOrderedHoleSkip(data, notes);
 
         if (profile == UpdateProfile.DfbhdServer)
+        {
             changed |= ApplyServer125Hz(data, notes);
+        }
         else
+        {
             changed |= ApplyClientNpcNavigationSkip(data, notes);
 
+            if (graphics is not null &&
+                !string.Equals(
+                    graphics.ResolutionPreset,
+                    "Game default",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                changed |= ApplyResolutionOverride(
+                    data,
+                    graphics,
+                    notes);
+            }
+        }
+
         return new PatchReport(data, changed, notes);
+    }
+
+    private static bool ApplyResolutionOverride(
+        byte[] data,
+        GraphicsOptions graphics,
+        List<string> notes)
+    {
+        int width = graphics.Width;
+        int height = graphics.Height;
+
+        if (width < 640 || width > 16384 ||
+            height < 480 || height > 8640)
+        {
+            throw new InvalidDataException(
+                $"Invalid custom render resolution {width}x{height}.");
+        }
+
+        // Known BHD/Team Sabre 1.5.0.5 widescreen signature:
+        // EB 42 BF [width dword] BE [height dword] EB 36 BF
+        // The original values are 1024x768. We keep the surrounding
+        // instruction signature fixed and allow the two immediates to vary
+        // so an already-patched executable can be safely updated.
+        var matches = new List<int>();
+
+        for (int i = 0; i <= data.Length - 15; i++)
+        {
+            if (data[i] == 0xEB &&
+                data[i + 1] == 0x42 &&
+                data[i + 2] == 0xBF &&
+                data[i + 7] == 0xBE &&
+                data[i + 12] == 0xEB &&
+                data[i + 13] == 0x36 &&
+                data[i + 14] == 0xBF)
+            {
+                matches.Add(i);
+            }
+        }
+
+        if (matches.Count != 1)
+        {
+            throw new InvalidDataException(
+                $"Resolution signature validation failed: expected exactly one match, found {matches.Count}. No resolution bytes were written.");
+        }
+
+        int offset = matches[0];
+        int currentWidth =
+            BinaryPrimitives.ReadInt32LittleEndian(
+                data.AsSpan(offset + 3, 4));
+
+        int currentHeight =
+            BinaryPrimitives.ReadInt32LittleEndian(
+                data.AsSpan(offset + 8, 4));
+
+        if (currentWidth == width &&
+            currentHeight == height)
+        {
+            notes.Add(
+                $"Resolution override: already {width}x{height}.");
+            return false;
+        }
+
+        if (currentWidth < 320 || currentWidth > 16384 ||
+            currentHeight < 200 || currentHeight > 8640)
+        {
+            throw new InvalidDataException(
+                $"Resolution signature matched, but existing dimensions {currentWidth}x{currentHeight} are not plausible. No resolution bytes were written.");
+        }
+
+        BinaryPrimitives.WriteInt32LittleEndian(
+            data.AsSpan(offset + 3, 4),
+            width);
+
+        BinaryPrimitives.WriteInt32LittleEndian(
+            data.AsSpan(offset + 8, 4),
+            height);
+
+        notes.Add(
+            $"Resolution override: {currentWidth}x{currentHeight} -> {width}x{height}.");
+
+        return true;
     }
 
     private static bool ApplyMissionMemory512(byte[] data, List<string> notes)
