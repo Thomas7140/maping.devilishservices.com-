@@ -49,6 +49,27 @@ if (-not (Test-Path $Project -PathType Leaf)) {
 
 New-Item -ItemType Directory -Path $RendererDir -Force | Out-Null
 
+function Get-PeMachine([string]$Path) {
+    $stream = [System.IO.File]::OpenRead($Path)
+    try {
+        $reader = [System.IO.BinaryReader]::new($stream)
+        try {
+            if ($reader.ReadUInt16() -ne 0x5A4D) { return 0 }
+            $stream.Position = 0x3C
+            $peOffset = $reader.ReadInt32()
+            $stream.Position = $peOffset
+            if ($reader.ReadUInt32() -ne 0x00004550) { return 0 }
+            return $reader.ReadUInt16()
+        }
+        finally {
+            $reader.Dispose()
+        }
+    }
+    finally {
+        $stream.Dispose()
+    }
+}
+
 $TempRoot = Join-Path $env:TEMP ("DevilDFBHD-dxwrapper-" + [Guid]::NewGuid().ToString("N"))
 $Archive = Join-Path $TempRoot "dxwrapper.zip"
 $Extract = Join-Path $TempRoot "extract"
@@ -67,7 +88,10 @@ try {
     Expand-Archive -Path $Archive -DestinationPath $Extract -Force
 
     $StubSource = Get-ChildItem -Path $Extract -Recurse -File -Filter "d3d8.dll" |
-        Where-Object { $_.FullName -match "[\\/]Stub[\\/]" } |
+        Where-Object {
+            $_.FullName -match "[\\/]Stub[\\/]" -and
+            (Get-PeMachine $_.FullName) -eq 0x014C
+        } |
         Select-Object -First 1
 
     if (-not $StubSource) {
@@ -75,7 +99,10 @@ try {
     }
 
     $CoreSource = Get-ChildItem -Path $Extract -Recurse -File -Filter "dxwrapper.dll" |
-        Where-Object { $_.FullName -notmatch "[\\/](Debug|symbols)[\\/]" } |
+        Where-Object {
+            $_.FullName -notmatch "[\\/](Debug|symbols)[\\/]" -and
+            (Get-PeMachine $_.FullName) -eq 0x014C
+        } |
         Select-Object -First 1
 
     if (-not $CoreSource) {
