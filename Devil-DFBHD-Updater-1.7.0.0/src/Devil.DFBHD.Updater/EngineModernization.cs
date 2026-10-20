@@ -64,7 +64,7 @@ internal static class EngineModernization
                     StringComparison.OrdinalIgnoreCase))
             {
                 var notes = new List<string>();
-                bool changed = DisableDevilRenderer(folder, notes);
+                bool recoveryChanged = DisableDevilRenderer(folder, notes);
 
                 WriteEngineConfig(
                     folder,
@@ -76,7 +76,7 @@ internal static class EngineModernization
 
                 return new EngineModernizationResult(
                     true,
-                    changed,
+                    recoveryChanged,
                     notes.Count == 0
                         ? "Original Direct3D 8 renderer selected; no Devil graphics wrapper is active."
                         : string.Join(Environment.NewLine, notes));
