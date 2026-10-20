@@ -14,6 +14,16 @@ internal sealed class MainForm : Form
     private readonly TextBox _dfbhdPath = new();
     private readonly TextBox _tsPath = new();
 
+    private readonly GroupBox _graphicsGroup = new();
+    private readonly ComboBox _resolutionPreset = new();
+    private readonly NumericUpDown _customWidth = new();
+    private readonly NumericUpDown _customHeight = new();
+    private readonly ComboBox _refreshRate = new();
+    private readonly CheckBox _borderless = new();
+    private readonly CheckBox _vsync = new();
+    private readonly CheckBox _anisotropic = new();
+    private readonly ComboBox _antiAliasing = new();
+
     private readonly RichTextBox _output = new();
 
     private readonly Button _scanButton = new();
@@ -24,15 +34,16 @@ internal sealed class MainForm : Form
     {
         _settings = SettingsStore.Load();
 
-        Text = "Devilish Services DFBHD Update 1.7.0.0";
+        Text = "Devilish Services DFBHD Update 1.8.0.0";
         StartPosition = FormStartPosition.CenterScreen;
-        MinimumSize = new Size(900, 650);
-        Size = new Size(1040, 760);
+        MinimumSize = new Size(940, 720);
+        Size = new Size(1100, 860);
         Font = new Font("Segoe UI", 9F);
         AutoScaleMode = AutoScaleMode.Dpi;
 
         BuildUi();
         LoadSettingsIntoUi();
+        UpdateGraphicsEnabledState();
     }
 
     private void BuildUi()
@@ -42,9 +53,10 @@ internal sealed class MainForm : Form
             Dock = DockStyle.Fill,
             Padding = new Padding(14),
             ColumnCount = 1,
-            RowCount = 5
+            RowCount = 6
         };
 
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -56,7 +68,7 @@ internal sealed class MainForm : Form
         var heading = new Label
         {
             AutoSize = true,
-            Text = "Devil DFBHD Engine / Updater 1.7.0.0",
+            Text = "Devil DFBHD Engine / Updater 1.8.0.0",
             Font = new Font(Font.FontFamily, 16F, FontStyle.Bold),
             Margin = new Padding(0, 0, 0, 4)
         };
@@ -64,7 +76,7 @@ internal sealed class MainForm : Form
         var subheading = new Label
         {
             AutoSize = true,
-            Text = "Select one installation profile and the folder containing dfbhd.exe.",
+            Text = "Direct3D 12 translation, high-resolution controls, file-version stamping and verified engine patches.",
             Margin = new Padding(0, 0, 0, 12)
         };
 
@@ -98,7 +110,7 @@ internal sealed class MainForm : Form
 
         profileTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150F));
         profileTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        profileTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
+        profileTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130F));
 
         ConfigureProfileRow(
             profileTable,
@@ -124,10 +136,17 @@ internal sealed class MainForm : Form
             _tsPath,
             () => BrowseFor(UpdateProfile.DfbhdTs));
 
+        _serverRadio.CheckedChanged += (_, _) => UpdateGraphicsEnabledState();
+        _dfbhdRadio.CheckedChanged += (_, _) => UpdateGraphicsEnabledState();
+        _tsRadio.CheckedChanged += (_, _) => UpdateGraphicsEnabledState();
+
         _dfbhdRadio.Checked = true;
 
         profileGroup.Controls.Add(profileTable);
         root.Controls.Add(profileGroup, 0, 1);
+
+        BuildGraphicsGroup();
+        root.Controls.Add(_graphicsGroup, 0, 2);
 
         var buttonPanel = new FlowLayoutPanel
         {
@@ -145,7 +164,7 @@ internal sealed class MainForm : Form
         buttonPanel.Controls.Add(_installButton);
         buttonPanel.Controls.Add(_restoreButton);
 
-        root.Controls.Add(buttonPanel, 0, 2);
+        root.Controls.Add(buttonPanel, 0, 3);
 
         _output.Dock = DockStyle.Fill;
         _output.ReadOnly = true;
@@ -156,13 +175,16 @@ internal sealed class MainForm : Form
             "Ready." +
             Environment.NewLine +
             Environment.NewLine +
-            "DFBHD Server: engine patches + 125 Hz server scheduler; no graphics wrapper." +
+            "DFBHD Server: verified engine patches + 125 Hz scheduler; no graphics wrapper." +
             Environment.NewLine +
-            "DFBHD Client: engine patches + NPC replication fix + modern D3D8 compatibility." +
+            "DFBHD Client: engine patches + NPC replication fix + Direct3D 12 translation." +
             Environment.NewLine +
-            "DFBHDTS: safety mode; generic LAA + modern D3D8 compatibility only.";
+            "DFBHDTS: safety mode; generic LAA + Direct3D 12 translation only." +
+            Environment.NewLine +
+            Environment.NewLine +
+            "High-resolution rendering can use desktop native, 1080p, 1440p, ultrawide, 4K, 5K/8K or custom dimensions.";
 
-        root.Controls.Add(_output, 0, 3);
+        root.Controls.Add(_output, 0, 4);
 
         var footer = new Label
         {
@@ -170,13 +192,174 @@ internal sealed class MainForm : Form
             AutoSize = true,
             Text =
                 "Backups are stored in .devil-dfbhd-backups. " +
-                "Unknown engine bytes abort without writing the executable.",
+                "Unknown engine bytes abort without writing dfbhd.exe. " +
+                "The Windows FileVersion/ProductVersion is stamped separately from the multiplayer protocol.",
             Padding = new Padding(0, 8, 0, 0)
         };
 
-        root.Controls.Add(footer, 0, 4);
+        root.Controls.Add(footer, 0, 5);
 
         AcceptButton = _scanButton;
+    }
+
+    private void BuildGraphicsGroup()
+    {
+        _graphicsGroup.Text = "Client graphics / resolution (Direct3D 12)";
+        _graphicsGroup.Dock = DockStyle.Top;
+        _graphicsGroup.AutoSize = true;
+        _graphicsGroup.Padding = new Padding(12);
+
+        var table = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            ColumnCount = 4,
+            RowCount = 3
+        };
+
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130F));
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130F));
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+
+        _resolutionPreset.DropDownStyle = ComboBoxStyle.DropDownList;
+        _resolutionPreset.Dock = DockStyle.Fill;
+        _resolutionPreset.Items.AddRange(
+            new object[]
+            {
+                "Game default",
+                "Desktop native",
+                "1920 x 1080",
+                "2560 x 1440",
+                "3440 x 1440",
+                "3840 x 2160",
+                "5120 x 1440",
+                "5120 x 2160",
+                "7680 x 4320",
+                "Custom"
+            });
+        _resolutionPreset.SelectedIndexChanged += (_, _) =>
+            ApplyResolutionPresetToControls();
+
+        ConfigureNumeric(_customWidth, 640, 16384, 1920);
+        ConfigureNumeric(_customHeight, 480, 8640, 1080);
+
+        _refreshRate.DropDownStyle = ComboBoxStyle.DropDownList;
+        _refreshRate.Dock = DockStyle.Fill;
+        _refreshRate.Items.AddRange(
+            new object[]
+            {
+                "Game / Windows default",
+                "60 Hz",
+                "75 Hz",
+                "100 Hz",
+                "120 Hz",
+                "144 Hz",
+                "165 Hz",
+                "240 Hz",
+                "360 Hz"
+            });
+
+        _antiAliasing.DropDownStyle = ComboBoxStyle.DropDownList;
+        _antiAliasing.Dock = DockStyle.Fill;
+        _antiAliasing.Items.AddRange(
+            new object[]
+            {
+                "Off (sharpest)",
+                "2x MSAA",
+                "4x MSAA",
+                "8x MSAA",
+                "16x MSAA"
+            });
+
+        _borderless.Text = "Borderless fullscreen";
+        _borderless.AutoSize = true;
+        _borderless.Checked = true;
+
+        _vsync.Text = "VSync";
+        _vsync.AutoSize = true;
+        _vsync.Checked = true;
+
+        _anisotropic.Text = "Anisotropic filtering";
+        _anisotropic.AutoSize = true;
+        _anisotropic.Checked = true;
+
+        table.Controls.Add(NewLabel("Resolution"), 0, 0);
+        table.Controls.Add(_resolutionPreset, 1, 0);
+        table.Controls.Add(NewLabel("Refresh rate"), 2, 0);
+        table.Controls.Add(_refreshRate, 3, 0);
+
+        var dimensions = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            AutoSize = true,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false
+        };
+
+        dimensions.Controls.Add(_customWidth);
+        dimensions.Controls.Add(new Label
+        {
+            AutoSize = true,
+            Text = " x ",
+            Padding = new Padding(0, 6, 0, 0)
+        });
+        dimensions.Controls.Add(_customHeight);
+
+        table.Controls.Add(NewLabel("Render size"), 0, 1);
+        table.Controls.Add(dimensions, 1, 1);
+        table.Controls.Add(NewLabel("Anti-aliasing"), 2, 1);
+        table.Controls.Add(_antiAliasing, 3, 1);
+
+        var checks = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            AutoSize = true,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = true
+        };
+
+        checks.Controls.Add(_borderless);
+        checks.Controls.Add(_vsync);
+        checks.Controls.Add(_anisotropic);
+
+        table.Controls.Add(
+            new Label
+            {
+                AutoSize = true,
+                Text = "Quality",
+                Anchor = AnchorStyles.Left
+            },
+            0,
+            2);
+
+        table.SetColumnSpan(checks, 3);
+        table.Controls.Add(checks, 1, 2);
+
+        _graphicsGroup.Controls.Add(table);
+    }
+
+    private static Label NewLabel(string text) =>
+        new()
+        {
+            AutoSize = true,
+            Text = text,
+            Anchor = AnchorStyles.Left,
+            Padding = new Padding(0, 6, 0, 0)
+        };
+
+    private static void ConfigureNumeric(
+        NumericUpDown control,
+        decimal minimum,
+        decimal maximum,
+        decimal value)
+    {
+        control.Minimum = minimum;
+        control.Maximum = maximum;
+        control.Value = value;
+        control.Increment = 1;
+        control.ThousandsSeparator = true;
+        control.Width = 105;
     }
 
     private static void ConfigureActionButton(
@@ -228,6 +411,156 @@ internal sealed class MainForm : Form
         _serverPath.Text = _settings.DfbhdServerPath;
         _dfbhdPath.Text = _settings.DfbhdPath;
         _tsPath.Text = _settings.DfbhdTsPath;
+
+        GraphicsOptions g = _settings.Graphics ?? new GraphicsOptions();
+
+        _resolutionPreset.SelectedItem =
+            _resolutionPreset.Items.Contains(g.ResolutionPreset)
+                ? g.ResolutionPreset
+                : "Desktop native";
+
+        if (_resolutionPreset.SelectedIndex < 0)
+            _resolutionPreset.SelectedItem = "Desktop native";
+
+        _customWidth.Value =
+            Math.Clamp(
+                g.Width > 0 ? g.Width : 1920,
+                (int)_customWidth.Minimum,
+                (int)_customWidth.Maximum);
+
+        _customHeight.Value =
+            Math.Clamp(
+                g.Height > 0 ? g.Height : 1080,
+                (int)_customHeight.Minimum,
+                (int)_customHeight.Maximum);
+
+        _refreshRate.SelectedItem =
+            g.RefreshRate > 0
+                ? $"{g.RefreshRate} Hz"
+                : "Game / Windows default";
+
+        if (_refreshRate.SelectedIndex < 0)
+            _refreshRate.SelectedItem = "Game / Windows default";
+
+        _antiAliasing.SelectedItem =
+            g.AntiAliasingSamples switch
+            {
+                2 => "2x MSAA",
+                4 => "4x MSAA",
+                8 => "8x MSAA",
+                16 => "16x MSAA",
+                _ => "Off (sharpest)"
+            };
+
+        _borderless.Checked = g.BorderlessFullscreen;
+        _vsync.Checked = g.VSync;
+        _anisotropic.Checked = g.AnisotropicFiltering;
+
+        ApplyResolutionPresetToControls();
+    }
+
+    private void ApplyResolutionPresetToControls()
+    {
+        string preset =
+            _resolutionPreset.SelectedItem?.ToString()
+            ?? "Desktop native";
+
+        (int width, int height, bool editable) =
+            preset switch
+            {
+                "Game default" => (1920, 1080, false),
+                "Desktop native" => GetDesktopResolution(),
+                "1920 x 1080" => (1920, 1080, false),
+                "2560 x 1440" => (2560, 1440, false),
+                "3440 x 1440" => (3440, 1440, false),
+                "3840 x 2160" => (3840, 2160, false),
+                "5120 x 1440" => (5120, 1440, false),
+                "5120 x 2160" => (5120, 2160, false),
+                "7680 x 4320" => (7680, 4320, false),
+                "Custom" => ((int)_customWidth.Value, (int)_customHeight.Value, true),
+                _ => GetDesktopResolution()
+            };
+
+        if (preset != "Custom")
+        {
+            _customWidth.Value =
+                Math.Clamp(
+                    width,
+                    (int)_customWidth.Minimum,
+                    (int)_customWidth.Maximum);
+
+            _customHeight.Value =
+                Math.Clamp(
+                    height,
+                    (int)_customHeight.Minimum,
+                    (int)_customHeight.Maximum);
+        }
+
+        _customWidth.Enabled = editable;
+        _customHeight.Enabled = editable;
+    }
+
+    private static (int Width, int Height, bool Editable) GetDesktopResolution()
+    {
+        Rectangle bounds =
+            Screen.PrimaryScreen?.Bounds
+            ?? new Rectangle(0, 0, 1920, 1080);
+
+        return (bounds.Width, bounds.Height, false);
+    }
+
+    private GraphicsOptions CurrentGraphicsOptions()
+    {
+        string preset =
+            _resolutionPreset.SelectedItem?.ToString()
+            ?? "Desktop native";
+
+        int refresh =
+            ParseLeadingInteger(
+                _refreshRate.SelectedItem?.ToString());
+
+        int aa =
+            ParseLeadingInteger(
+                _antiAliasing.SelectedItem?.ToString());
+
+        var options = new GraphicsOptions
+        {
+            ResolutionPreset = preset,
+            Width = preset == "Game default" ? 0 : (int)_customWidth.Value,
+            Height = preset == "Game default" ? 0 : (int)_customHeight.Value,
+            RefreshRate = refresh,
+            BorderlessFullscreen = _borderless.Checked,
+            VSync = _vsync.Checked,
+            AnisotropicFiltering = _anisotropic.Checked,
+            AntiAliasingSamples = aa is 2 or 4 or 8 or 16 ? aa : 0
+        };
+
+        _settings.Graphics = options.Clone();
+        SettingsStore.Save(_settings);
+
+        return options;
+    }
+
+    private static int ParseLeadingInteger(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return 0;
+
+        string digits =
+            new string(
+                value
+                    .TakeWhile(char.IsDigit)
+                    .ToArray());
+
+        return int.TryParse(digits, out int result)
+            ? result
+            : 0;
+    }
+
+    private void UpdateGraphicsEnabledState()
+    {
+        _graphicsGroup.Enabled =
+            SelectedProfile() != UpdateProfile.DfbhdServer;
     }
 
     private UpdateProfile SelectedProfile()
@@ -315,13 +648,27 @@ internal sealed class MainForm : Form
 
             _output.Text = scan.Summary;
 
+            if (profile != UpdateProfile.DfbhdServer)
+            {
+                GraphicsOptions g = CurrentGraphicsOptions();
+
+                _output.AppendText(
+                    Environment.NewLine +
+                    Environment.NewLine +
+                    $"Selected graphics: Direct3D 12, {g.ResolutionPreset}, " +
+                    $"{(g.RefreshRate > 0 ? g.RefreshRate + " Hz" : "default refresh")}, " +
+                    $"{(g.BorderlessFullscreen ? "borderless" : "game fullscreen/window mode")}.");
+            }
+
             if (!scan.Success)
+            {
                 MessageBox.Show(
                     this,
                     scan.Summary,
                     "Scan failed",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
+            }
         });
     }
 
@@ -351,13 +698,20 @@ internal sealed class MainForm : Form
                 return;
             }
 
+            GraphicsOptions graphics =
+                CurrentGraphicsOptions();
+
             DialogResult answer =
                 MessageBox.Show(
                     this,
                     $"Install Devil DFBHD Update {PatchEngine.Version} for {profile.DisplayName()}?" +
                     Environment.NewLine +
                     Environment.NewLine +
-                    "The current dfbhd.exe will be backed up first.",
+                    "The current dfbhd.exe will be backed up first." +
+                    (profile == UpdateProfile.DfbhdServer
+                        ? ""
+                        : Environment.NewLine +
+                          $"Graphics: Direct3D 12 / {graphics.ResolutionPreset}"),
                     "Confirm update",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question,
@@ -369,7 +723,8 @@ internal sealed class MainForm : Form
             InstallResult result =
                 UpdateEngine.Install(
                     profile,
-                    folder);
+                    folder,
+                    graphics);
 
             _output.Text = result.Summary;
 
