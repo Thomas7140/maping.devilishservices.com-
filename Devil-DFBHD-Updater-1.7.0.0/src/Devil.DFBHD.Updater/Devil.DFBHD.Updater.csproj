@@ -19,6 +19,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Payloads\Renderer\d3d8.dll" LogicalName="DevilDFBHD.Renderer.d3d8.dll" />
     <EmbeddedResource Include="Payloads\Renderer\dxwrapper.dll" LogicalName="DevilDFBHD.Renderer.dxwrapper.dll" />
-    <EmbeddedResource Include="ThirdParty\d3d8to9-LICENSE.md" LogicalName="DevilDFBHD.Renderer.LICENSE.md" />
+    <EmbeddedResource Include="ThirdParty\d3d8to9-LICENSE.md" LogicalName="DevilDFBHD.Renderer.d3d8to9.LICENSE.md" />
+    <EmbeddedResource Include="ThirdParty\dxwrapper-License.txt" LogicalName="DevilDFBHD.Renderer.dxwrapper.LICENSE.txt" />
   </ItemGroup>
 </Project>
