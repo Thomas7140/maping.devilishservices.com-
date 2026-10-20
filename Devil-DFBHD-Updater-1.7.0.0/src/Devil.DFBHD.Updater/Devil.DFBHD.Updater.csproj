@@ -7,10 +7,10 @@
     <Nullable>enable</Nullable>
     <RootNamespace>DevilishServices.DfbhdUpdater</RootNamespace>
     <AssemblyName>Devil_dfbhd_update_012105_xx</AssemblyName>
-    <Version>1.8.0.1</Version>
-    <FileVersion>1.8.0.1</FileVersion>
-    <AssemblyVersion>1.8.0.1</AssemblyVersion>
-    <InformationalVersion>1.8.0.1</InformationalVersion>
+    <Version>1.8.0.2</Version>
+    <FileVersion>1.8.0.2</FileVersion>
+    <AssemblyVersion>1.8.0.2</AssemblyVersion>
+    <InformationalVersion>1.8.0.2</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Product>Devilish Services DFBHD Update</Product>
     <Company>Devilish Services</Company>
