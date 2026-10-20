@@ -15,6 +15,7 @@ internal sealed class MainForm : Form
     private readonly TextBox _tsPath = new();
 
     private readonly GroupBox _graphicsGroup = new();
+    private readonly ComboBox _rendererMode = new();
     private readonly ComboBox _resolutionPreset = new();
     private readonly NumericUpDown _customWidth = new();
     private readonly NumericUpDown _customHeight = new();
@@ -37,7 +38,7 @@ internal sealed class MainForm : Form
     {
         _settings = SettingsStore.Load();
 
-        Text = "Devilish Services DFBHD Update 1.8.0.0";
+        Text = "Devilish Services DFBHD Update 1.8.0.1";
         StartPosition = FormStartPosition.CenterScreen;
         MinimumSize = new Size(960, 760);
         Size = new Size(1120, 920);
@@ -72,7 +73,7 @@ internal sealed class MainForm : Form
         var heading = new Label
         {
             AutoSize = true,
-            Text = "Devil DFBHD Engine / Updater 1.8.0.0",
+            Text = "Devil DFBHD Engine / Updater 1.8.0.1",
             Font = new Font(Font.FontFamily, 16F, FontStyle.Bold),
             Margin = new Padding(0, 0, 0, 4)
         };
@@ -80,7 +81,7 @@ internal sealed class MainForm : Form
         var subheading = new Label
         {
             AutoSize = true,
-            Text = "Direct3D 12 translation, true high-resolution EXE patching, UDP packet tuning, version stamping and verified engine fixes.",
+            Text = "Safe Direct3D 12/9 renderer modes, true high-resolution EXE patching, UDP packet tuning, version stamping and verified engine fixes.",
             Margin = new Padding(0, 0, 0, 12)
         };
 
@@ -184,9 +185,9 @@ internal sealed class MainForm : Form
             Environment.NewLine +
             "DFBHD Server: verified engine patches + 125 Hz scheduler + configurable UDP packet ceiling; no graphics wrapper." +
             Environment.NewLine +
-            "DFBHD Client: engine patches + NPC replication fix + Direct3D 12 translation + high-resolution EXE patch." +
+            "DFBHD Client: engine patches + NPC replication fix + selectable D3D12/D3D9/original renderer + high-resolution EXE patch." +
             Environment.NewLine +
-            "DFBHDTS: safety mode; LAA + validated high-resolution signature patch + Direct3D 12 translation." +
+            "DFBHDTS: safety mode; LAA + validated high-resolution signature patch + selectable client renderer." +
             Environment.NewLine +
             Environment.NewLine +
             "Default network packet ceiling is 1400 bytes. The updater will not allow values above 1472 bytes.";
@@ -211,7 +212,7 @@ internal sealed class MainForm : Form
 
     private void BuildGraphicsGroup()
     {
-        _graphicsGroup.Text = "Client graphics / resolution (Direct3D 12)";
+        _graphicsGroup.Text = "Client graphics / resolution";
         _graphicsGroup.Dock = DockStyle.Top;
         _graphicsGroup.AutoSize = true;
         _graphicsGroup.Padding = new Padding(12);
@@ -221,13 +222,26 @@ internal sealed class MainForm : Form
             Dock = DockStyle.Top,
             AutoSize = true,
             ColumnCount = 4,
-            RowCount = 3
+            RowCount = 4
         };
 
         table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130F));
         table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
         table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130F));
         table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+
+        _rendererMode.DropDownStyle = ComboBoxStyle.DropDownList;
+        _rendererMode.Dock = DockStyle.Fill;
+        _rendererMode.Items.AddRange(
+            new object[]
+            {
+                "Direct3D 12 (safe)",
+                "Direct3D 9 compatibility",
+                "Original Direct3D 8"
+            });
+
+        _rendererMode.SelectedIndexChanged += (_, _) =>
+            UpdateRendererControlState();
 
         _resolutionPreset.DropDownStyle = ComboBoxStyle.DropDownList;
         _resolutionPreset.Dock = DockStyle.Fill;
@@ -282,7 +296,7 @@ internal sealed class MainForm : Form
 
         _borderless.Text = "Borderless fullscreen";
         _borderless.AutoSize = true;
-        _borderless.Checked = true;
+        _borderless.Checked = false;
 
         _vsync.Text = "VSync";
         _vsync.AutoSize = true;
@@ -292,10 +306,23 @@ internal sealed class MainForm : Form
         _anisotropic.AutoSize = true;
         _anisotropic.Checked = true;
 
-        table.Controls.Add(NewLabel("Resolution"), 0, 0);
-        table.Controls.Add(_resolutionPreset, 1, 0);
-        table.Controls.Add(NewLabel("Refresh rate"), 2, 0);
-        table.Controls.Add(_refreshRate, 3, 0);
+        table.Controls.Add(NewLabel("Renderer"), 0, 0);
+        table.Controls.Add(_rendererMode, 1, 0);
+
+        var rendererHelp = new Label
+        {
+            AutoSize = true,
+            Anchor = AnchorStyles.Left,
+            Text = "D3D12 safe mode is default. Use D3D9 or Original D3D8 if a driver/GPU shows a black screen.",
+            Padding = new Padding(8, 6, 0, 0)
+        };
+        table.SetColumnSpan(rendererHelp, 2);
+        table.Controls.Add(rendererHelp, 2, 0);
+
+        table.Controls.Add(NewLabel("Resolution"), 0, 1);
+        table.Controls.Add(_resolutionPreset, 1, 1);
+        table.Controls.Add(NewLabel("Refresh rate"), 2, 1);
+        table.Controls.Add(_refreshRate, 3, 1);
 
         var dimensions = new FlowLayoutPanel
         {
@@ -315,10 +342,10 @@ internal sealed class MainForm : Form
             });
         dimensions.Controls.Add(_customHeight);
 
-        table.Controls.Add(NewLabel("Render size"), 0, 1);
-        table.Controls.Add(dimensions, 1, 1);
-        table.Controls.Add(NewLabel("Anti-aliasing"), 2, 1);
-        table.Controls.Add(_antiAliasing, 3, 1);
+        table.Controls.Add(NewLabel("Render size"), 0, 2);
+        table.Controls.Add(dimensions, 1, 2);
+        table.Controls.Add(NewLabel("Anti-aliasing"), 2, 2);
+        table.Controls.Add(_antiAliasing, 3, 2);
 
         var checks = new FlowLayoutPanel
         {
@@ -332,9 +359,9 @@ internal sealed class MainForm : Form
         checks.Controls.Add(_vsync);
         checks.Controls.Add(_anisotropic);
 
-        table.Controls.Add(NewLabel("Quality"), 0, 2);
+        table.Controls.Add(NewLabel("Quality"), 0, 3);
         table.SetColumnSpan(checks, 3);
-        table.Controls.Add(checks, 1, 2);
+        table.Controls.Add(checks, 1, 3);
 
         _graphicsGroup.Controls.Add(table);
     }
@@ -459,6 +486,14 @@ internal sealed class MainForm : Form
             _settings.Graphics
             ?? new GraphicsOptions();
 
+        _rendererMode.SelectedItem =
+            _rendererMode.Items.Contains(g.RendererMode)
+                ? g.RendererMode
+                : "Direct3D 12 (safe)";
+
+        if (_rendererMode.SelectedIndex < 0)
+            _rendererMode.SelectedItem = "Direct3D 12 (safe)";
+
         _resolutionPreset.SelectedItem =
             _resolutionPreset.Items.Contains(g.ResolutionPreset)
                 ? g.ResolutionPreset
@@ -512,6 +547,7 @@ internal sealed class MainForm : Form
                 (int)_maxPacketSize.Maximum);
 
         ApplyResolutionPresetToControls();
+        UpdateRendererControlState();
     }
 
     private void ApplyResolutionPresetToControls()
@@ -587,6 +623,9 @@ internal sealed class MainForm : Form
 
         var options = new GraphicsOptions
         {
+            RendererMode =
+                _rendererMode.SelectedItem?.ToString()
+                ?? "Direct3D 12 (safe)",
             ResolutionPreset = preset,
             Width = preset == "Game default"
                 ? 0
@@ -650,11 +689,28 @@ internal sealed class MainForm : Form
             : 0;
     }
 
+    private void UpdateRendererControlState()
+    {
+        bool wrapped =
+            !string.Equals(
+                _rendererMode.SelectedItem?.ToString(),
+                "Original Direct3D 8",
+                StringComparison.OrdinalIgnoreCase);
+
+        _refreshRate.Enabled = wrapped;
+        _borderless.Enabled = wrapped;
+        _vsync.Enabled = wrapped;
+        _anisotropic.Enabled = wrapped;
+        _antiAliasing.Enabled = wrapped;
+    }
+
     private void UpdateGraphicsEnabledState()
     {
         _graphicsGroup.Enabled =
             SelectedProfile()
             != UpdateProfile.DfbhdServer;
+
+        UpdateRendererControlState();
     }
 
     private UpdateProfile SelectedProfile()
@@ -782,7 +838,7 @@ internal sealed class MainForm : Form
                 _output.AppendText(
                     Environment.NewLine +
                     Environment.NewLine +
-                    $"Selected graphics: Direct3D 12, {graphics.ResolutionPreset}, " +
+                    $"Selected graphics: {graphics.RendererMode}, {graphics.ResolutionPreset}, " +
                     $"{(graphics.RefreshRate > 0 ? graphics.RefreshRate + " Hz" : "default refresh")}, " +
                     $"{(graphics.BorderlessFullscreen ? "borderless" : "game fullscreen/window mode")}.");
             }
@@ -851,7 +907,7 @@ internal sealed class MainForm : Form
                 graphics is null
                     ? ""
                     : Environment.NewLine +
-                      $"Graphics: Direct3D 12 / {graphics.ResolutionPreset}";
+                      $"Graphics: {graphics.RendererMode} / {graphics.ResolutionPreset}";
 
             DialogResult answer =
                 MessageBox.Show(
