@@ -286,6 +286,30 @@ internal static class UpdateEngine
                     config.Summary);
             }
 
+            HudCompatibilityResult hud =
+                HudCompatibilityUpdater.Apply(
+                    folder,
+                    profile,
+                    graphics);
+
+            if (!hud.Success)
+            {
+                throw new InvalidOperationException(
+                    hud.Summary);
+            }
+
+            VersionTextResult versionText =
+                VersionTextUpdater.Apply(
+                    folder,
+                    profile,
+                    PatchEngine.Version);
+
+            if (!versionText.Success)
+            {
+                throw new InvalidOperationException(
+                    versionText.Summary);
+            }
+
             WriteVersionMarker(
                 folder,
                 profile,
@@ -308,6 +332,10 @@ internal static class UpdateEngine
                 modernization.Summary,
                 "",
                 config.Summary,
+                "",
+                hud.Summary,
+                "",
+                versionText.Summary,
                 ""
             };
 
@@ -368,6 +396,28 @@ internal static class UpdateEngine
                 // Preserve the primary error.
             }
 
+            try
+            {
+                HudCompatibilityUpdater.RestoreLast(
+                    folder,
+                    profile);
+            }
+            catch
+            {
+                // Preserve the primary error.
+            }
+
+            try
+            {
+                VersionTextUpdater.RestoreLast(
+                    folder,
+                    profile);
+            }
+            catch
+            {
+                // Preserve the primary error.
+            }
+
             return new InstallResult(
                 false,
                 "Install failed: " +
@@ -403,6 +453,16 @@ internal static class UpdateEngine
                     folder,
                     profile);
 
+            HudCompatibilityResult hudRestore =
+                HudCompatibilityUpdater.RestoreLast(
+                    folder,
+                    profile);
+
+            VersionTextResult versionTextRestore =
+                VersionTextUpdater.RestoreLast(
+                    folder,
+                    profile);
+
             DeleteIfExists(
                 Path.Combine(
                     folder,
@@ -415,12 +475,20 @@ internal static class UpdateEngine
                 engineRestore.Summary +
                 Environment.NewLine +
                 Environment.NewLine +
-                configRestore.Summary;
+                configRestore.Summary +
+                Environment.NewLine +
+                Environment.NewLine +
+                hudRestore.Summary +
+                Environment.NewLine +
+                Environment.NewLine +
+                versionTextRestore.Summary;
 
             return new InstallResult(
                 exeRestore.Success &&
                 engineRestore.Success &&
-                configRestore.Success,
+                configRestore.Success &&
+                hudRestore.Success &&
+                versionTextRestore.Success,
                 summary);
         }
         catch (Exception ex)
@@ -466,6 +534,7 @@ internal static class UpdateEngine
                         ? null
                         : new
                         {
+                            graphics.RendererMode,
                             graphics.ResolutionPreset,
                             graphics.Width,
                             graphics.Height,
