@@ -22,6 +22,99 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
+      - name: Prepare pinned local renderer payloads
+        shell: pwsh
+        run: |
+          $project = "$env:GITHUB_WORKSPACE\Devil-DFBHD-Updater-1.7.0.0\src\Devil.DFBHD.Updater"
+          $renderer = Join-Path $project "Payloads\Renderer"
+          $thirdParty = Join-Path $project "ThirdParty"
+
+          New-Item -ItemType Directory -Path $renderer -Force | Out-Null
+          New-Item -ItemType Directory -Path $thirdParty -Force | Out-Null
+
+          $url = "https://github.com/elishacloud/dxwrapper/releases/download/v1.9.8700.25/dxwrapper.zip"
+          $expectedArchive = "E6AA4FC685115C8F73DEE4EA2D446B6A1F8B57DD04DB9889D2C6D1B6D7B8C825"
+
+          $tempRoot = Join-Path $env:RUNNER_TEMP "dxwrapper-payload"
+          $archive = Join-Path $tempRoot "dxwrapper.zip"
+          $extract = Join-Path $tempRoot "extract"
+
+          Remove-Item $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path $extract -Force | Out-Null
+
+          Invoke-WebRequest -Uri $url -OutFile $archive -UseBasicParsing
+
+          $archiveHash = (Get-FileHash $archive -Algorithm SHA256).Hash.ToUpperInvariant()
+          if ($archiveHash -ne $expectedArchive) {
+            throw "dxwrapper archive SHA256 mismatch. Expected $expectedArchive, found $archiveHash"
+          }
+
+          Expand-Archive -Path $archive -DestinationPath $extract -Force
+
+          function Get-PeMachine([string]$Path) {
+              $stream = [System.IO.File]::OpenRead($Path)
+              try {
+                  $reader = [System.IO.BinaryReader]::new($stream)
+                  try {
+                      if ($reader.ReadUInt16() -ne 0x5A4D) { return 0 }
+                      $stream.Position = 0x3C
+                      $peOffset = $reader.ReadInt32()
+                      $stream.Position = $peOffset
+                      if ($reader.ReadUInt32() -ne 0x00004550) { return 0 }
+                      return $reader.ReadUInt16()
+                  }
+                  finally {
+                      $reader.Dispose()
+                  }
+              }
+              finally {
+                  $stream.Dispose()
+              }
+          }
+
+          $stub = Get-ChildItem -Path $extract -Recurse -File -Filter "d3d8.dll" |
+              Where-Object {
+                  $_.FullName -match "[\\/]Stub[\\/]" -and
+                  (Get-PeMachine $_.FullName) -eq 0x014C
+              } |
+              Select-Object -First 1
+
+          $core = Get-ChildItem -Path $extract -Recurse -File -Filter "dxwrapper.dll" |
+              Where-Object {
+                  $_.FullName -notmatch "[\\/](Debug|symbols)[\\/]" -and
+                  (Get-PeMachine $_.FullName) -eq 0x014C
+              } |
+              Select-Object -First 1
+
+          if (-not $stub -or -not $core) {
+              throw "Could not locate the required 32-bit dxwrapper payloads."
+          }
+
+          Copy-Item $stub.FullName (Join-Path $renderer "d3d8.dll") -Force
+          Copy-Item $core.FullName (Join-Path $renderer "dxwrapper.dll") -Force
+
+          $license = Get-ChildItem -Path $extract -Recurse -File -Filter "License.txt" |
+              Select-Object -First 1
+
+          if (-not $license) {
+              throw "Could not locate dxwrapper License.txt."
+          }
+
+          Copy-Item $license.FullName (Join-Path $thirdParty "dxwrapper-License.txt") -Force
+
+          $d3d8Hash = (Get-FileHash (Join-Path $renderer "d3d8.dll") -Algorithm SHA256).Hash.ToUpperInvariant()
+          $dxwHash = (Get-FileHash (Join-Path $renderer "dxwrapper.dll") -Algorithm SHA256).Hash.ToUpperInvariant()
+
+          if ($d3d8Hash -ne "B8B878E29C2931D6A8D064665C4C93EDB28A0105152E7247F8F543C1603985C3") {
+              throw "d3d8.dll payload hash mismatch: $d3d8Hash"
+          }
+
+          if ($dxwHash -ne "23A2889E0785A02F17F1EE764254BF22B937FC5BDC6ED6374201A9F50CC7B43D") {
+              throw "dxwrapper.dll payload hash mismatch: $dxwHash"
+          }
+
+          Write-Host "Pinned local renderer payloads prepared and verified."
+
       - name: Build portable updater
         shell: pwsh
         run: |
