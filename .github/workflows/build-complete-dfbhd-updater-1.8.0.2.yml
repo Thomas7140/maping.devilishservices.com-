@@ -141,6 +141,35 @@ jobs:
 
           Write-Host "Version stamp verified: FileVersion/ProductVersion 1.8.0.2"
 
+      - name: Verify VERSION.TXT and 1080p compass files
+        shell: pwsh
+        run: |
+          $updater = "$env:GITHUB_WORKSPACE\Devil-DFBHD-Updater-1.7.0.0\artifacts\Devil_dfbhd_update_012105_xx.exe"
+          $testDir = "$env:RUNNER_TEMP\dfbhd-game-file-self-test"
+
+          Remove-Item $testDir -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path $testDir -Force | Out-Null
+
+          $proc = Start-Process -FilePath $updater -ArgumentList @("--self-test-game-files", $testDir) -Wait -PassThru
+          if ($proc.ExitCode -ne 0) {
+            throw "VERSION.TXT/HUD self-test failed with exit code $($proc.ExitCode)"
+          }
+
+          $versionText = Get-Content (Join-Path $testDir "VERSION.TXT") -Raw
+          $hudText = Get-Content (Join-Path $testDir "hudpos.def") -Raw
+
+          if ($versionText -notmatch "V1\.8\.0\.2") {
+            throw "VERSION.TXT did not contain V1.8.0.2"
+          }
+
+          if ($hudText -notmatch "HUDSPINMAPY1\s+354" -or
+              $hudText -notmatch "HUDSPINMAPY2\s+554" -or
+              $hudText -notmatch "HUDDECLUT_SPINMAP\s+1\s+1\s+1\s+1") {
+            throw "1920x1080 compass HUD self-test did not produce expected rows."
+          }
+
+          Write-Host "VERSION.TXT and 1920x1080 compass HUD self-test passed."
+
       - name: Prepare full source ZIP
         shell: pwsh
         run: |
