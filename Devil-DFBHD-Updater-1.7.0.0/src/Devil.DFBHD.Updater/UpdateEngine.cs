@@ -8,7 +8,8 @@ internal static class UpdateEngine
 {
     public static ScanResult Scan(
         UpdateProfile profile,
-        string selectedFolder)
+        string selectedFolder,
+        GraphicsOptions? graphics = null)
     {
         try
         {
@@ -24,7 +25,10 @@ internal static class UpdateEngine
                     "Selected folder does not exist.");
             }
 
-            string target = Path.Combine(folder, "dfbhd.exe");
+            string target =
+                Path.Combine(
+                    folder,
+                    "dfbhd.exe");
 
             if (!File.Exists(target))
             {
@@ -37,20 +41,28 @@ internal static class UpdateEngine
             }
 
             bool hasTeamSabreMarker =
-                File.Exists(Path.Combine(folder, "EXP1.pff")) ||
-                File.Exists(Path.Combine(folder, "BHDTS.CMD"));
+                File.Exists(
+                    Path.Combine(
+                        folder,
+                        "EXP1.pff")) ||
+                File.Exists(
+                    Path.Combine(
+                        folder,
+                        "BHDTS.CMD"));
 
-            if (profile == UpdateProfile.DfbhdTs && !hasTeamSabreMarker)
+            if (profile == UpdateProfile.DfbhdTs &&
+                !hasTeamSabreMarker)
             {
                 return new ScanResult(
                     false,
                     false,
                     target,
                     "",
-                    "DFBHDTS was selected, but this folder does not contain the Team Sabre expansion markers (EXP1.pff/BHDTS.CMD). No changes were made.");
+                    "DFBHDTS was selected, but this folder does not contain Team Sabre expansion markers (EXP1.pff/BHDTS.CMD). No changes were made.");
             }
 
-            if (profile != UpdateProfile.DfbhdTs && hasTeamSabreMarker)
+            if (profile != UpdateProfile.DfbhdTs &&
+                hasTeamSabreMarker)
             {
                 return new ScanResult(
                     false,
@@ -60,12 +72,21 @@ internal static class UpdateEngine
                     $"{profile.DisplayName()} was selected, but this folder appears to be Team Sabre. No changes were made.");
             }
 
-            byte[] image = File.ReadAllBytes(target);
-            string hash = Convert.ToHexString(SHA256.HashData(image));
+            byte[] image =
+                File.ReadAllBytes(target);
 
-            PatchReport report = PatchEngine.BuildPatchedImage(profile, image);
+            string hash =
+                Convert.ToHexString(
+                    SHA256.HashData(image));
 
-            FileVersionInfo vi = FileVersionInfo.GetVersionInfo(target);
+            PatchReport report =
+                PatchEngine.BuildPatchedImage(
+                    profile,
+                    image,
+                    graphics);
+
+            FileVersionInfo vi =
+                FileVersionInfo.GetVersionInfo(target);
 
             bool needsVersionStamp =
                 !string.Equals(
@@ -88,12 +109,15 @@ internal static class UpdateEngine
                 ""
             };
 
-            lines.AddRange(report.Notes.Select(x => "- " + x));
+            lines.AddRange(
+                report.Notes.Select(
+                    x => "- " + x));
 
             if (profile == UpdateProfile.DfbhdTs)
             {
                 lines.Add("");
-                lines.Add("Team Sabre safety mode is active: only generic LAA plus the client graphics wrapper are enabled until TS-specific engine offsets are independently validated.");
+                lines.Add(
+                    "Team Sabre safety mode is active: only generic LAA, the validated high-resolution signature patch, dfv.cfg tuning, and the client renderer are enabled until Team Sabre-specific gameplay/network offsets are independently validated.");
             }
 
             return new ScanResult(
@@ -101,7 +125,9 @@ internal static class UpdateEngine
                 true,
                 target,
                 hash,
-                string.Join(Environment.NewLine, lines));
+                string.Join(
+                    Environment.NewLine,
+                    lines));
         }
         catch (Exception ex)
         {
@@ -109,7 +135,9 @@ internal static class UpdateEngine
                 false,
                 false,
                 Path.Combine(
-                    string.IsNullOrWhiteSpace(selectedFolder) ? "." : selectedFolder,
+                    string.IsNullOrWhiteSpace(selectedFolder)
+                        ? "."
+                        : selectedFolder,
                     "dfbhd.exe"),
                 "",
                 "Scan failed: " + ex.Message);
@@ -119,37 +147,76 @@ internal static class UpdateEngine
     public static InstallResult Install(
         UpdateProfile profile,
         string selectedFolder,
-        GraphicsOptions? graphics = null)
+        GraphicsOptions? graphics = null,
+        NetworkOptions? network = null)
     {
-        string folder = NormalizeFolder(selectedFolder);
-        string target = Path.Combine(folder, "dfbhd.exe");
+        string folder =
+            NormalizeFolder(selectedFolder);
 
-        ScanResult scan = Scan(profile, folder);
+        string target =
+            Path.Combine(
+                folder,
+                "dfbhd.exe");
 
-        if (!scan.Success || !scan.Compatible)
-            return new InstallResult(false, scan.Summary);
+        ScanResult scan =
+            Scan(
+                profile,
+                folder,
+                graphics);
 
-        BackupResult backup = BackupService.CreateBackup(target, profile);
+        if (!scan.Success ||
+            !scan.Compatible)
+        {
+            return new InstallResult(
+                false,
+                scan.Summary);
+        }
 
-        if (!backup.Success || string.IsNullOrWhiteSpace(backup.BackupPath))
-            return new InstallResult(false, backup.Summary);
+        BackupResult backup =
+            BackupService.CreateBackup(
+                target,
+                profile);
+
+        if (!backup.Success ||
+            string.IsNullOrWhiteSpace(
+                backup.BackupPath))
+        {
+            return new InstallResult(
+                false,
+                backup.Summary);
+        }
 
         try
         {
-            byte[] original = File.ReadAllBytes(target);
-            PatchReport report = PatchEngine.BuildPatchedImage(profile, original);
+            byte[] original =
+                File.ReadAllBytes(target);
+
+            PatchReport report =
+                PatchEngine.BuildPatchedImage(
+                    profile,
+                    original,
+                    graphics);
 
             string temp =
-                target + ".devil-update-" + Guid.NewGuid().ToString("N") + ".tmp";
+                target +
+                ".devil-update-" +
+                Guid.NewGuid().ToString("N") +
+                ".tmp";
 
-            File.WriteAllBytes(temp, report.Image);
+            File.WriteAllBytes(
+                temp,
+                report.Image);
 
-            byte[] verify = File.ReadAllBytes(temp);
+            byte[] verify =
+                File.ReadAllBytes(temp);
 
-            if (!verify.SequenceEqual(report.Image))
+            if (!verify.SequenceEqual(
+                    report.Image))
             {
                 File.Delete(temp);
-                throw new InvalidDataException("Temporary patched executable verification failed.");
+
+                throw new InvalidDataException(
+                    "Temporary patched executable verification failed.");
             }
 
             _ = new PeImage(verify);
@@ -158,7 +225,9 @@ internal static class UpdateEngine
                 temp,
                 PatchEngine.Version);
 
-            byte[] stampedVerify = File.ReadAllBytes(temp);
+            byte[] stampedVerify =
+                File.ReadAllBytes(temp);
+
             _ = new PeImage(stampedVerify);
 
             FileVersionInfo stampedInfo =
@@ -174,28 +243,56 @@ internal static class UpdateEngine
                     StringComparison.OrdinalIgnoreCase))
             {
                 File.Delete(temp);
+
                 throw new InvalidDataException(
                     "Windows FileVersion/ProductVersion stamping did not verify.");
             }
 
-            File.Move(temp, target, true);
+            File.Move(
+                temp,
+                target,
+                true);
 
-            byte[] installed = File.ReadAllBytes(target);
+            byte[] installed =
+                File.ReadAllBytes(target);
+
             string installedHash =
                 Convert.ToHexString(
-                    SHA256.HashData(installed));
+                    SHA256.HashData(
+                        installed));
 
             EngineModernizationResult modernization =
-                EngineModernization.Install(profile, target, graphics);
+                EngineModernization.Install(
+                    profile,
+                    target,
+                    graphics);
 
             if (!modernization.Success)
-                throw new InvalidOperationException(modernization.Summary);
+            {
+                throw new InvalidOperationException(
+                    modernization.Summary);
+            }
+
+            ConfigUpdateResult config =
+                GameConfigUpdater.Apply(
+                    folder,
+                    profile,
+                    graphics,
+                    network);
+
+            if (!config.Success)
+            {
+                throw new InvalidOperationException(
+                    config.Summary);
+            }
 
             WriteVersionMarker(
                 folder,
                 profile,
                 installedHash,
-                report.Notes);
+                report.Notes,
+                graphics,
+                network);
 
             var lines = new List<string>
             {
@@ -209,17 +306,24 @@ internal static class UpdateEngine
                 backup.Summary,
                 "",
                 modernization.Summary,
+                "",
+                config.Summary,
                 ""
             };
 
-            lines.AddRange(report.Notes.Select(x => "- " + x));
+            lines.AddRange(
+                report.Notes.Select(
+                    x => "- " + x));
 
             lines.Add("");
-            lines.Add("NovaLogic multiplayer protocol/version fields were not intentionally changed.");
+            lines.Add(
+                "NovaLogic multiplayer protocol/version fields were not intentionally changed.");
 
             return new InstallResult(
                 true,
-                string.Join(Environment.NewLine, lines));
+                string.Join(
+                    Environment.NewLine,
+                    lines));
         }
         catch (Exception ex)
         {
@@ -227,8 +331,13 @@ internal static class UpdateEngine
 
             try
             {
-                File.Copy(backup.BackupPath!, target, true);
-                rollback = "The original dfbhd.exe was restored automatically.";
+                File.Copy(
+                    backup.BackupPath!,
+                    target,
+                    true);
+
+                rollback =
+                    "The original dfbhd.exe was restored automatically.";
             }
             catch (Exception restoreEx)
             {
@@ -239,11 +348,24 @@ internal static class UpdateEngine
 
             try
             {
-                EngineModernization.Restore(profile, folder);
+                EngineModernization.Restore(
+                    profile,
+                    folder);
             }
             catch
             {
-                // Best-effort renderer rollback. Preserve the primary error.
+                // Preserve the primary error.
+            }
+
+            try
+            {
+                GameConfigUpdater.RestoreLast(
+                    folder,
+                    profile);
+            }
+            catch
+            {
+                // Preserve the primary error.
             }
 
             return new InstallResult(
@@ -262,13 +384,24 @@ internal static class UpdateEngine
     {
         try
         {
-            string folder = NormalizeFolder(selectedFolder);
+            string folder =
+                NormalizeFolder(
+                    selectedFolder);
 
             BackupResult exeRestore =
-                BackupService.RestoreLast(folder, profile);
+                BackupService.RestoreLast(
+                    folder,
+                    profile);
 
             EngineModernizationResult engineRestore =
-                EngineModernization.Restore(profile, folder);
+                EngineModernization.Restore(
+                    profile,
+                    folder);
+
+            ConfigUpdateResult configRestore =
+                GameConfigUpdater.RestoreLast(
+                    folder,
+                    profile);
 
             DeleteIfExists(
                 Path.Combine(
@@ -279,17 +412,23 @@ internal static class UpdateEngine
                 exeRestore.Summary +
                 Environment.NewLine +
                 Environment.NewLine +
-                engineRestore.Summary;
+                engineRestore.Summary +
+                Environment.NewLine +
+                Environment.NewLine +
+                configRestore.Summary;
 
             return new InstallResult(
-                exeRestore.Success && engineRestore.Success,
+                exeRestore.Success &&
+                engineRestore.Success &&
+                configRestore.Success,
                 summary);
         }
         catch (Exception ex)
         {
             return new InstallResult(
                 false,
-                "Restore failed: " + ex.Message);
+                "Restore failed: " +
+                ex.Message);
         }
     }
 
@@ -297,20 +436,58 @@ internal static class UpdateEngine
         string folder,
         UpdateProfile profile,
         string sha256,
-        IReadOnlyList<string> notes)
+        IReadOnlyList<string> notes,
+        GraphicsOptions? graphics,
+        NetworkOptions? network)
     {
         try
         {
             var marker = new
             {
-                product = "Devilish Services DFBHD Update",
-                version = PatchEngine.Version,
-                profile = profile.DisplayName(),
-                executable = "dfbhd.exe",
+                product =
+                    "Devilish Services DFBHD Update",
+
+                version =
+                    PatchEngine.Version,
+
+                profile =
+                    profile.DisplayName(),
+
+                executable =
+                    "dfbhd.exe",
+
                 sha256,
-                installedUtc = DateTime.UtcNow.ToString("O"),
+
+                installedUtc =
+                    DateTime.UtcNow.ToString("O"),
+
+                graphics =
+                    graphics is null
+                        ? null
+                        : new
+                        {
+                            graphics.ResolutionPreset,
+                            graphics.Width,
+                            graphics.Height,
+                            graphics.RefreshRate,
+                            graphics.BorderlessFullscreen,
+                            graphics.VSync,
+                            graphics.AnisotropicFiltering,
+                            graphics.AntiAliasingSamples
+                        },
+
+                network =
+                    network is null
+                        ? null
+                        : new
+                        {
+                            network.MaxPacketSize
+                        },
+
                 notes,
-                multiplayerProtocolModified = false
+
+                multiplayerProtocolModified =
+                    false
             };
 
             File.WriteAllText(
@@ -326,16 +503,19 @@ internal static class UpdateEngine
         }
         catch
         {
-            // The executable install is already verified. Marker failure is non-fatal.
+            // The executable install is already verified.
+            // Marker failure is non-fatal.
         }
     }
 
-    private static string NormalizeFolder(string value)
+    private static string NormalizeFolder(
+        string value)
     {
         if (string.IsNullOrWhiteSpace(value))
             return "";
 
-        value = value.Trim().Trim('"');
+        value =
+            value.Trim().Trim('"');
 
         if (File.Exists(value) &&
             string.Equals(
@@ -343,13 +523,15 @@ internal static class UpdateEngine
                 "dfbhd.exe",
                 StringComparison.OrdinalIgnoreCase))
         {
-            return Path.GetDirectoryName(value) ?? "";
+            return Path.GetDirectoryName(value)
+                ?? "";
         }
 
         return value;
     }
 
-    private static void DeleteIfExists(string path)
+    private static void DeleteIfExists(
+        string path)
     {
         if (File.Exists(path))
             File.Delete(path);
