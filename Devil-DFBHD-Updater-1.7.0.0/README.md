@@ -1,4 +1,4 @@
-# Devilish Services DFBHD Updater 1.8.0.0
+# Devilish Services DFBHD Updater 1.8.0.1
 
 This package is the complete local build source for the Devilish Services update tool for:
 
@@ -8,7 +8,7 @@ This package is the complete local build source for the Devilish Services update
 
 The updater modifies an existing owned installation. It does not include or redistribute NovaLogic's game executable.
 
-## What 1.8.0.0 does
+## What 1.8.0.1 does
 
 ### DFBHD Server
 
@@ -17,7 +17,7 @@ The updater modifies an existing owned installation. It does not include or redi
 - reliable ordered stale-hole skip
 - one-tick server scheduler (~125 Hz)
 - configurable multiplayer packet ceiling in dfv.cfg
-- Windows FileVersion/ProductVersion stamped to 1.8.0.0
+- Windows FileVersion/ProductVersion stamped to 1.8.0.1
 - executable/config backups and restore
 - no client graphics wrapper
 
@@ -36,14 +36,14 @@ The updater modifies an existing owned installation. It does not include or redi
 - anisotropic filtering
 - optional MSAA, defaulting to Off for the sharpest image
 - configurable multiplayer packet ceiling in dfv.cfg
-- Windows FileVersion/ProductVersion stamped to 1.8.0.0
+- Windows FileVersion/ProductVersion stamped to 1.8.0.1
 - executable/config/renderer backups and restore
 
 ### DFBHD Team Sabre
 
 Team Sabre is treated as a separate executable build.
 
-1.8.0.0 applies only changes that can be independently validated for Team Sabre:
+1.8.0.1 applies only changes that can be independently validated for Team Sabre:
 
 - generic Large Address Aware
 - validated BHD/Team Sabre widescreen-resolution signature
@@ -109,8 +109,8 @@ This setting does not alter the NovaLogic multiplayer packet format and does not
 
 After executable patches are written to a temporary file, the updater changes the Windows VERSIONINFO resource and verifies:
 
-    FileVersion:    1.8.0.0
-    ProductVersion: 1.8.0.0
+    FileVersion:    1.8.0.1
+    ProductVersion: 1.8.0.1
 
 This changes Windows Explorer file metadata only.
 
@@ -172,7 +172,7 @@ No GitHub build service is required.
 PowerShell:
 
     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-    Set-Location "D:\Devil-DFBHD-Updater-1.8.0.0"
+    Set-Location "D:\Devil-DFBHD-Updater-1.8.0.1"
     .\Build.ps1
 
 Output:
