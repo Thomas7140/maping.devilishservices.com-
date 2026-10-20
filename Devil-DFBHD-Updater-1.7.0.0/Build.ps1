@@ -27,7 +27,7 @@ $ExpectedDxWrapperSha256 = "23A2889E0785A02F17F1EE764254BF22B937FC5BDC6ED6374201
 
 Write-Host ""
 Write-Host "====================================================" -ForegroundColor Cyan
-Write-Host " Devilish Services DFBHD Updater 1.8.0.1" -ForegroundColor Cyan
+Write-Host " Devilish Services DFBHD Updater 1.8.0.2" -ForegroundColor Cyan
 Write-Host " Local / Offline Portable Build" -ForegroundColor Cyan
 Write-Host "====================================================" -ForegroundColor Cyan
 Write-Host ""
