@@ -12,7 +12,7 @@ internal sealed record EngineModernizationResult(
 
 internal static class EngineModernization
 {
-    public const string EngineVersion = "1.8.0.1";
+    public const string EngineVersion = "1.8.0.2";
 
     private const string D3d8Resource =
         "DevilDFBHD.Renderer.d3d8.dll";
@@ -27,7 +27,7 @@ internal static class EngineModernization
         "DevilDFBHD.Renderer.dxwrapper.LICENSE.txt";
 
     private const string IniMarker =
-        "; Devil DFBHD Engine 1.8.0.1 - generated file";
+        "; Devil DFBHD Engine 1.8.0.2 - generated file";
 
     public static EngineModernizationResult Install(
         UpdateProfile profile,
@@ -395,7 +395,7 @@ internal static class EngineModernization
 $@"{IniMarker}
 ; DFBHD remains a Direct3D 8 game.
 ; Resolution is patched in dfbhd.exe. dxwrapper does NOT override display size.
-; 1.8.0.1 intentionally disables the forced borderless/custom-display defaults
+; 1.8.0.2 intentionally disables the forced borderless/custom-display defaults
 ; from 1.8.0.0 because they can produce a black screen on some systems.
 
 [General]
