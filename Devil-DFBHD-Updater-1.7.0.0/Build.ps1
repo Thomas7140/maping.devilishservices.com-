@@ -17,6 +17,7 @@ $RendererDir = Join-Path $ProjectDir "Payloads\Renderer"
 $RendererStub = Join-Path $RendererDir "d3d8.dll"
 $RendererCore = Join-Path $RendererDir "dxwrapper.dll"
 $GeneratedHashes = Join-Path $ProjectDir "GeneratedRendererHashes.cs"
+$DxWrapperLicense = Join-Path $ProjectDir "ThirdParty\dxwrapper-License.txt"
 
 $Artifacts = Join-Path $Root "artifacts"
 $PublishDir = Join-Path $Root "portable-publish"
@@ -83,6 +84,11 @@ try {
 
     Copy-Item $StubSource.FullName $RendererStub -Force
     Copy-Item $CoreSource.FullName $RendererCore -Force
+
+    $LicenseSource = Get-ChildItem -Path $Extract -Recurse -File -Filter "License.txt" | Select-Object -First 1
+    if ($LicenseSource) {
+        Copy-Item $LicenseSource.FullName $DxWrapperLicense -Force
+    }
 
     $StubHash = (Get-FileHash $RendererStub -Algorithm SHA256).Hash.ToUpperInvariant()
     $CoreHash = (Get-FileHash $RendererCore -Algorithm SHA256).Hash.ToUpperInvariant()
