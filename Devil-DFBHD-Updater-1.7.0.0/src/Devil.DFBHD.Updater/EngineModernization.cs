@@ -64,7 +64,10 @@ internal static class EngineModernization
                     StringComparison.OrdinalIgnoreCase))
             {
                 var notes = new List<string>();
-                bool recoveryChanged = DisableDevilRenderer(folder, notes);
+                bool recoveryChanged = DisableDevilRenderer(
+                    folder,
+                    notes,
+                    restorePrevious: false);
 
                 WriteEngineConfig(
                     folder,
@@ -157,7 +160,8 @@ internal static class EngineModernization
             {
                 changed |= DisableDevilRenderer(
                     gameFolder,
-                    notes);
+                    notes,
+                    restorePrevious: true);
             }
 
             DeleteIfExists(
@@ -188,7 +192,8 @@ internal static class EngineModernization
 
     private static bool DisableDevilRenderer(
         string folder,
-        List<string> notes)
+        List<string> notes,
+        bool restorePrevious)
     {
         bool changed = false;
 
@@ -229,23 +234,31 @@ internal static class EngineModernization
             }
         }
 
-        changed |= RestoreNewestBackup(
-            folder,
-            "d3d8.dll",
-            "d3d8-existing-*.bak",
-            notes);
+        if (restorePrevious)
+        {
+            changed |= RestoreNewestBackup(
+                folder,
+                "d3d8.dll",
+                "d3d8-existing-*.bak",
+                notes);
 
-        changed |= RestoreNewestBackup(
-            folder,
-            "dxwrapper.dll",
-            "dxwrapper-existing-*.bak",
-            notes);
+            changed |= RestoreNewestBackup(
+                folder,
+                "dxwrapper.dll",
+                "dxwrapper-existing-*.bak",
+                notes);
 
-        changed |= RestoreNewestBackup(
-            folder,
-            "dxwrapper.ini",
-            "dxwrapper-ini-existing-*.bak",
-            notes);
+            changed |= RestoreNewestBackup(
+                folder,
+                "dxwrapper.ini",
+                "dxwrapper-ini-existing-*.bak",
+                notes);
+        }
+        else
+        {
+            notes.Add(
+                "Graphics recovery left previous third-party wrapper backups in .devil-dfbhd-backups instead of reactivating them.");
+        }
 
         return changed;
     }
