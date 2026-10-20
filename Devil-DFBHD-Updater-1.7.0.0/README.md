@@ -201,3 +201,40 @@ dfv.cfg is edited in place only after a backup is created.
 The documented BHD memory, LAA, server scheduler, ordered-hole-skip and client NPC patches are based on the MIT-licensed community patch work in BadgerLove/bhd-patches.
 
 The client Direct3D compatibility layer uses elishacloud/dxwrapper and its bundled third-party components. Applicable notices are included under src\Devil.DFBHD.Updater\ThirdParty.
+
+
+## 1.8.0.1 black-screen correction
+
+1.8.0.0 forced two renderer settings at the same time:
+
+- dxwrapper custom display width/height
+- borderless/window mode
+
+The upstream dxwrapper configuration documents CustomDisplayWidth/CustomDisplayHeight as display-mode limiting settings, while DFBHD 1.8 already patches the game's own resolution slot. Applying both layers was unnecessary and could leave some systems at a black screen.
+
+1.8.0.1 changes the client defaults:
+
+- Direct3D 12 remains available and is the default renderer mode.
+- dxwrapper no longer overrides the display width/height; the validated dfbhd.exe resolution patch controls the game resolution.
+- borderless/window mode defaults to Off.
+- anti-aliasing defaults to Off for the sharpest output.
+- Direct3D 9 compatibility mode is available as a fallback.
+- Original Direct3D 8 is available as a recovery mode.
+- a Fix Black Screen button removes only the Devil renderer layer and restores any pre-existing wrapper backup, without removing the engine/network patches from dfbhd.exe.
+
+Recommended first test after installing 1.8.0.1:
+
+    Renderer:   Direct3D 12 (safe)
+    Resolution: Desktop native
+    Borderless: Off
+    AA:         Off (sharpest)
+
+If the display is still black, run the updater again and choose:
+
+    Original Direct3D 8
+
+or press:
+
+    Fix Black Screen
+
+Then test the game before changing any other option.
