@@ -10,7 +10,7 @@ internal sealed record PatchReport(
 
 internal static class PatchEngine
 {
-    public const string Version = "1.8.0.1";
+    public const string Version = "1.8.0.2";
 
     public const string StockBhdSha256 =
         "693676B5FB96012D32EE395AC23B4A8BF4D7DD9A9F25AE8E500749A2F0DF34EA";
