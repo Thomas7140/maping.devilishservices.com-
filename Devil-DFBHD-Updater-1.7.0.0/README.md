@@ -238,3 +238,30 @@ or press:
     Fix Black Screen
 
 Then test the game before changing any other option.
+
+
+## 1.8.0.2 - 1920x1080 compass/minimap + VERSION.TXT
+
+For 1920x1080, the updater now installs a small backed-up hudpos.def override that only changes the corner spinmap/compass rows.
+
+The game HUD is authored in a 1024x768 design space. With the 1920x1080 widescreen slot patch, the visible vertical design extent is 576 units when the HUD follows the 1920-wide scale. The normal map position is therefore shifted upward by 192 design units:
+
+    HUDSPINMAPX1 802
+    HUDSPINMAPX2 1002
+    HUDSPINMAPY1 354
+    HUDSPINMAPY2 554
+    MAPCOORDS 1012,314,0
+
+This keeps the map/compass inside the 16:9 screen instead of letting the lower part fall outside the 1080p viewport.
+
+Any existing hudpos.def is backed up before replacement and Restore Last Backup restores it.
+
+The updater also updates the game-directory VERSION.TXT. If the existing first non-empty line contains a NovaLogic-style version token such as:
+
+    Delta Force Black Hawk Down, V1.0.0.5; English
+
+only the Vx.x.x.x token is replaced, preserving the rest of the line:
+
+    Delta Force Black Hawk Down, V1.8.0.2; English
+
+VERSION.TXT is backed up before modification and is restored by Restore Last Backup.
