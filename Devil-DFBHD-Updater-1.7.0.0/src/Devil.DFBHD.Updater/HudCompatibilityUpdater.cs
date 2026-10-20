@@ -34,6 +34,7 @@ internal static class HudCompatibilityUpdater
             {
                 return RemoveOwnedOverride(
                     gameFolder,
+                    profile,
                     restorePrevious: true);
             }
 
@@ -77,6 +78,7 @@ HUDSPINMAPX2 1002
 HUDSPINMAPY1 354
 HUDSPINMAPY2 554
 MAPCOORDS 1012,314,0
+HUDDECLUT_SPINMAP 1 1 1 1
 ";
 
             bool changed =
@@ -117,6 +119,7 @@ MAPCOORDS 1012,314,0
             HudCompatibilityResult removed =
                 RemoveOwnedOverride(
                     gameFolder,
+                    profile,
                     restorePrevious: false);
 
             string backupDir =
@@ -163,6 +166,7 @@ MAPCOORDS 1012,314,0
 
     private static HudCompatibilityResult RemoveOwnedOverride(
         string gameFolder,
+        UpdateProfile profile,
         bool restorePrevious)
     {
         string path =
@@ -200,7 +204,7 @@ MAPCOORDS 1012,314,0
             {
                 FileInfo? latest =
                     new DirectoryInfo(backupDir)
-                        .GetFiles("hudpos-*.def.bak")
+                        .GetFiles($"hudpos-{profile.FileToken()}-*.def.bak")
                         .OrderByDescending(
                             f => f.LastWriteTimeUtc)
                         .FirstOrDefault();
