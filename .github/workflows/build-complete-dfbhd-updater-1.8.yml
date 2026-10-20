@@ -36,9 +36,9 @@ jobs:
           $target = "$env:RUNNER_TEMP\version-resource-test.exe"
           Copy-Item "$env:WINDIR\System32\notepad.exe" $target -Force
 
-          & $updater --self-test-version-resource $target
-          if ($LASTEXITCODE -ne 0) {
-            throw "Version resource self-test failed with exit code $LASTEXITCODE"
+          $proc = Start-Process -FilePath $updater -ArgumentList @("--self-test-version-resource", $target) -Wait -PassThru
+          if ($proc.ExitCode -ne 0) {
+            throw "Version resource self-test failed with exit code $($proc.ExitCode)"
           }
 
           $info = (Get-Item $target).VersionInfo
