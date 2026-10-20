@@ -8,6 +8,7 @@ internal sealed class AppSettings
     public string DfbhdPath { get; set; } = "";
     public string DfbhdTsPath { get; set; } = "";
     public GraphicsOptions Graphics { get; set; } = new();
+    public NetworkOptions Network { get; set; } = new();
 }
 
 internal static class SettingsStore
@@ -31,6 +32,7 @@ internal static class SettingsStore
             string json = File.ReadAllText(FilePath);
             AppSettings settings = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
             settings.Graphics ??= new GraphicsOptions();
+            settings.Network ??= new NetworkOptions();
             return settings;
         }
         catch
