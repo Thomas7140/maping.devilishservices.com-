@@ -1,4 +1,4 @@
-# Devilish Services DFBHD Updater 1.8.0.1
+# Devilish Services DFBHD Updater 1.8.0.2
 
 This package is the complete local build source for the Devilish Services update tool for:
 
@@ -8,7 +8,7 @@ This package is the complete local build source for the Devilish Services update
 
 The updater modifies an existing owned installation. It does not include or redistribute NovaLogic's game executable.
 
-## What 1.8.0.1 does
+## What 1.8.0.2 does
 
 ### DFBHD Server
 
@@ -17,7 +17,7 @@ The updater modifies an existing owned installation. It does not include or redi
 - reliable ordered stale-hole skip
 - one-tick server scheduler (~125 Hz)
 - configurable multiplayer packet ceiling in dfv.cfg
-- Windows FileVersion/ProductVersion stamped to 1.8.0.1
+- Windows FileVersion/ProductVersion stamped to 1.8.0.2
 - executable/config backups and restore
 - no client graphics wrapper
 
@@ -36,14 +36,14 @@ The updater modifies an existing owned installation. It does not include or redi
 - anisotropic filtering
 - optional MSAA, defaulting to Off for the sharpest image
 - configurable multiplayer packet ceiling in dfv.cfg
-- Windows FileVersion/ProductVersion stamped to 1.8.0.1
+- Windows FileVersion/ProductVersion stamped to 1.8.0.2
 - executable/config/renderer backups and restore
 
 ### DFBHD Team Sabre
 
 Team Sabre is treated as a separate executable build.
 
-1.8.0.1 applies only changes that can be independently validated for Team Sabre:
+1.8.0.2 applies only changes that can be independently validated for Team Sabre:
 
 - generic Large Address Aware
 - validated BHD/Team Sabre widescreen-resolution signature
@@ -109,8 +109,8 @@ This setting does not alter the NovaLogic multiplayer packet format and does not
 
 After executable patches are written to a temporary file, the updater changes the Windows VERSIONINFO resource and verifies:
 
-    FileVersion:    1.8.0.1
-    ProductVersion: 1.8.0.1
+    FileVersion:    1.8.0.2
+    ProductVersion: 1.8.0.2
 
 This changes Windows Explorer file metadata only.
 
@@ -172,7 +172,7 @@ No GitHub build service is required.
 PowerShell:
 
     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-    Set-Location "D:\Devil-DFBHD-Updater-1.8.0.1"
+    Set-Location "D:\Devil-DFBHD-Updater-1.8.0.2"
     .\Build.ps1
 
 Output:
@@ -203,7 +203,7 @@ The documented BHD memory, LAA, server scheduler, ordered-hole-skip and client N
 The client Direct3D compatibility layer uses elishacloud/dxwrapper and its bundled third-party components. Applicable notices are included under src\Devil.DFBHD.Updater\ThirdParty.
 
 
-## 1.8.0.1 black-screen correction
+## 1.8.0.2 black-screen correction
 
 1.8.0.0 forced two renderer settings at the same time:
 
@@ -212,7 +212,7 @@ The client Direct3D compatibility layer uses elishacloud/dxwrapper and its bundl
 
 The upstream dxwrapper configuration documents CustomDisplayWidth/CustomDisplayHeight as display-mode limiting settings, while DFBHD 1.8 already patches the game's own resolution slot. Applying both layers was unnecessary and could leave some systems at a black screen.
 
-1.8.0.1 changes the client defaults:
+1.8.0.2 changes the client defaults:
 
 - Direct3D 12 remains available and is the default renderer mode.
 - dxwrapper no longer overrides the display width/height; the validated dfbhd.exe resolution patch controls the game resolution.
@@ -222,7 +222,7 @@ The upstream dxwrapper configuration documents CustomDisplayWidth/CustomDisplayH
 - Original Direct3D 8 is available as a recovery mode.
 - a Fix Black Screen button removes only the Devil renderer layer and restores any pre-existing wrapper backup, without removing the engine/network patches from dfbhd.exe.
 
-Recommended first test after installing 1.8.0.1:
+Recommended first test after installing 1.8.0.2:
 
     Renderer:   Direct3D 12 (safe)
     Resolution: Desktop native
