@@ -82,7 +82,7 @@ internal sealed class MainForm : Form
         var subheading = new Label
         {
             AutoSize = true,
-            Text = "Safe Direct3D 12/9 renderer modes, true high-resolution EXE patching, UDP packet tuning, version stamping and verified engine fixes.",
+            Text = "1920x1080 compass fix, VERSION.TXT update, safe Direct3D 12/9 modes, UDP tuning and verified engine fixes.",
             Margin = new Padding(0, 0, 0, 12)
         };
 
@@ -188,12 +188,12 @@ internal sealed class MainForm : Form
             Environment.NewLine +
             "DFBHD Server: verified engine patches + 125 Hz scheduler + configurable UDP packet ceiling; no graphics wrapper." +
             Environment.NewLine +
-            "DFBHD Client: engine patches + NPC replication fix + selectable D3D12/D3D9/original renderer + high-resolution EXE patch." +
+            "DFBHD Client: engine patches + NPC replication fix + selectable renderer + 1920x1080 high-resolution/compass fix." +
             Environment.NewLine +
-            "DFBHDTS: safety mode; LAA + validated high-resolution signature patch + selectable client renderer." +
+            "DFBHDTS: safety mode; LAA + validated resolution signature + 1920x1080 compass fix + selectable client renderer." +
             Environment.NewLine +
             Environment.NewLine +
-            "Default network packet ceiling is 1400 bytes. The updater will not allow values above 1472 bytes.";
+            "Default network packet ceiling is 1400 bytes. The updater also updates VERSION.TXT to the installed Devil update version.";
 
         root.Controls.Add(_output, 0, 5);
 
