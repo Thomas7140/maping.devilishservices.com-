@@ -12,7 +12,7 @@ internal sealed record EngineModernizationResult(
 
 internal static class EngineModernization
 {
-    public const string EngineVersion = "1.8.0.0";
+    public const string EngineVersion = "1.8.0.1";
 
     private const string D3d8Resource =
         "DevilDFBHD.Renderer.d3d8.dll";
@@ -27,7 +27,7 @@ internal static class EngineModernization
         "DevilDFBHD.Renderer.dxwrapper.LICENSE.txt";
 
     private const string IniMarker =
-        "; Devil DFBHD Engine 1.8.0.0 - generated file";
+        "; Devil DFBHD Engine 1.8.0.1 - generated file";
 
     public static EngineModernizationResult Install(
         UpdateProfile profile,
@@ -44,12 +44,42 @@ internal static class EngineModernization
 
             if (profile == UpdateProfile.DfbhdServer)
             {
-                WriteEngineConfig(folder, profile, false, null, null, options);
+                WriteEngineConfig(
+                    folder,
+                    profile,
+                    false,
+                    null,
+                    null,
+                    options);
 
                 return new EngineModernizationResult(
                     true,
                     false,
-                    "Dedicated-server profile: Direct3D renderer files were not installed.");
+                    "Dedicated-server profile: graphics wrapper files were not installed.");
+            }
+
+            if (string.Equals(
+                    options.RendererMode,
+                    "Original Direct3D 8",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                var notes = new List<string>();
+                bool changed = DisableDevilRenderer(folder, notes);
+
+                WriteEngineConfig(
+                    folder,
+                    profile,
+                    false,
+                    null,
+                    null,
+                    options);
+
+                return new EngineModernizationResult(
+                    true,
+                    changed,
+                    notes.Count == 0
+                        ? "Original Direct3D 8 renderer selected; no Devil graphics wrapper is active."
+                        : string.Join(Environment.NewLine, notes));
             }
 
             byte[] d3d8 = ReadEmbeddedBytes(D3d8Resource);
@@ -79,7 +109,9 @@ internal static class EngineModernization
                 dxwrapper,
                 GeneratedRendererHashes.DxWrapperSha256);
 
-            changed |= WriteDxWrapperIni(folder, options);
+            changed |= WriteDxWrapperIni(
+                folder,
+                options);
 
             WriteThirdPartyNotice(folder);
 
@@ -91,12 +123,17 @@ internal static class EngineModernization
                 GeneratedRendererHashes.DxWrapperSha256,
                 options);
 
+            string mode =
+                IsD3d12(options)
+                    ? "Direct3D 8 -> Direct3D 9 -> Direct3D 12"
+                    : "Direct3D 8 -> Direct3D 9";
+
             return new EngineModernizationResult(
                 true,
                 changed,
                 changed
-                    ? "Direct3D 8 -> Direct3D 9 -> Direct3D 12 compatibility layer and resolution settings installed."
-                    : "Direct3D 12 compatibility layer is already installed; graphics settings were verified.");
+                    ? $"{mode} compatibility layer installed with conservative fullscreen settings."
+                    : $"{mode} compatibility layer already installed; safe graphics settings were verified.");
         }
         catch (Exception ex)
         {
@@ -118,57 +155,20 @@ internal static class EngineModernization
 
             if (profile != UpdateProfile.DfbhdServer)
             {
-                changed |= RemoveOwnedBinary(
+                changed |= DisableDevilRenderer(
                     gameFolder,
-                    "d3d8.dll",
-                    GeneratedRendererHashes.D3d8StubSha256,
-                    notes);
-
-                changed |= RemoveOwnedBinary(
-                    gameFolder,
-                    "dxwrapper.dll",
-                    GeneratedRendererHashes.DxWrapperSha256,
-                    notes);
-
-                string ini = Path.Combine(gameFolder, "dxwrapper.ini");
-
-                if (File.Exists(ini))
-                {
-                    string text = File.ReadAllText(ini);
-
-                    if (text.StartsWith(IniMarker, StringComparison.Ordinal))
-                    {
-                        File.Delete(ini);
-                        changed = true;
-                        notes.Add("Removed Devil DFBHD dxwrapper.ini.");
-                    }
-                    else
-                    {
-                        notes.Add("Existing dxwrapper.ini is not owned by Devil DFBHD; it was left untouched.");
-                    }
-                }
-
-                changed |= RestoreNewestBackup(
-                    gameFolder,
-                    "d3d8.dll",
-                    "d3d8-existing-*.bak",
-                    notes);
-
-                changed |= RestoreNewestBackup(
-                    gameFolder,
-                    "dxwrapper.dll",
-                    "dxwrapper-existing-*.bak",
-                    notes);
-
-                changed |= RestoreNewestBackup(
-                    gameFolder,
-                    "dxwrapper.ini",
-                    "dxwrapper-ini-existing-*.bak",
                     notes);
             }
 
-            DeleteIfExists(Path.Combine(gameFolder, "DevilDFBHD.Engine.json"));
-            DeleteIfExists(Path.Combine(gameFolder, "DevilDFBHD-ThirdParty-Notices.txt"));
+            DeleteIfExists(
+                Path.Combine(
+                    gameFolder,
+                    "DevilDFBHD.Engine.json"));
+
+            DeleteIfExists(
+                Path.Combine(
+                    gameFolder,
+                    "DevilDFBHD-ThirdParty-Notices.txt"));
 
             return new EngineModernizationResult(
                 true,
@@ -186,17 +186,85 @@ internal static class EngineModernization
         }
     }
 
+    private static bool DisableDevilRenderer(
+        string folder,
+        List<string> notes)
+    {
+        bool changed = false;
+
+        changed |= RemoveOwnedBinary(
+            folder,
+            "d3d8.dll",
+            GeneratedRendererHashes.D3d8StubSha256,
+            notes);
+
+        changed |= RemoveOwnedBinary(
+            folder,
+            "dxwrapper.dll",
+            GeneratedRendererHashes.DxWrapperSha256,
+            notes);
+
+        string ini =
+            Path.Combine(
+                folder,
+                "dxwrapper.ini");
+
+        if (File.Exists(ini))
+        {
+            string text =
+                File.ReadAllText(ini);
+
+            if (text.StartsWith(
+                    "; Devil DFBHD Engine ",
+                    StringComparison.Ordinal))
+            {
+                File.Delete(ini);
+                changed = true;
+                notes.Add("Removed Devil DFBHD dxwrapper.ini.");
+            }
+            else
+            {
+                notes.Add(
+                    "Existing dxwrapper.ini is not owned by Devil DFBHD; it was left untouched.");
+            }
+        }
+
+        changed |= RestoreNewestBackup(
+            folder,
+            "d3d8.dll",
+            "d3d8-existing-*.bak",
+            notes);
+
+        changed |= RestoreNewestBackup(
+            folder,
+            "dxwrapper.dll",
+            "dxwrapper-existing-*.bak",
+            notes);
+
+        changed |= RestoreNewestBackup(
+            folder,
+            "dxwrapper.ini",
+            "dxwrapper-ini-existing-*.bak",
+            notes);
+
+        return changed;
+    }
+
     private static bool InstallBinary(
         string folder,
         string fileName,
         byte[] payload,
         string expectedHash)
     {
-        string destination = Path.Combine(folder, fileName);
+        string destination =
+            Path.Combine(
+                folder,
+                fileName);
 
         if (File.Exists(destination))
         {
-            string currentHash = Sha256File(destination);
+            string currentHash =
+                Sha256File(destination);
 
             if (string.Equals(
                     currentHash,
@@ -214,11 +282,17 @@ internal static class EngineModernization
         }
 
         string temp =
-            destination + ".devil-" + Guid.NewGuid().ToString("N") + ".tmp";
+            destination +
+            ".devil-" +
+            Guid.NewGuid().ToString("N") +
+            ".tmp";
 
-        File.WriteAllBytes(temp, payload);
+        File.WriteAllBytes(
+            temp,
+            payload);
 
-        string tempHash = Sha256File(temp);
+        string tempHash =
+            Sha256File(temp);
 
         if (!string.Equals(
                 tempHash,
@@ -226,13 +300,18 @@ internal static class EngineModernization
                 StringComparison.OrdinalIgnoreCase))
         {
             File.Delete(temp);
+
             throw new InvalidDataException(
                 $"Temporary {fileName} SHA256 verification failed.");
         }
 
-        File.Move(temp, destination, true);
+        File.Move(
+            temp,
+            destination,
+            true);
 
-        string installedHash = Sha256File(destination);
+        string installedHash =
+            Sha256File(destination);
 
         if (!string.Equals(
                 installedHash,
@@ -250,13 +329,19 @@ internal static class EngineModernization
         string folder,
         GraphicsOptions options)
     {
-        string path = Path.Combine(folder, "dxwrapper.ini");
+        string path =
+            Path.Combine(
+                folder,
+                "dxwrapper.ini");
 
         if (File.Exists(path))
         {
-            string existing = File.ReadAllText(path);
+            string existing =
+                File.ReadAllText(path);
 
-            if (!existing.StartsWith(IniMarker, StringComparison.Ordinal))
+            if (!existing.StartsWith(
+                    "; Devil DFBHD Engine ",
+                    StringComparison.Ordinal))
             {
                 string hash =
                     Convert.ToHexString(
@@ -271,22 +356,34 @@ internal static class EngineModernization
             }
         }
 
-        (int width, int height) = ResolveResolution(options);
-
         int aa =
-            options.AntiAliasingSamples is 2 or 4 or 8 or 16
-                ? options.AntiAliasingSamples
-                : 0;
+            options.AntiAliasingSamples
+                is 2 or 4 or 8 or 16
+                    ? options.AntiAliasingSamples
+                    : 0;
 
         int refresh =
-            options.RefreshRate >= 30 && options.RefreshRate <= 1000
+            options.RefreshRate >= 30 &&
+            options.RefreshRate <= 1000
                 ? options.RefreshRate
+                : 0;
+
+        int d3d9On12 =
+            IsD3d12(options)
+                ? 1
+                : 0;
+
+        int windowMode =
+            options.BorderlessFullscreen
+                ? 1
                 : 0;
 
         string text =
 $@"{IniMarker}
 ; DFBHD remains a Direct3D 8 game.
-; dxwrapper translates D3D8 -> D3D9 -> Windows D3D9On12 -> Direct3D 12.
+; Resolution is patched in dfbhd.exe. dxwrapper does NOT override display size.
+; 1.8.0.1 intentionally disables the forced borderless/custom-display defaults
+; from 1.8.0.0 because they can produce a black screen on some systems.
 
 [General]
 RealDllPath                = AUTO
@@ -297,7 +394,7 @@ DisableLogging             = 1
 Dd7to9                     = 0
 D3d8to9                    = 1
 D3d9to9Ex                  = 0
-D3d9on12                   = 1
+D3d9on12                   = {d3d9On12}
 DDrawCompat                = 0
 EnableDdrawWrapper         = 0
 EnableD3d9Wrapper          = 1
@@ -308,11 +405,12 @@ AntiAliasing               = {aa}
 ForceMipMapUsage           = 0
 EnableVSync                = {(options.VSync ? 1 : 0)}
 OverrideRefreshRate        = {refresh}
-CustomDisplayWidth         = {width}
-CustomDisplayHeight        = {height}
-EnableWindowMode           = {(options.BorderlessFullscreen ? 1 : 0)}
+LimitDisplayModeCount      = 0
+CustomDisplayWidth         = 0
+CustomDisplayHeight        = 0
+EnableWindowMode           = {windowMode}
 WindowModeBorder           = 0
-FullscreenWindowMode       = {(options.BorderlessFullscreen ? 1 : 0)}
+FullscreenWindowMode       = {windowMode}
 ForceExclusiveFullscreen   = 0
 ShowFPSCounter             = 0
 
@@ -337,39 +435,11 @@ WaitForWindowChanges       = 0
         return changed;
     }
 
-    private static (int Width, int Height) ResolveResolution(
-        GraphicsOptions options)
-    {
-        if (string.Equals(
-                options.ResolutionPreset,
-                "Game default",
-                StringComparison.OrdinalIgnoreCase))
-        {
-            return (0, 0);
-        }
-
-        if (string.Equals(
-                options.ResolutionPreset,
-                "Desktop native",
-                StringComparison.OrdinalIgnoreCase))
-        {
-            Rectangle bounds =
-                Screen.PrimaryScreen?.Bounds
-                ?? new Rectangle(0, 0, 1920, 1080);
-
-            return (bounds.Width, bounds.Height);
-        }
-
-        if (options.Width >= 640 &&
-            options.Width <= 16384 &&
-            options.Height >= 480 &&
-            options.Height <= 8640)
-        {
-            return (options.Width, options.Height);
-        }
-
-        return (0, 0);
-    }
+    private static bool IsD3d12(
+        GraphicsOptions options) =>
+        options.RendererMode.StartsWith(
+            "Direct3D 12",
+            StringComparison.OrdinalIgnoreCase);
 
     private static bool RemoveOwnedBinary(
         string folder,
@@ -377,24 +447,33 @@ WaitForWindowChanges       = 0
         string expectedHash,
         List<string> notes)
     {
-        string path = Path.Combine(folder, fileName);
+        string path =
+            Path.Combine(
+                folder,
+                fileName);
 
         if (!File.Exists(path))
             return false;
 
-        string currentHash = Sha256File(path);
+        string currentHash =
+            Sha256File(path);
 
         if (!string.Equals(
                 currentHash,
                 expectedHash,
                 StringComparison.OrdinalIgnoreCase))
         {
-            notes.Add($"{fileName} is not the Devil DFBHD payload; it was left untouched.");
+            notes.Add(
+                $"{fileName} is not the Devil DFBHD payload; it was left untouched.");
+
             return false;
         }
 
         File.Delete(path);
-        notes.Add($"Removed Devil DFBHD {fileName}.");
+
+        notes.Add(
+            $"Removed Devil DFBHD {fileName}.");
+
         return true;
     }
 
@@ -415,7 +494,8 @@ WaitForWindowChanges       = 0
         FileInfo? previous =
             new DirectoryInfo(backupDir)
                 .GetFiles(pattern)
-                .OrderByDescending(f => f.LastWriteTimeUtc)
+                .OrderByDescending(
+                    f => f.LastWriteTimeUtc)
                 .FirstOrDefault();
 
         if (previous is null)
@@ -423,10 +503,14 @@ WaitForWindowChanges       = 0
 
         File.Copy(
             previous.FullName,
-            Path.Combine(folder, destinationName),
+            Path.Combine(
+                folder,
+                destinationName),
             true);
 
-        notes.Add($"Restored previous {destinationName}.");
+        notes.Add(
+            $"Restored previous {destinationName}.");
+
         return true;
     }
 
@@ -441,17 +525,27 @@ WaitForWindowChanges       = 0
                 folder,
                 BackupService.BackupDirectoryName);
 
-        Directory.CreateDirectory(backupDir);
+        Directory.CreateDirectory(
+            backupDir);
 
-        string stamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff");
-        string shortHash = sha256.Length >= 12 ? sha256[..12] : sha256;
+        string stamp =
+            DateTime.UtcNow.ToString(
+                "yyyyMMdd-HHmmss-fff");
+
+        string shortHash =
+            sha256.Length >= 12
+                ? sha256[..12]
+                : sha256;
 
         string backup =
             Path.Combine(
                 backupDir,
                 $"{token}-{stamp}-{shortHash}.bak");
 
-        File.Copy(sourcePath, backup, false);
+        File.Copy(
+            sourcePath,
+            backup,
+            false);
     }
 
     private static void VerifyPayload(
@@ -473,18 +567,22 @@ WaitForWindowChanges       = 0
         }
     }
 
-    private static string Sha256File(string path) =>
+    private static string Sha256File(
+        string path) =>
         Convert.ToHexString(
             SHA256.HashData(
                 File.ReadAllBytes(path)));
 
-    private static void WriteThirdPartyNotice(string folder)
+    private static void WriteThirdPartyNotice(
+        string folder)
     {
         byte[] d3d8License =
-            ReadEmbeddedBytes(D3d8LicenseResource);
+            ReadEmbeddedBytes(
+                D3d8LicenseResource);
 
         byte[] wrapperLicense =
-            ReadEmbeddedBytes(DxWrapperLicenseResource);
+            ReadEmbeddedBytes(
+                DxWrapperLicenseResource);
 
         string text =
             "Devil DFBHD Engine - Third Party Notices" +
@@ -525,6 +623,7 @@ WaitForWindowChanges       = 0
                     server125Hz = true,
                     clientNpcReplication = false
                 },
+
                 UpdateProfile.Dfbhd => new
                 {
                     largeAddressAware = true,
@@ -533,6 +632,7 @@ WaitForWindowChanges       = 0
                     server125Hz = false,
                     clientNpcReplication = true
                 },
+
                 _ => new
                 {
                     largeAddressAware = true,
@@ -543,38 +643,81 @@ WaitForWindowChanges       = 0
                 }
             };
 
-        (int width, int height) = ResolveResolution(graphics);
-
         var config = new
         {
-            product = "Devilish Services DFBHD Engine",
-            engineVersion = EngineVersion,
-            profile = profile.DisplayName(),
-            installedUtc = DateTime.UtcNow.ToString("O"),
+            product =
+                "Devilish Services DFBHD Engine",
+
+            engineVersion =
+                EngineVersion,
+
+            profile =
+                profile.DisplayName(),
+
+            installedUtc =
+                DateTime.UtcNow.ToString("O"),
 
             renderer = new
             {
-                installed = rendererInstalled,
-                translation = rendererInstalled
-                    ? "Direct3D 8 -> Direct3D 9 -> Direct3D 12 (D3D9On12)"
-                    : "None",
-                component = rendererInstalled ? "elishacloud/dxwrapper" : null,
-                componentVersion = rendererInstalled
-                    ? GeneratedRendererHashes.DxWrapperVersion
-                    : null,
-                d3d8Sha256 = d3d8Hash,
-                dxwrapperSha256 = dxwrapperHash,
-                resolutionPreset = graphics.ResolutionPreset,
-                width,
-                height,
-                refreshRate = graphics.RefreshRate,
-                borderlessFullscreen = graphics.BorderlessFullscreen,
-                vSync = graphics.VSync,
-                anisotropicFiltering = graphics.AnisotropicFiltering,
-                antiAliasingSamples = graphics.AntiAliasingSamples
+                installed =
+                    rendererInstalled,
+
+                mode =
+                    graphics.RendererMode,
+
+                translation =
+                    !rendererInstalled
+                        ? "Original Direct3D 8"
+                        : IsD3d12(graphics)
+                            ? "Direct3D 8 -> Direct3D 9 -> Direct3D 12 (D3D9On12)"
+                            : "Direct3D 8 -> Direct3D 9",
+
+                component =
+                    rendererInstalled
+                        ? "elishacloud/dxwrapper"
+                        : null,
+
+                componentVersion =
+                    rendererInstalled
+                        ? GeneratedRendererHashes.DxWrapperVersion
+                        : null,
+
+                d3d8Sha256 =
+                    d3d8Hash,
+
+                dxwrapperSha256 =
+                    dxwrapperHash,
+
+                resolutionPreset =
+                    graphics.ResolutionPreset,
+
+                width =
+                    graphics.Width,
+
+                height =
+                    graphics.Height,
+
+                refreshRate =
+                    graphics.RefreshRate,
+
+                borderlessFullscreen =
+                    graphics.BorderlessFullscreen,
+
+                vSync =
+                    graphics.VSync,
+
+                anisotropicFiltering =
+                    graphics.AnisotropicFiltering,
+
+                antiAliasingSamples =
+                    graphics.AntiAliasingSamples,
+
+                dxwrapperOverridesResolution =
+                    false
             },
 
-            enginePatches = patchSet,
+            enginePatches =
+                patchSet,
 
             pendingDeepEngineWork = new
             {
@@ -589,7 +732,8 @@ WaitForWindowChanges       = 0
             compatibility = new
             {
                 multiplayerProtocolModified = false,
-                rendererIsTranslationLayer = rendererInstalled
+                rendererIsTranslationLayer =
+                    rendererInstalled
             }
         };
 
@@ -605,21 +749,29 @@ WaitForWindowChanges       = 0
                 }));
     }
 
-    private static byte[] ReadEmbeddedBytes(string logicalName)
+    private static byte[] ReadEmbeddedBytes(
+        string logicalName)
     {
-        Assembly assembly = Assembly.GetExecutingAssembly();
+        Assembly assembly =
+            Assembly.GetExecutingAssembly();
 
         using Stream stream =
-            assembly.GetManifestResourceStream(logicalName)
+            assembly.GetManifestResourceStream(
+                logicalName)
             ?? throw new InvalidOperationException(
-                "Missing embedded resource: " + logicalName);
+                "Missing embedded resource: " +
+                logicalName);
 
-        using var ms = new MemoryStream();
+        using var ms =
+            new MemoryStream();
+
         stream.CopyTo(ms);
+
         return ms.ToArray();
     }
 
-    private static void DeleteIfExists(string path)
+    private static void DeleteIfExists(
+        string path)
     {
         if (File.Exists(path))
             File.Delete(path);
