@@ -1,86 +1,175 @@
 # Devilish Services DFBHD Updater 1.8.0.0
 
-This is the complete source tree needed to build the portable Windows updater for:
+This package is the complete local build source for the Devilish Services update tool for:
 
 - Delta Force: Black Hawk Down client
 - Delta Force: Black Hawk Down dedicated server
 - Delta Force: Black Hawk Down: Team Sabre client
 
-The updater patches the user's existing dfbhd.exe; no NovaLogic game executable is distributed in this source package.
+The updater modifies an existing owned installation. It does not include or redistribute NovaLogic's game executable.
 
-## Implemented patch profiles
+## What 1.8.0.0 does
 
 ### DFBHD Server
 
-- 512 MB mission memory pool
+- 512 MB mission-memory pool
 - Large Address Aware
-- reliable-ordered hole-skip patch
-- 125 Hz one-tick server scheduler
-- no graphics wrapper
+- reliable ordered stale-hole skip
+- one-tick server scheduler (~125 Hz)
+- configurable multiplayer packet ceiling in dfv.cfg
+- Windows FileVersion/ProductVersion stamped to 1.8.0.0
+- executable/config backups and restore
+- no client graphics wrapper
 
 ### DFBHD Client
 
-- 512 MB mission memory pool
+- 512 MB mission-memory pool
 - Large Address Aware
-- reliable-ordered hole-skip patch
-- client-side co-op NPC navigation/replication fix
-- Direct3D 8 -> Direct3D 9 -> Direct3D 12 compatibility layer
+- reliable ordered stale-hole skip
+- client co-op NPC navigation/replication correction
+- validated high-resolution executable patch
+- Direct3D 8 -> Direct3D 9 -> Direct3D 12 translation
+- desktop-native, 1080p, 1440p, ultrawide, 4K, 5K/8K and custom render sizes
+- refresh-rate selection
+- optional borderless fullscreen
+- VSync control
+- anisotropic filtering
+- optional MSAA, defaulting to Off for the sharpest image
+- configurable multiplayer packet ceiling in dfv.cfg
+- Windows FileVersion/ProductVersion stamped to 1.8.0.0
+- executable/config/renderer backups and restore
 
-### Team Sabre Client
+### DFBHD Team Sabre
 
-Team Sabre is treated as a separate executable build. Until Team Sabre-specific engine offsets are independently mapped, the updater applies only:
+Team Sabre is treated as a separate executable build.
 
-- generic PE Large Address Aware
-- Direct3D 8 -> Direct3D 9 -> Direct3D 12 compatibility layer
+1.8.0.0 applies only changes that can be independently validated for Team Sabre:
 
-It deliberately does not apply Black Hawk Down offsets to Team Sabre.
+- generic Large Address Aware
+- validated BHD/Team Sabre widescreen-resolution signature
+- Direct3D 12 compatibility layer
+- dfv.cfg resolution/network tuning
+- Windows FileVersion/ProductVersion stamp
 
-## Modern graphics layer
+The updater does not apply BHD fixed gameplay/network offsets to Team Sabre.
 
-At build time, Build.ps1 downloads the pinned d3d8to9 v1.16.0 d3d8.dll and verifies:
+## Resolution implementation
 
-122928CFE225C25D30DECF7184A5D37E490CECF3B58256BA3206C7E1853F8AB8
+The game remains a Direct3D 8 application internally.
 
-The verified DLL is embedded in the portable updater and installed only for client profiles.
+For client profiles the updater uses the validated BHD/Team Sabre 1.5.0.5 widescreen instruction signature:
+
+    EB 42 BF [width dword] BE [height dword] EB 36 BF
+
+Only the two 32-bit width/height immediates are changed. The updater requires exactly one matching instruction signature before writing.
+
+For custom/high resolutions the updater also sets the existing 1024x768 selection slot in dfv.cfg:
+
+    hw3d_res1024x768 = 1
+    game_res = 6
+
+This is deliberate: the executable patch replaces that resolution slot with the selected modern resolution.
+
+## Direct3D 12
+
+The bundled client renderer uses pinned 32-bit dxwrapper components and Windows D3D9On12:
+
+    DFBHD Direct3D 8
+        -> Direct3D 9 translation
+        -> D3D9On12
+        -> Direct3D 12
+
+This is a compatibility/translation layer. The proprietary NovaLogic renderer is not being falsely described as a native D3D12 rewrite.
+
+The packaged source already includes the renderer DLLs. Building the updater does not require GitHub or a renderer download.
+
+Pinned payload hashes:
+
+    d3d8.dll
+    B8B878E29C2931D6A8D064665C4C93EDB28A0105152E7247F8F543C1603985C3
+
+    dxwrapper.dll
+    23A2889E0785A02F17F1EE764254BF22B937FC5BDC6ED6374201A9F50CC7B43D
+
+## UDP packet tuning
+
+The updater exposes a packet ceiling from 576 to 1472 bytes and defaults to 1400 bytes.
+
+It writes:
+
+    mpmaxpacketsize = "1400"
+
+to dfv.cfg for the selected game/server installation. The setting is applied to the local instance's outgoing multiplayer packet ceiling where supported by the NovaLogic networking configuration.
+
+The updater deliberately caps the value at 1472 bytes rather than allowing oversized UDP datagrams that are likely to fragment on a normal 1500-byte IPv4 path.
+
+This setting does not alter the NovaLogic multiplayer packet format and does not claim to enlarge internal receive structures that have not been independently mapped.
+
+## Game executable version
+
+After executable patches are written to a temporary file, the updater changes the Windows VERSIONINFO resource and verifies:
+
+    FileVersion:    1.8.0.0
+    ProductVersion: 1.8.0.0
+
+This changes Windows Explorer file metadata only.
+
+The NovaLogic multiplayer protocol/version handshake is intentionally left unchanged.
+
+## Backups
+
+Before changing dfbhd.exe:
+
+    <game folder>\.devil-dfbhd-backups\
+
+receives a timestamped executable backup.
+
+If dfv.cfg changes, it is also backed up there.
+
+If an existing d3d8.dll, dxwrapper.dll or dxwrapper.ini would be replaced, the existing file is backed up before replacement.
+
+Restore Last Backup restores the newest matching executable/configuration/renderer state.
 
 ## Safety
 
-The binary patcher is idempotent and expected-byte checked:
+The BHD binary patcher is expected-byte checked and idempotent.
 
-- each patch accepts only its known original bytes or its already-patched bytes;
-- code caves must be all-zero or already contain the exact expected cave;
-- unknown bytes abort before the target executable is written;
-- the current executable is backed up first;
-- replacement is performed through a temporary file;
-- restore returns the newest saved executable and restores a pre-existing d3d8 wrapper if one was replaced.
+- known fixed BHD patch sites must contain either the known original bytes or exact already-patched bytes;
+- code caves must be empty or contain the expected cave;
+- the widescreen patch requires exactly one validated instruction signature;
+- Team Sabre does not receive BHD-only fixed gameplay offsets;
+- all writes are made through temporary files;
+- failures trigger best-effort rollback;
+- existing files are backed up first.
 
-Known stock BHD v1.5.0.5 SHA-256:
+Known stock BHD 1.5.0.5 SHA-256:
 
-693676B5FB96012D32EE395AC23B4A8BF4D7DD9A9F25AE8E500749A2F0DF34EA
+    693676B5FB96012D32EE395AC23B4A8BF4D7DD9A9F25AE8E500749A2F0DF34EA
 
-The updater also accepts signature-compatible derivatives, including already-patched files, rather than relying only on the stock hash.
+Signature-compatible derivatives can also be accepted when all expected patch bytes validate.
 
-## Deep engine work not yet claimed complete
+## Still not claimed complete
 
-The following still require independently validated engine hooks and therefore remain disabled in the engine manifest:
+The following deeper engine work is not marked complete until verified engine hooks are available:
 
-- true static-world muzzle raycast before accepting a shot
-- first-person weapon retraction at walls
+- server-authoritative world raycast from body-safe origin to weapon muzzle
+- first-person weapon retraction when approaching solid geometry
 - frame-independent projectile/physics conversion
-- new network interpolation
+- new interpolation algorithm
 - native 64-bit conversion of the proprietary engine
 
-No unverified addresses are written for these features.
+The updater does not install guessed addresses for those features.
 
-## Build
+## Build locally
 
-Requirements on the build computer:
+Build computer requirements:
 
 - Windows 10 or Windows 11
 - .NET 10 SDK
-- Internet access the first time so the pinned renderer can be downloaded
 
-Run:
+No GitHub build service is required.
+
+PowerShell:
 
     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
     Set-Location "D:\Devil-DFBHD-Updater-1.8.0.0"
@@ -90,31 +179,25 @@ Output:
 
     artifacts\Devil_dfbhd_update_012105_xx.exe
 
-The produced updater is self-contained, single-file, untrimmed, ReadyToRun-disabled, and uses an uncompressed single-file bundle. The destination PC does not need the .NET runtime.
+The updater is published as a self-contained single-file Windows application. The destination game computer does not need the .NET runtime.
 
-## Credits
+## Files installed on a client
 
-The documented BHD patch algorithms and byte sites for mission memory, LAA, server scheduler, ordered hole skip, and NPC replication are based on the MIT-licensed community work in BadgerLove/bhd-patches. The applicable license is included under ThirdParty.
+Depending on the selected options:
 
-The Direct3D wrapper is crosire/d3d8to9, BSD-2-Clause. Its license is also included under ThirdParty.
+    dfbhd.exe
+    d3d8.dll
+    dxwrapper.dll
+    dxwrapper.ini
+    Devil_DFBHD_Version.json
+    DevilDFBHD.Engine.json
+    DevilDFBHD-ThirdParty-Notices.txt
+    .devil-dfbhd-backups\
 
+dfv.cfg is edited in place only after a backup is created.
 
-## Direct3D 12 and resolution controls
+## Credits / third-party software
 
-Version 1.8.0.0 replaces the previous D3D8-to-D3D9-only client layer with a pinned dxwrapper build configured as:
+The documented BHD memory, LAA, server scheduler, ordered-hole-skip and client NPC patches are based on the MIT-licensed community patch work in BadgerLove/bhd-patches.
 
-- Direct3D 8 -> Direct3D 9
-- Direct3D 9 -> Direct3D 12 using Windows D3D9On12
-- optional borderless fullscreen
-- configurable refresh rate and VSync
-- optional anisotropic filtering
-- optional 2x/4x/8x/16x MSAA
-- Game default, desktop-native, 1080p, 1440p, 3440x1440 ultrawide, 4K, 5120x1440, 5120x2160, 8K and custom resolutions
-
-Anti-aliasing defaults to Off because post-processing or multisampling can make this older game's image look softer. Anisotropic filtering remains enabled by default to improve texture clarity at oblique viewing angles.
-
-The original engine is not rewritten as a native Direct3D 12 engine. The compatibility chain translates the game's Direct3D 8 rendering calls to Direct3D 12.
-
-## Game executable version
-
-The updater now stamps the Windows VERSIONINFO resource in the installed dfbhd.exe to 1.8.0.0 after the verified engine byte patches are applied. This changes Windows Explorer FileVersion/ProductVersion only and does not intentionally modify the NovaLogic multiplayer protocol/version handshake.
+The client Direct3D compatibility layer uses elishacloud/dxwrapper and its bundled third-party components. Applicable notices are included under src\Devil.DFBHD.Updater\ThirdParty.
