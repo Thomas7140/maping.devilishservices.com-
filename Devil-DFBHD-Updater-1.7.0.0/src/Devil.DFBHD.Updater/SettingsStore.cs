@@ -33,6 +33,17 @@ internal static class SettingsStore
             AppSettings settings = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
             settings.Graphics ??= new GraphicsOptions();
             settings.Network ??= new NetworkOptions();
+
+            // 1.8.0.0 forced borderless/window-mode settings that can black-screen
+            // some DFBHD systems. Older settings did not contain RendererMode,
+            // so migrate them to the new conservative renderer defaults.
+            if (!json.Contains("\"RendererMode\"", StringComparison.Ordinal))
+            {
+                settings.Graphics.RendererMode = "Direct3D 12 (safe)";
+                settings.Graphics.BorderlessFullscreen = false;
+                settings.Graphics.AntiAliasingSamples = 0;
+            }
+
             return settings;
         }
         catch
