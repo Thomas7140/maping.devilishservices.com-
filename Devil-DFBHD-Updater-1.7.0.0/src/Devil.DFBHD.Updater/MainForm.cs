@@ -32,6 +32,7 @@ internal sealed class MainForm : Form
 
     private readonly Button _scanButton = new();
     private readonly Button _installButton = new();
+    private readonly Button _graphicsRecoveryButton = new();
     private readonly Button _restoreButton = new();
 
     public MainForm()
@@ -166,10 +167,12 @@ internal sealed class MainForm : Form
 
         ConfigureActionButton(_scanButton, "Scan Installation", ScanSelected);
         ConfigureActionButton(_installButton, "Install Update", InstallSelected);
+        ConfigureActionButton(_graphicsRecoveryButton, "Fix Black Screen", FixBlackScreen);
         ConfigureActionButton(_restoreButton, "Restore Last Backup", RestoreSelected);
 
         buttonPanel.Controls.Add(_scanButton);
         buttonPanel.Controls.Add(_installButton);
+        buttonPanel.Controls.Add(_graphicsRecoveryButton);
         buttonPanel.Controls.Add(_restoreButton);
 
         root.Controls.Add(buttonPanel, 0, 4);
@@ -946,6 +949,102 @@ internal sealed class MainForm : Form
                 result.Success
                     ? "Update complete"
                     : "Update failed",
+                MessageBoxButtons.OK,
+                result.Success
+                    ? MessageBoxIcon.Information
+                    : MessageBoxIcon.Error);
+        });
+    }
+
+    private void FixBlackScreen(
+        object? sender,
+        EventArgs e)
+    {
+        RunUiOperation(() =>
+        {
+            UpdateProfile profile =
+                SelectedProfile();
+
+            if (profile == UpdateProfile.DfbhdServer)
+            {
+                MessageBox.Show(
+                    this,
+                    "The dedicated-server profile does not install a graphics wrapper.",
+                    "Graphics recovery",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+
+                return;
+            }
+
+            string folder =
+                SelectedFolder();
+
+            string target =
+                Path.Combine(
+                    folder,
+                    "dfbhd.exe");
+
+            if (!File.Exists(target))
+            {
+                MessageBox.Show(
+                    this,
+                    "Select the client game folder containing dfbhd.exe first.",
+                    "Graphics recovery",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                return;
+            }
+
+            var recovery =
+                CurrentGraphicsOptions();
+
+            recovery.RendererMode =
+                "Original Direct3D 8";
+
+            recovery.BorderlessFullscreen =
+                false;
+
+            recovery.AntiAliasingSamples =
+                0;
+
+            EngineModernizationResult result =
+                EngineModernization.Install(
+                    profile,
+                    target,
+                    recovery);
+
+            if (result.Success)
+            {
+                _rendererMode.SelectedItem =
+                    "Original Direct3D 8";
+
+                _borderless.Checked =
+                    false;
+
+                _antiAliasing.SelectedItem =
+                    "Off (sharpest)";
+
+                _settings.Graphics =
+                    recovery.Clone();
+
+                SettingsStore.Save(
+                    _settings);
+            }
+
+            _output.Text =
+                result.Summary +
+                Environment.NewLine +
+                Environment.NewLine +
+                "This recovery changes only the Devil renderer layer. It does not remove the engine/network patches from dfbhd.exe.";
+
+            MessageBox.Show(
+                this,
+                _output.Text,
+                result.Success
+                    ? "Graphics recovery complete"
+                    : "Graphics recovery failed",
                 MessageBoxButtons.OK,
                 result.Success
                     ? MessageBoxIcon.Information
