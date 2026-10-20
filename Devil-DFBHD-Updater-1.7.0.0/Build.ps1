@@ -12,19 +12,23 @@ Set-StrictMode -Version Latest
 
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Project = Join-Path $Root "src\Devil.DFBHD.Updater\Devil.DFBHD.Updater.csproj"
-$RendererDir = Join-Path $Root "src\Devil.DFBHD.Updater\Payloads\Renderer"
-$Renderer = Join-Path $RendererDir "d3d8.dll"
+$ProjectDir = Split-Path -Parent $Project
+$RendererDir = Join-Path $ProjectDir "Payloads\Renderer"
+$RendererStub = Join-Path $RendererDir "d3d8.dll"
+$RendererCore = Join-Path $RendererDir "dxwrapper.dll"
+$GeneratedHashes = Join-Path $ProjectDir "GeneratedRendererHashes.cs"
+
 $Artifacts = Join-Path $Root "artifacts"
 $PublishDir = Join-Path $Root "portable-publish"
 $Output = Join-Path $Artifacts "Devil_dfbhd_update_012105_xx.exe"
 
-$RendererUrl = "https://github.com/crosire/d3d8to9/releases/download/v1.16.0/d3d8.dll"
-$RendererSha256 = "122928CFE225C25D30DECF7184A5D37E490CECF3B58256BA3206C7E1853F8AB8"
+$DxWrapperUrl = "https://github.com/elishacloud/dxwrapper/releases/download/v1.9.8700.25/dxwrapper.zip"
+$DxWrapperArchiveSha256 = "E6AA4FC685115C8F73DEE4EA2D446B6A1F8B57DD04DB9889D2C6D1B6D7B8C825"
 
 Write-Host ""
 Write-Host "====================================================" -ForegroundColor Cyan
-Write-Host " Devilish Services DFBHD Updater 1.7.0.0" -ForegroundColor Cyan
-Write-Host " Complete Portable Build" -ForegroundColor Cyan
+Write-Host " Devilish Services DFBHD Updater 1.8.0.0" -ForegroundColor Cyan
+Write-Host " Direct3D 12 + Resolution Controls" -ForegroundColor Cyan
 Write-Host "====================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -44,24 +48,62 @@ if (-not (Test-Path $Project -PathType Leaf)) {
 
 New-Item -ItemType Directory -Path $RendererDir -Force | Out-Null
 
-$NeedRenderer = $true
-if (Test-Path $Renderer -PathType Leaf) {
-    $Existing = (Get-FileHash $Renderer -Algorithm SHA256).Hash.ToUpperInvariant()
-    if ($Existing -eq $RendererSha256) {
-        $NeedRenderer = $false
-        Write-Host "Pinned renderer already present and verified." -ForegroundColor Green
-    }
-}
+$TempRoot = Join-Path $env:TEMP ("DevilDFBHD-dxwrapper-" + [Guid]::NewGuid().ToString("N"))
+$Archive = Join-Path $TempRoot "dxwrapper.zip"
+$Extract = Join-Path $TempRoot "extract"
 
-if ($NeedRenderer) {
-    Write-Host "Downloading pinned d3d8to9 v1.16.0 renderer..." -ForegroundColor Cyan
-    Invoke-WebRequest -Uri $RendererUrl -OutFile $Renderer -UseBasicParsing
-    $Actual = (Get-FileHash $Renderer -Algorithm SHA256).Hash.ToUpperInvariant()
-    if ($Actual -ne $RendererSha256) {
-        Remove-Item $Renderer -Force -ErrorAction SilentlyContinue
-        throw "Renderer SHA256 mismatch. Expected $RendererSha256, found $Actual"
+try {
+    New-Item -ItemType Directory -Path $Extract -Force | Out-Null
+
+    Write-Host "Downloading pinned dxwrapper v1.9.8700.25..." -ForegroundColor Cyan
+    Invoke-WebRequest -Uri $DxWrapperUrl -OutFile $Archive -UseBasicParsing
+
+    $ArchiveHash = (Get-FileHash $Archive -Algorithm SHA256).Hash.ToUpperInvariant()
+    if ($ArchiveHash -ne $DxWrapperArchiveSha256) {
+        throw "dxwrapper.zip SHA256 mismatch. Expected $DxWrapperArchiveSha256, found $ArchiveHash"
     }
-    Write-Host "Renderer verified." -ForegroundColor Green
+
+    Expand-Archive -Path $Archive -DestinationPath $Extract -Force
+
+    $StubSource = Get-ChildItem -Path $Extract -Recurse -File -Filter "d3d8.dll" |
+        Where-Object { $_.FullName -match "[\\/]Stub[\\/]" } |
+        Select-Object -First 1
+
+    if (-not $StubSource) {
+        throw "Could not locate Stub\d3d8.dll inside dxwrapper.zip."
+    }
+
+    $CoreSource = Get-ChildItem -Path $Extract -Recurse -File -Filter "dxwrapper.dll" |
+        Where-Object { $_.FullName -notmatch "[\\/](Debug|symbols)[\\/]" } |
+        Select-Object -First 1
+
+    if (-not $CoreSource) {
+        throw "Could not locate dxwrapper.dll inside dxwrapper.zip."
+    }
+
+    Copy-Item $StubSource.FullName $RendererStub -Force
+    Copy-Item $CoreSource.FullName $RendererCore -Force
+
+    $StubHash = (Get-FileHash $RendererStub -Algorithm SHA256).Hash.ToUpperInvariant()
+    $CoreHash = (Get-FileHash $RendererCore -Algorithm SHA256).Hash.ToUpperInvariant()
+
+    @"
+namespace DevilishServices.DfbhdUpdater;
+
+internal static class GeneratedRendererHashes
+{
+    public const string D3d8StubSha256 = "$StubHash";
+    public const string DxWrapperSha256 = "$CoreHash";
+    public const string DxWrapperVersion = "1.9.8700.25";
+}
+"@ | Set-Content -Path $GeneratedHashes -Encoding UTF8
+
+    Write-Host "Renderer archive verified." -ForegroundColor Green
+    Write-Host "d3d8.dll SHA256:     $StubHash"
+    Write-Host "dxwrapper.dll SHA256: $CoreHash"
+}
+finally {
+    Remove-Item $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 Write-Host "Cleaning bin/obj and old publish output..." -ForegroundColor Cyan
@@ -100,12 +142,16 @@ if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed with exit code $LASTEXIT
 
 $Published = Join-Path $PublishDir "Devil_dfbhd_update_012105_xx.exe"
 if (-not (Test-Path $Published -PathType Leaf)) {
-    $Candidate = Get-ChildItem $PublishDir -Filter "*.exe" -File | Where-Object { $_.Name -like "*dfbhd*" } | Select-Object -First 1
+    $Candidate = Get-ChildItem $PublishDir -Filter "*.exe" -File |
+        Where-Object { $_.Name -like "*dfbhd*" } |
+        Select-Object -First 1
+
     if (-not $Candidate) { throw "Published updater executable was not found." }
     $Published = $Candidate.FullName
 }
 
 Copy-Item $Published $Output -Force
+
 $Item = Get-Item $Output
 $Hash = (Get-FileHash $Output -Algorithm SHA256).Hash
 
