@@ -1,0 +1,35 @@
+name: Package Devil DFBHD Engine 1.7.0.0
+
+on:
+  push:
+    branches:
+      - devil-dfbhd-engine-1.7.0.0
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify package files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f Devil-DFBHD-Engine-1.7.0.0/README.md
+          test -f Devil-DFBHD-Engine-1.7.0.0/Upgrade-To-1.7.0.0.ps1
+          test -f Devil-DFBHD-Engine-1.7.0.0/files/EngineModernization.cs
+          test -f Devil-DFBHD-Engine-1.7.0.0/files/Build.ps1
+          test -f Devil-DFBHD-Engine-1.7.0.0/files/LICENSE-d3d8to9.md
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Devil-DFBHD-Engine-1.7.0.0
+          path: Devil-DFBHD-Engine-1.7.0.0
+          if-no-files-found: error
+          retention-days: 30
