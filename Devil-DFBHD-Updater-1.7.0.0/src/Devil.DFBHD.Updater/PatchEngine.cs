@@ -507,20 +507,19 @@ internal static class PatchEngine
             BinaryPrimitives.WriteUInt32LittleEndian(temp, value);
             b.AddRange(temp.ToArray());
         }
-        void AddRel32(int target, int instructionLength)
+        void AddRel32(int target)
         {
-            int current = unchecked((int)CaveNpc) + b.Count;
-            int next = current + instructionLength;
+            int next = unchecked((int)CaveNpc) + b.Count + 4;
             Span<byte> temp = stackalloc byte[4];
             BinaryPrimitives.WriteInt32LittleEndian(temp, target - next);
             b.AddRange(temp.ToArray());
         }
 
-        Add(0x0F,0x85); AddRel32(unchecked((int)NpcJoin), 6);
+        Add(0x0F,0x85); AddRel32(unchecked((int)NpcJoin));
         Add(0xA1); AddU32(NetHost);
         Add(0x85,0xC0);
-        Add(0x0F,0x84); AddRel32(unchecked((int)NpcJoin), 6);
-        Add(0xE9); AddRel32(unchecked((int)NpcContinue), 5);
+        Add(0x0F,0x84); AddRel32(unchecked((int)NpcJoin));
+        Add(0xE9); AddRel32(unchecked((int)NpcContinue));
 
         if (b.Count != 24)
             throw new InvalidOperationException($"NPC cave length is {b.Count}, expected 24.");
