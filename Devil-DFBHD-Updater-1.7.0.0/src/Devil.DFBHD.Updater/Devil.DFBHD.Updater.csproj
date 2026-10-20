@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>DevilishServices.DfbhdUpdater</RootNamespace>
+    <AssemblyName>Devil_dfbhd_update_012105_xx</AssemblyName>
+    <Version>1.7.0.0</Version>
+    <FileVersion>1.7.0.0</FileVersion>
+    <AssemblyVersion>1.7.0.0</AssemblyVersion>
+    <Product>Devilish Services DFBHD Update</Product>
+    <Company>Devilish Services</Company>
+    <Authors>Devilish Services</Authors>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Payloads\Renderer\d3d8.dll" LogicalName="DevilDFBHD.Renderer.d3d8.dll" />
+    <EmbeddedResource Include="ThirdParty\d3d8to9-LICENSE.md" LogicalName="DevilDFBHD.Renderer.LICENSE.md" />
+  </ItemGroup>
+</Project>
